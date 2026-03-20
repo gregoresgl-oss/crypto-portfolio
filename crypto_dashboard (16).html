@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0e0f14; --surface:#16181f; --surface2:#1e2029;
+  --border:rgba(255,255,255,0.07); --text:#f0f0f5; --muted:#6b6e80;
+  --accent:#5b7fff; --green:#2ecc8f; --red:#ff5f6d; --amber:#f59e0b; --purple:#a78bfa;
+  --green-bg:rgba(46,204,143,0.12); --red-bg:rgba(255,95,109,0.12);
+  --amber-bg:rgba(245,158,11,0.12); --purple-bg:rgba(167,139,250,0.12);
+  --radius:14px; --radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;overflow-x:hidden;}
+
+/* Settings overlay */
+.s-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.s-overlay.open{opacity:1;pointer-events:all;}
+.s-panel{position:fixed;top:0;right:0;bottom:0;width:min(400px,100vw);background:var(--bg);border-left:1px solid var(--border);z-index:101;transform:translateX(100%);transition:transform 0.28s ease;overflow-y:auto;padding-bottom:40px;}
+.s-panel.open{transform:translateX(0);}
+.s-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:1;}
+.s-head-title{font-size:14px;font-weight:600;color:var(--text);}
+.s-close{width:30px;height:30px;border-radius:var(--radius-sm);background:var(--surface2);border:none;cursor:pointer;font-size:16px;color:var(--muted);display:flex;align-items:center;justify-content:center;}
+.s-body{padding:16px 18px;display:flex;flex-direction:column;gap:18px;}
+.s-section{display:flex;flex-direction:column;gap:8px;}
+.s-section-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+.s-label{font-size:11px;font-weight:500;color:var(--text);}
+.s-hint{font-size:10px;color:var(--muted);line-height:1.4;}
+.s-hint a{color:var(--accent);}
+.s-input{font-size:12px;font-family:'DM Mono',monospace;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%;}
+.s-input:focus{outline:none;border-color:var(--accent);}
+.s-textarea{font-size:11px;font-family:'DM Mono',monospace;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%;resize:vertical;min-height:72px;line-height:1.6;}
+.s-textarea:focus{outline:none;border-color:var(--accent);}
+.s-textarea::placeholder,.s-input::placeholder{color:var(--muted);}
+.s-row{display:flex;align-items:center;gap:10px;}
+.s-divider{border:none;border-top:1px solid var(--border);}
+.api-wrap{position:relative;}
+.api-wrap input{padding-right:80px;}
+.api-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--muted);cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;}
+.api-status{font-size:10px;margin-top:3px;}
+.api-status.ok{color:var(--green);}
+.api-status.warn{color:var(--muted);}
+.threshold-input{width:80px;font-size:13px;font-family:'DM Mono',monospace;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);text-align:right;}
+.threshold-input:focus{outline:none;border-color:var(--accent);}
+.s-log{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.9;max-height:240px;overflow-y:auto;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;display:none;}
+.s-log.show{display:block;}
+.s-log .ok{color:var(--green);}
+.s-log .warn{color:var(--amber);}
+.s-log .err{color:var(--red);}
+.s-log .acc{color:var(--accent);}
+.s-log .pur{color:var(--purple);}
+
+/* Main */
+.dash{max-width:700px;margin:0 auto;padding:16px 14px 60px;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+.header-left{display:flex;flex-direction:column;gap:2px;}
+.header-title{font-size:18px;font-weight:600;letter-spacing:-0.3px;}
+.header-meta{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.header-right{display:flex;gap:8px;align-items:center;}
+.btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;border:none;transition:all 0.15s;white-space:nowrap;}
+.btn-ghost{background:var(--surface2);color:var(--muted);}
+.btn-save{background:var(--accent);color:#fff;min-width:110px;}
+.btn-save.saved{background:var(--green);}
+.save-tick{display:none;}
+.btn-save.saved .save-tick{display:inline;}
+.btn-save.saved .save-label{display:none;}
+.btn-gear{width:34px;height:34px;border-radius:var(--radius-sm);background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.btn-sync-s{background:var(--amber);color:#0e0f14;font-weight:600;}
+
+/* Watch row */
+.watch-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+@media(max-width:400px){.watch-row{grid-template-columns:1fr;}}
+.watch-card{background:var(--surface);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.watch-card.btc{border:1px solid rgba(245,158,11,0.25);}
+.watch-card.eth{border:1px solid rgba(91,127,255,0.25);}
+.watch-left{display:flex;align-items:center;gap:9px;}
+.watch-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.watch-icon.btc{background:var(--amber-bg);color:var(--amber);}
+.watch-icon.eth{background:rgba(91,127,255,0.12);color:#5b7fff;}
+.watch-name{font-size:12px;font-weight:600;}
+.watch-sub{font-size:9px;color:var(--muted);}
+.watch-price{font-size:17px;font-weight:600;font-family:'DM Mono',monospace;}
+.watch-price.btc{color:var(--amber);}
+.watch-price.eth{color:#5b7fff;}
+.watch-chg{font-size:10px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:99px;}
+.watch-chg.pos{background:var(--green-bg);color:var(--green);}
+.watch-chg.neg{background:var(--red-bg);color:var(--red);}
+
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+.scard-label{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
+.scard-val{font-size:19px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-0.5px;}
+.scard-val.pos{color:var(--green);}
+.scard-val.neg{color:var(--red);}
+
+/* Comparison */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:18px;}
+.chart-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+.chart-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+.chart-legend{display:flex;gap:12px;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
+.range-btns{display:flex;gap:6px;margin-bottom:10px;}
+.range-btn{font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;border:none;background:var(--surface2);color:var(--muted);font-family:'DM Mono',monospace;}
+.range-btn.active{background:rgba(91,127,255,0.2);color:var(--accent);}
+.chart-wrap{position:relative;height:200px;}
+
+/* Small charts */
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+@media(max-width:400px){.charts-2{grid-template-columns:1fr;}}
+.chart-card-sm{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.chart-wrap-sm{position:relative;height:180px;}
+
+/* Table */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:560px;}
+th{font-size:10px;font-weight:500;color:var(--muted);text-align:right;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase;background:var(--surface);}
+th:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;}
+td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);}
+td:first-child{text-align:left;font-family:'DM Sans',sans-serif;position:sticky;left:0;background:var(--surface);z-index:1;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2);}
+tr:hover td:first-child{background:var(--surface2);}
+.coin-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.coin-name{font-weight:600;font-size:12px;}
+.coin-sym{font-size:9px;color:var(--muted);padding-left:13px;margin-top:1px;}
+.stk-detail{font-size:9px;color:var(--purple);padding-left:13px;margin-top:1px;}
+.badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:99px;font-weight:500;font-family:'DM Mono',monospace;}
+.badge.pos{background:var(--green-bg);color:var(--green);}
+.badge.neg{background:var(--red-bg);color:var(--red);}
+.badge.wa{background:var(--amber-bg);color:var(--amber);font-size:9px;margin-left:3px;}
+.badge.st{background:var(--purple-bg);color:var(--purple);font-size:9px;margin-left:2px;}
+.badge.nw{background:rgba(91,127,255,0.15);color:var(--accent);font-size:9px;margin-left:2px;}
+.badge.mo{background:rgba(167,139,250,0.15);color:var(--purple);font-size:9px;margin-left:2px;}
+.badge.wo{background:var(--amber-bg);color:var(--amber);font-size:9px;margin-left:2px;}
+.qty-in,.avg-in{width:70px;font-size:11px;font-family:'DM Mono',monospace;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);text-align:right;}
+.qty-in:focus,.avg-in:focus{outline:none;border-color:var(--accent);}
+.qty-in.sy{border-color:rgba(245,158,11,0.5);}
+.avg-in.mc{border-color:rgba(167,139,250,0.5);}
+.legend-row{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.tfoot{font-size:9px;color:var(--muted);padding:6px 12px 10px;opacity:0.7;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:99px;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;z-index:200;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.green{background:var(--green);}
+.toast.amber{background:var(--amber);color:#0e0f14;}
+.toast.purple{background:var(--purple);}
+</style>
+</head>
+<body>
+
+<!-- Settings overlay -->
+<div class="s-overlay" id="s-overlay"></div>
+
+<!-- Settings panel -->
+<div class="s-panel" id="s-panel">
+  <div class="s-head">
+    <span class="s-head-title">⚙ Ρυθμίσεις</span>
+    <button class="s-close" id="s-close-btn">✕</button>
+  </div>
+  <div class="s-body">
+
+    <div class="s-section">
+      <div class="s-section-title">🔑 CoinGecko API Key</div>
+      <div class="s-label">Demo API Key (δωρεάν)</div>
+      <div class="s-hint">Από το <a href="https://www.coingecko.com/en/developers/dashboard" target="_blank">coingecko.com/developers</a> · βελτιώνει υπολογισμό ΜΟ</div>
+      <div class="api-wrap">
+        <input class="s-input" type="password" id="cg-key" placeholder="CG-xxxxxxxxxxxxxxxxx"/>
+        <span class="api-toggle" id="key-toggle">εμφάνιση</span>
+      </div>
+      <div class="api-status warn" id="api-status">Χωρίς κλειδί</div>
+    </div>
+
+    <hr class="s-divider"/>
+
+    <div class="s-section">
+      <div class="s-section-title">🔗 Wallet Διευθύνσεις</div>
+      <div class="s-label">Cosmos (ATOM, OSMO, JUNO, DYM, SAGA, TIA κ.ά.)</div>
+      <div class="s-hint">Μία ανά γραμμή</div>
+      <textarea class="s-textarea" id="cosmos-addrs" placeholder="cosmos1abc...&#10;cosmos1xyz..."></textarea>
+      <div class="s-label">Cardano (ADA)</div>
+      <textarea class="s-textarea" id="cardano-addrs" placeholder="addr1abc..."></textarea>
+    </div>
+
+    <hr class="s-divider"/>
+
+    <div class="s-section">
+      <div class="s-section-title">⚖️ Ελάχιστη αξία</div>
+      <div class="s-row">
+        <input class="threshold-input" id="threshold" type="number" value="100" min="0"/>
+        <span style="font-size:12px;color:var(--muted)">€</span>
+      </div>
+    </div>
+
+    <hr class="s-divider"/>
+
+    <div class="s-section">
+      <div class="s-section-title">⚡ Ενέργειες</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-sync-s" id="sync-btn">⟳ Συγχρονισμός</button>
+      </div>
+
+    <hr class="s-divider"/>
+
+    <div class="s-section">
+      <div class="s-section-title" style="color:var(--amber)">🧪 Δοκιμή ΜΟ — Ιανουάριος 2024</div>
+      <div class="s-hint">Βρίσκει transactions Ιανουαρίου 2024 για ένα νόμισμα για να ελέγξουμε ότι λειτουργεί</div>
+      <div class="s-row" style="flex-wrap:wrap;gap:8px;">
+        <select class="s-input" id="test-coin" style="width:120px;padding:7px 9px;">
+          <option value="cosmos">ATOM</option>
+          <option value="osmosis">OSMO</option>
+          <option value="juno-network">JUNO</option>
+          <option value="dymension">DYM</option>
+          <option value="saga-2">SAGA</option>
+          <option value="celestia">TIA</option>
+        </select>
+        <button class="btn" id="test-mo-btn" style="background:var(--amber);color:#0e0f14;font-weight:600;">▶ Δοκιμή</button>
+      </div>
+    </div>
+      <div class="s-log" id="sync-log"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dash">
+
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title">Portfolio</span>
+      <span class="header-meta" id="last-update">Φόρτωση...</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-ghost" id="refresh-btn">↻</button>
+      <button class="btn btn-save" id="save-btn">
+        <span class="save-label">Αποθήκευση</span>
+        <span class="save-tick">✓ Αποθηκεύτηκε</span>
+      </button>
+      <button class="btn-gear" id="gear-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6e80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="scard"><div class="scard-label">Αξία portfolio</div><div class="scard-val" id="total-val">—</div></div>
+    <div class="scard"><div class="scard-label">Κόστος αγοράς</div><div class="scard-val" id="total-cost">—</div></div>
+    <div class="scard"><div class="scard-label">Κέρδος / Ζημία €</div><div class="scard-val" id="total-pnl">—</div></div>
+    <div class="scard"><div class="scard-label">Κέρδος / Ζημία %</div><div class="scard-val" id="total-pnlp">—</div></div>
+  </div>
+
+  <div class="watch-row">
+    <div class="watch-card btc">
+      <div class="watch-left">
+        <div class="watch-icon btc">₿</div>
+        <div><div class="watch-name">Bitcoin</div><div class="watch-sub">παρακολούθηση</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span class="watch-price btc" id="btc-price">—</span>
+        <span class="watch-chg" id="btc-chg">—</span>
+      </div>
+    </div>
+    <div class="watch-card eth">
+      <div class="watch-left">
+        <div class="watch-icon eth">Ξ</div>
+        <div><div class="watch-name">Ethereum</div><div class="watch-sub">παρακολούθηση</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span class="watch-price eth" id="eth-price">—</span>
+        <span class="watch-chg" id="eth-chg">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title-row">
+      <span class="chart-title" id="compare-title">Portfolio vs Bitcoin — 30 ημέρες</span>
+      <div class="chart-legend">
+        <span class="leg-item"><span class="leg-dot" style="background:#2ecc8f"></span>Portfolio</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#f59e0b"></span>BTC</span>
+      </div>
+    </div>
+    <div class="range-btns">
+      <button class="range-btn" data-days="7">7D</button>
+      <button class="range-btn active" data-days="30">30D</button>
+      <button class="range-btn" data-days="90">90D</button>
+    </div>
+    <div class="chart-wrap"><canvas id="chart-compare"></canvas></div>
+  </div>
+
+  <div class="charts-2">
+    <div class="chart-card-sm">
+      <div class="chart-title" style="margin-bottom:10px;">Κατανομή αξίας</div>
+      <div class="chart-wrap-sm"><canvas id="chart-donut"></canvas></div>
+    </div>
+    <div class="chart-card-sm">
+      <div class="chart-title" style="margin-bottom:10px;">P&L ανά νόμισμα</div>
+      <div class="chart-wrap-sm"><canvas id="chart-bar"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Νόμισμα</th><th>Τιμή</th><th>24h</th>
+            <th>Ποσότητα</th><th>Μ. αγορά €</th>
+            <th>Αξία €</th><th>P&L €</th><th>P&L %</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+    <div class="legend-row">
+      <span class="leg-item"><span class="leg-dot" style="background:var(--amber)"></span>wallet</span>
+      <span class="leg-item"><span class="leg-dot" style="background:var(--purple)"></span>staking</span>
+      <span class="leg-item"><span class="leg-dot" style="background:var(--accent)"></span>νέο</span>
+      <span class="leg-item"><span class="leg-dot" style="background:var(--purple)"></span>ΜΟ auto</span>
+    </div>
+    <div class="tfoot">Ποσότητα = liquid + staked · ΜΟ από εισερχόμενα transactions (προσεγγιστικός) · auto-refresh 60"</div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Constants ──
+const PALETTE = ['#2ecc8f','#ff7f50','#a78bfa','#22d3ee','#ec4899','#84cc16','#ff5f6d','#94a3b8','#60a5fa','#34d399','#fb923c','#c084fc','#fbbf24','#f472b6','#4ade80','#f87171','#a1a1aa','#38bdf8','#5b7fff','#e879f9'];
+const BTC_ID = 'bitcoin';
+const ETH_ID = 'ethereum';
+const WATCH = [BTC_ID, ETH_ID];
+
+const COSMOS_CHAINS = [
+  {id:'cosmos',            name:'Cosmos',    sym:'ATOM',  prefix:'cosmos',   denom:'uatom',  dec:6,  ms:'cosmos',    ep:['https://rest.cosmos.directory/cosmoshub','https://cosmos-rest.publicnode.com']},
+  {id:'osmosis',           name:'Osmosis',   sym:'OSMO',  prefix:'osmo',     denom:'uosmo',  dec:6,  ms:'osmosis',   ep:['https://rest.cosmos.directory/osmosis','https://osmosis-rest.publicnode.com']},
+  {id:'juno-network',      name:'Juno',      sym:'JUNO',  prefix:'juno',     denom:'ujuno',  dec:6,  ms:'juno',      ep:['https://rest.cosmos.directory/juno']},
+  {id:'dymension',         name:'Dymension', sym:'DYM',   prefix:'dym',      denom:'adym',   dec:18, ms:'dymension', ep:['https://rest.cosmos.directory/dymension','https://dymension-rest.publicnode.com']},
+  {id:'saga-2',            name:'Saga',      sym:'SAGA',  prefix:'saga',     denom:'uusaga', dec:6,  ms:'saga',      ep:['https://rest.cosmos.directory/saga']},
+  {id:'celestia',          name:'Celestia',  sym:'TIA',   prefix:'celestia', denom:'utia',   dec:6,  ms:'celestia',  ep:['https://rest.cosmos.directory/celestia']},
+  {id:'stargaze',          name:'Stargaze',  sym:'STARS', prefix:'stars',    denom:'ustars', dec:6,  ms:'stargaze',  ep:['https://rest.cosmos.directory/stargaze']},
+  {id:'akash-network',     name:'Akash',     sym:'AKT',   prefix:'akash',    denom:'uakt',   dec:6,  ms:'akash',     ep:['https://rest.cosmos.directory/akash']},
+  {id:'secret',            name:'Secret',    sym:'SCRT',  prefix:'secret',   denom:'uscrt',  dec:6,  ms:'secret',    ep:['https://rest.cosmos.directory/secretnetwork']},
+  {id:'injective-protocol',name:'Injective', sym:'INJ',   prefix:'inj',      denom:'inj',    dec:18, ms:'injective', ep:['https://rest.cosmos.directory/injective']},
+  {id:'kava',              name:'Kava',      sym:'KAVA',  prefix:'kava',     denom:'ukava',  dec:6,  ms:'kava',      ep:['https://rest.cosmos.directory/kava']},
+  {id:'evmos',             name:'Evmos',     sym:'EVMOS', prefix:'evmos',    denom:'aevmos', dec:18, ms:'evmos',     ep:['https://rest.cosmos.directory/evmos']},
+];
+
+// Coin registry
+const coinReg = {};
+COSMOS_CHAINS.forEach(c => { coinReg[c.id] = Object.assign({}, c, {chain:'cosmos'}); });
+coinReg['cardano'] = {id:'cardano', name:'Cardano', sym:'ADA', chain:'cardano'};
+coinReg[BTC_ID]   = {id:BTC_ID, name:'Bitcoin',  sym:'BTC', watchOnly:true};
+coinReg[ETH_ID]   = {id:ETH_ID, name:'Ethereum', sym:'ETH', watchOnly:true};
+
+// State
+let activeCoinIds = [];
+const ud = {}; // userData
+function ensureUD(id) { if (!ud[id]) ud[id] = {qty:0, avg:0, liquid:0, staked:0, synced:false, isNew:false}; }
+[{id:'cardano'}, ...COSMOS_CHAINS, {id:BTC_ID}, {id:ETH_ID}].forEach(c => ensureUD(c.id));
+
+let prices = {}, changes = {};
+let donutChart = null, barChart = null, compareChart = null;
+let tableBuilt = false, compareRange = 30;
+const priceCache = {};
+
+// ── UI wiring (using addEventListener, not onclick) ──
+document.getElementById('gear-btn').addEventListener('click', openSettings);
+document.getElementById('s-close-btn').addEventListener('click', closeSettings);
+document.getElementById('s-overlay').addEventListener('click', closeSettings);
+document.getElementById('refresh-btn').addEventListener('click', loadPrices);
+document.getElementById('save-btn').addEventListener('click', saveData);
+document.getElementById('sync-btn').addEventListener('click', syncWallets);
+document.getElementById('key-toggle').addEventListener('click', toggleKeyVis);
+document.getElementById('cg-key').addEventListener('input', updateKeyStatus);
+document.querySelectorAll('.range-btn').forEach(btn => {
+  btn.addEventListener('click', function() { setRange(parseInt(this.dataset.days), this); });
+});
+document.getElementById('test-mo-btn').addEventListener('click', testMoJan2024);
+
+// ── Settings ──
+function openSettings() {
+  document.getElementById('s-panel').classList.add('open');
+  document.getElementById('s-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('s-panel').classList.remove('open');
+  document.getElementById('s-overlay').classList.remove('open');
+}
+function toggleKeyVis() {
+  const el = document.getElementById('cg-key');
+  const btn = document.getElementById('key-toggle');
+  if (el.type === 'password') { el.type = 'text'; btn.textContent = 'απόκρυψη'; }
+  else { el.type = 'password'; btn.textContent = 'εμφάνιση'; }
+}
+function updateKeyStatus() {
+  const key = document.getElementById('cg-key').value.trim();
+  const el = document.getElementById('api-status');
+  if (key.startsWith('CG-') && key.length > 10) {
+    el.textContent = '✓ Κλειδί ορισμένο';
+    el.className = 'api-status ok';
+  } else {
+    el.textContent = 'Χωρίς κλειδί';
+    el.className = 'api-status warn';
+  }
+}
+function getCgKey() { return document.getElementById('cg-key').value.trim(); }
+function cgHeaders() { const k = getCgKey(); return k ? {'x-cg-demo-api-key': k} : {}; }
+
+// ── Bech32 ──
+const B32 = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+function b32Dec(s) {
+  s = s.toLowerCase();
+  const sep = s.lastIndexOf('1');
+  const d5 = [];
+  for (let i = sep+1; i < s.length-6; i++) { const v = B32.indexOf(s[i]); if (v < 0) throw new Error('bad'); d5.push(v); }
+  const bytes = []; let acc = 0, bits = 0;
+  for (const v of d5) { acc = (acc << 5) | v; bits += 5; if (bits >= 8) { bits -= 8; bytes.push((acc >> bits) & 0xff); } }
+  return {hrp: s.slice(0, sep), bytes};
+}
+function b32Enc(hrp, bytes) {
+  const d5 = []; let acc = 0, bits = 0;
+  for (const b of bytes) { acc = (acc << 8) | b; bits += 8; while (bits >= 5) { bits -= 5; d5.push((acc >> bits) & 31); } }
+  if (bits > 0) d5.push((acc << (5 - bits)) & 31);
+  const vals = [...hrp.split('').map(c => c.charCodeAt(0) >> 5), 0, ...hrp.split('').map(c => c.charCodeAt(0) & 31), ...d5, 0,0,0,0,0,0];
+  let chk = 1;
+  for (const v of vals) {
+    const t = chk >> 25; chk = ((chk & 0x1ffffff) << 5) ^ v;
+    if (t&1) chk ^= 0x3b6a57b2; if (t&2) chk ^= 0x26508e6d;
+    if (t&4) chk ^= 0x1ea119fa; if (t&8) chk ^= 0x3d4233dd; if (t&16) chk ^= 0x2a1462b3;
+  }
+  chk ^= 1;
+  const cs = []; for (let i = 0; i < 6; i++) cs.push((chk >> (5*(5-i))) & 31);
+  return hrp + '1' + [...d5, ...cs].map(d => B32[d]).join('');
+}
+function convAddr(addr, hrp) { return b32Enc(hrp, b32Dec(addr).bytes); }
+
+// ── Fetch helpers ──
+async function fetchAny(endpoints, path) {
+  for (const base of endpoints) {
+    try {
+      const r = await fetch(base + path, {signal: AbortSignal.timeout(9000)});
+      if (!r.ok) continue;
+      return await r.json();
+    } catch(e) { continue; }
+  }
+  throw new Error('Endpoints failed');
+}
+
+function parseAddrs(id) {
+  return document.getElementById(id).value.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+}
+
+// ── Wallet sync ──
+async function fetchFreshPrices(extra) {
+  const ids = [...new Set([...activeCoinIds, ...extra, ...WATCH])].join(',');
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=eur&include_24hr_change=true', {headers: cgHeaders()});
+    const data = await r.json();
+    Object.keys(data).forEach(id => { prices[id] = data[id].eur; changes[id] = data[id].eur_24h_change; });
+  } catch(e) {}
+}
+
+function regCoin(id) {
+  ensureUD(id);
+  if (!activeCoinIds.includes(id)) { activeCoinIds.push(id); ud[id].isNew = true; return true; }
+  return false;
+}
+
+async function syncWallets() {
+  const cosmosAddrs = parseAddrs('cosmos-addrs');
+  const cardanoAddrs = parseAddrs('cardano-addrs');
+  const threshold = parseFloat(document.getElementById('threshold').value) || 0;
+  if (!cosmosAddrs.length && !cardanoAddrs.length) { showToast('Βάλε διευθύνσεις στις Ρυθμίσεις', 'amber'); return; }
+
+  const btn = document.getElementById('sync-btn');
+  btn.disabled = true; btn.textContent = '⟳ Φόρτωση...';
+  const log = document.getElementById('sync-log');
+  log.innerHTML = ''; log.classList.add('show');
+  const L = (html, cls) => { log.innerHTML += '<div' + (cls ? ' class="'+cls+'"' : '') + '>' + html + '</div>'; log.scrollTop = log.scrollHeight; };
+
+  L('Φόρτωση τιμών...', 'warn');
+  await fetchFreshPrices(COSMOS_CHAINS.map(c => c.id).concat(['cardano']));
+  L('<span class="ok">✓ Τιμές φορτώθηκαν</span>');
+
+  let synced = 0, skipped = 0, errors = 0, newCoins = 0;
+  const totals = {};
+
+  for (const cosmosAddr of cosmosAddrs) {
+    L('<span class="acc">━ ' + cosmosAddr.slice(0,14) + '...' + cosmosAddr.slice(-6) + '</span>');
+    for (const c of COSMOS_CHAINS) {
+      try {
+        let addr = cosmosAddr;
+        if (c.prefix !== 'cosmos') addr = convAddr(cosmosAddr, c.prefix);
+        const bank = await fetchAny(c.ep, '/cosmos/bank/v1beta1/balances/' + addr);
+        const tok = (bank.balances || []).find(b => b.denom === c.denom);
+        const liquid = (tok ? parseFloat(tok.amount) : 0) / Math.pow(10, c.dec);
+        let staked = 0;
+        try {
+          const sd = await fetchAny(c.ep, '/cosmos/staking/v1beta1/delegations/' + addr);
+          for (const d of (sd.delegation_responses || [])) staked += parseFloat(d.balance?.amount || 0) / Math.pow(10, c.dec);
+        } catch(e) {}
+        const total = liquid + staked;
+        if (total <= 0) continue;
+        if (!totals[c.id]) totals[c.id] = {liquid:0, staked:0};
+        totals[c.id].liquid += liquid; totals[c.id].staked += staked;
+        const price = prices[c.id] || 0, value = total * price;
+        const passes = price === 0 ? total > 0 : value >= threshold;
+        if (passes) {
+          const wasNew = regCoin(c.id); if (wasNew) newCoins++;
+          const stk = staked > 0 ? ' <span class="pur">(+' + staked.toFixed(2) + ' stk)</span>' : '';
+          L('<span class="ok">✓ ' + c.sym + ': ' + total.toFixed(4) + (price > 0 ? ' ~' + fmtEur(value) : '') + '</span>' + stk);
+          synced++;
+        } else {
+          L('— ' + c.sym + ': ' + total.toFixed(4) + ' κάτω από όριο', 'warn');
+          skipped++;
+        }
+      } catch(e) { if (!e.message.includes('failed')) { L('✗ ' + c.sym + ': ' + e.message, 'err'); errors++; } }
+      await new Promise(r => setTimeout(r, 120));
+    }
+  }
+
+  for (const [id, t] of Object.entries(totals)) {
+    const total = t.liquid + t.staked, price = prices[id] || 0, value = total * price;
+    if ((price === 0 ? total > 0 : value >= threshold) && total > 0) {
+      ud[id].liquid = parseFloat(t.liquid.toFixed(6));
+      ud[id].staked = parseFloat(t.staked.toFixed(6));
+      ud[id].qty = parseFloat(total.toFixed(6));
+      ud[id].synced = true;
+    }
+  }
+
+  if (cardanoAddrs.length) {
+    L('<span class="acc">━ Cardano (' + cardanoAddrs.length + ')</span>');
+    let adaLov = 0;
+    for (const addr of cardanoAddrs) {
+      try {
+        let info = null;
+        for (const base of ['https://api.koios.rest/api/v1','https://guild.koios.rest/api/v1']) {
+          try {
+            const r = await fetch(base + '/address_info?_address=' + encodeURIComponent(addr), {headers:{accept:'application/json'}, signal:AbortSignal.timeout(9000)});
+            if (!r.ok) continue;
+            const d = await r.json(); info = Array.isArray(d) ? d[0] : d; break;
+          } catch(e) { continue; }
+        }
+        if (!info) throw new Error('Endpoints failed');
+        adaLov += parseFloat(info?.balance || 0);
+        L('<span class="ok">✓ ' + addr.slice(0,10) + '...: ' + (parseFloat(info?.balance||0)/1e6).toFixed(2) + ' ADA</span>');
+      } catch(e) { L('✗ ADA: ' + e.message, 'err'); errors++; }
+    }
+    const qty = adaLov / 1e6, price = prices['cardano'] || 0, value = qty * price;
+    if (qty > 0 && (price === 0 ? true : value >= threshold)) {
+      const wasNew = regCoin('cardano'); if (wasNew) newCoins++;
+      ud['cardano'].liquid = parseFloat(qty.toFixed(2));
+      ud['cardano'].qty = parseFloat(qty.toFixed(2));
+      ud['cardano'].synced = true;
+      L('<span class="ok">✓ ADA σύνολο: ' + qty.toFixed(2) + (price > 0 ? ' ~' + fmtEur(value) : '') + '</span>');
+      synced++;
+    } else if (qty > 0) { L('— ADA κάτω από όριο', 'warn'); skipped++; }
+  }
+
+  L('━━━━━━━━━━━━━━━━━━━━━━━━');
+  let s = 'Ενημερώθηκαν: ' + synced + ' · Παραλείφθηκαν: ' + skipped + ' · Σφάλματα: ' + errors;
+  if (newCoins > 0) s += ' · <span class="acc">+' + newCoins + ' νέα</span>';
+  L(s);
+
+  await loadPrices(true);
+  loadHistoricalData(compareRange);
+  btn.disabled = false; btn.textContent = '⟳ Συγχρονισμός';
+  if (synced > 0) showToast('✓ ' + synced + ' νομίσματα' + (newCoins > 0 ? ' · +' + newCoins + ' νέα' : ''), 'green');
+}
+
+// ── ΜΟ Calculation ──
+
+// ── TEST: Find transactions via LCD ──
+async function testMoJan2024() {
+  const cosmosAddrs = parseAddrs('cosmos-addrs');
+  if (!cosmosAddrs.length) { showToast('Βάλε Cosmos διεύθυνση στις Ρυθμίσεις', 'amber'); return; }
+
+  const coinId = document.getElementById('test-coin').value;
+  const c = COSMOS_CHAINS.find(x => x.id === coinId);
+  if (!c) return;
+
+  const btn = document.getElementById('test-mo-btn');
+  btn.disabled = true; btn.textContent = '⏳ ...';
+  const log = document.getElementById('sync-log');
+  log.innerHTML = ''; log.classList.add('show');
+  const L = (html, cls) => {
+    log.innerHTML += '<div' + (cls ? ' class="'+cls+'"' : '') + '>' + html + '</div>';
+    log.scrollTop = log.scrollHeight;
+  };
+
+  const JAN_START = new Date('2024-01-01T00:00:00Z').getTime();
+  const JAN_END   = new Date('2024-02-01T00:00:00Z').getTime();
+
+  // Updated working endpoints per chain
+  const ENDPOINTS = {
+    'cosmos':       ['https://cosmoshub.lava.build', 'https://cosmos-rest.publicnode.com', 'https://lcd-cosmoshub.blockapsis.com'],
+    'osmosis':      ['https://osmosis-rest.publicnode.com', 'https://lcd.osmosis.zone'],
+    'juno-network': ['https://lcd.juno.strange.love', 'https://juno-rest.publicnode.com'],
+    'dymension':    ['https://dymension-rest.publicnode.com'],
+    'saga-2':       ['https://saga-rest.publicnode.com'],
+    'celestia':     ['https://celestia-rest.publicnode.com', 'https://api.celestia.nodestake.top'],
+    'stargaze':     ['https://stargaze-rest.publicnode.com', 'https://rest.stargaze-apis.com'],
+    'akash-network':['https://akash-rest.publicnode.com'],
+  };
+  const endpoints = ENDPOINTS[coinId] || c.ep;
+
+  L('<span class="acc">━━━ Δοκιμή LCD: ' + c.sym + ' — Ιαν 2024 ━━━</span>');
+  L('Endpoints: ' + endpoints.join(', ').replace(/https:\/\//g,''));
+
+  for (const cosmosAddr of cosmosAddrs) {
+    let addr = cosmosAddr;
+    try { if (c.prefix !== 'cosmos') addr = convAddr(cosmosAddr, c.prefix); }
+    catch(e) { L('✗ Μετατροπή: ' + e.message, 'err'); continue; }
+    L('Διεύθυνση: ' + addr);
+
+    for (const ep of endpoints) {
+      L('<span class="warn">Δοκιμάζω ' + ep.replace('https://','') + '...</span>');
+      let worked = false;
+
+      // Try transfer.recipient first
+      for (const evQ of ["transfer.recipient='" + addr + "'", "coin_received.receiver='" + addr + "'"]) {
+        try {
+          const url = ep + '/cosmos/tx/v1beta1/txs?events=' + encodeURIComponent(evQ) + '&pagination.limit=50&order_by=ORDER_BY_DESC';
+          const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
+          L('  [' + evQ.split('.')[0] + '] HTTP ' + r.status);
+          if (!r.ok) continue;
+          const data = await r.json();
+          const total = data.pagination?.total || '0';
+          const list = data.tx_responses || [];
+          L('  <span class="ok">✓ Total txs: ' + total + ' | αυτή η σελίδα: ' + list.length + '</span>');
+          worked = true;
+
+          if (list.length > 0) {
+            // Show first 3 timestamps to understand date range
+            L('  Πιο πρόσφατα:');
+            list.slice(0,3).forEach(resp => {
+              L('  → ' + resp.timestamp.slice(0,10) + ' hash:' + resp.txhash.slice(0,12));
+            });
+
+            // Find Jan 2024
+            let found = 0;
+            for (const resp of list) {
+              const ts = new Date(resp.timestamp).getTime();
+              if (ts >= JAN_START && ts < JAN_END) {
+                found++;
+                // Parse amount
+                let amts = [];
+                for (const ev of (resp.events || [])) {
+                  if (ev.type !== 'coin_received' && ev.type !== 'transfer') continue;
+                  const a = {};
+                  for (const x of (ev.attributes||[])) {
+                    let k=x.key, v=x.value;
+                    try{if(/^[A-Za-z0-9+/]+=*$/.test(k))k=atob(k);}catch(e){}
+                    try{if(/^[A-Za-z0-9+/]+=*$/.test(v))v=atob(v);}catch(e){}
+                    a[k]=v;
+                  }
+                  const rec = a.receiver || a.recipient || '';
+                  if (!rec.split(',').some(x=>x.trim()===addr)) continue;
+                  if (a.amount) {
+                    for (const part of a.amount.split(',')) {
+                      const m = part.trim().match(/^([0-9]+)(.+)$/);
+                      if (m && m[2]===c.denom) amts.push((parseFloat(m[1])/Math.pow(10,c.dec)).toFixed(4)+' '+c.sym);
+                    }
+                  }
+                }
+                const amtStr = amts.length > 0 ? amts.join(', ') : '(ανάλυση δεν βρήκε ποσό)';
+                L('<span class="ok">  ✓ ' + resp.timestamp.slice(0,10) + ': ' + amtStr + '</span>');
+                if (found >= 5) { L('  ... (5+)'); break; }
+              }
+            }
+
+            if (found > 0) {
+              L('<span class="ok">━ ✓ ' + found + ' txs Ιαν 2024 βρέθηκαν! Endpoint: ' + ep + '</span>');
+              L('<span class="ok">→ Λειτουργεί! Μπορούμε να συνεχίσουμε με πλήρη ΜΟ.</span>');
+              btn.disabled = false; btn.textContent = '▶ Δοκιμή';
+              return;
+            } else {
+              L('<span class="warn">  0 εντός Ιαν 2024 — τα records αυτής της σελίδας δεν καλύπτουν Ιαν 2024</span>');
+              L('<span class="warn">  Πρέπει να σελιδοποιήσουμε πίσω για να βρούμε παλαιότερα records</span>');
+              // Try to paginate to find Jan 2024
+              if (parseInt(total) > 50) {
+                L('  Ψάχνω παλαιότερες σελίδες... (σύνολο: ' + total + ')');
+                // Get last page to find oldest records
+                const pages = Math.ceil(parseInt(total)/50);
+                const lastUrl = ep + '/cosmos/tx/v1beta1/txs?events=' + encodeURIComponent(evQ) + '&pagination.limit=50&pagination.offset=' + ((pages-1)*50) + '&order_by=ORDER_BY_ASC';
+                try {
+                  const r2 = await fetch(lastUrl, {signal:AbortSignal.timeout(10000)});
+                  if (r2.ok) {
+                    const d2 = await r2.json();
+                    const list2 = d2.tx_responses || [];
+                    L('  Παλαιότερα records (' + list2.length + '):');
+                    list2.slice(0,3).forEach(resp => L('  → ' + resp.timestamp.slice(0,10)));
+                  }
+                } catch(e) {}
+              }
+            }
+          }
+          break; // This query worked, don't try next query type
+        } catch(e) {
+          L('  ✗ ' + e.message, 'err');
+        }
+      }
+      if (worked) break; // This endpoint worked, don't try next endpoint
+    }
+  }
+
+  btn.disabled = false; btn.textContent = '▶ Δοκιμή';
+}
+
+
+// ── Persistence ──
+function loadSaved() {
+  try {
+    const saved = localStorage.getItem('cp_v9');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    if (data.coins) Object.keys(data.coins).forEach(id => { ensureUD(id); Object.assign(ud[id], data.coins[id]); });
+    if (data.ids) activeCoinIds = data.ids;
+    if (data.cosmosAddrs) document.getElementById('cosmos-addrs').value = data.cosmosAddrs;
+    if (data.cardanoAddrs) document.getElementById('cardano-addrs').value = data.cardanoAddrs;
+    if (data.threshold != null) document.getElementById('threshold').value = data.threshold;
+    if (data.cgKey) { document.getElementById('cg-key').value = data.cgKey; updateKeyStatus(); }
+  } catch(e) {}
+}
+function saveData() {
+  syncInputs();
+  const data = {
+    ids: activeCoinIds, coins: {},
+    cosmosAddrs: document.getElementById('cosmos-addrs').value,
+    cardanoAddrs: document.getElementById('cardano-addrs').value,
+    threshold: document.getElementById('threshold').value,
+    cgKey: document.getElementById('cg-key').value.trim(),
+  };
+  activeCoinIds.forEach(id => { data.coins[id] = Object.assign({}, ud[id]); });
+  try { localStorage.setItem('cp_v9', JSON.stringify(data)); } catch(e) {}
+  const btn = document.getElementById('save-btn');
+  btn.classList.add('saved'); setTimeout(() => btn.classList.remove('saved'), 2500);
+  showToast('✓ Αποθηκεύτηκε!', 'green');
+}
+function syncInputs() {
+  activeCoinIds.forEach(id => {
+    const q = document.getElementById('qty-' + id), a = document.getElementById('avg-' + id);
+    if (q) ud[id].qty = parseFloat(q.value) || 0;
+    if (a) ud[id].avg = parseFloat(a.value) || 0;
+  });
+}
+
+// ── Format ──
+function fmt(n, dec) { return new Intl.NumberFormat('el-GR', {minimumFractionDigits:dec, maximumFractionDigits:dec}).format(n); }
+function fmtEur(n) { if (Math.abs(n) >= 1000) return fmt(n,0) + '€'; if (Math.abs(n) >= 1) return fmt(n,2) + '€'; return fmt(n,4) + '€'; }
+function fmtPrice(p) { if (p >= 1000) return fmt(p,0); if (p >= 1) return fmt(p,2); return fmt(p,4); }
+function getQty(id) { const el = document.getElementById('qty-' + id); return el ? (parseFloat(el.value) || 0) : (ud[id]?.qty || 0); }
+function getAvg(id) { const el = document.getElementById('avg-' + id); return el ? (parseFloat(el.value) || 0) : (ud[id]?.avg || 0); }
+
+// ── Prices ──
+async function loadPrices(rebuild) {
+  document.getElementById('last-update').textContent = 'Φόρτωση...';
+  const ids = [...new Set([...activeCoinIds, ...WATCH])].join(',');
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=eur&include_24hr_change=true', {headers: cgHeaders()});
+    const data = await r.json();
+    [...activeCoinIds, ...WATCH].forEach(id => {
+      if (data[id]) { prices[id] = data[id].eur; changes[id] = data[id].eur_24h_change; }
+    });
+    const now = new Date();
+    document.getElementById('last-update').textContent = now.toLocaleDateString('el-GR', {day:'2-digit',month:'short'}) + ' · ' + now.toLocaleTimeString('el-GR', {hour:'2-digit',minute:'2-digit'});
+    updateWatchTickers();
+    if (!tableBuilt || rebuild) { buildTable(); tableBuilt = true; } else updatePriceCells();
+  } catch(e) { document.getElementById('last-update').textContent = 'Σφάλμα σύνδεσης'; }
+}
+
+function updateWatchTickers() {
+  const bp = prices[BTC_ID] || 0, bc = changes[BTC_ID] || 0;
+  document.getElementById('btc-price').textContent = bp ? fmtPrice(bp) + '€' : '—';
+  const be = document.getElementById('btc-chg');
+  be.textContent = (bc >= 0 ? '+' : '') + fmt(bc,2) + '%';
+  be.className = 'watch-chg ' + (bc >= 0 ? 'pos' : 'neg');
+
+  const ep = prices[ETH_ID] || 0, ec = changes[ETH_ID] || 0;
+  document.getElementById('eth-price').textContent = ep ? fmtPrice(ep) + '€' : '—';
+  const ee = document.getElementById('eth-chg');
+  ee.textContent = (ec >= 0 ? '+' : '') + fmt(ec,2) + '%';
+  ee.className = 'watch-chg ' + (ec >= 0 ? 'pos' : 'neg');
+}
+
+// ── Comparison chart ──
+async function loadHistoricalData(days) {
+  try {
+    const h = cgHeaders();
+    const br = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=eur&days=' + days + '&interval=daily', {headers:h});
+    const bd = await br.json();
+    const btcPrices = bd.prices || [];
+    const coinH = {};
+    await Promise.all(activeCoinIds.map(async id => {
+      try {
+        const r = await fetch('https://api.coingecko.com/api/v3/coins/' + id + '/market_chart?vs_currency=eur&days=' + days + '&interval=daily', {headers:h});
+        const d = await r.json(); coinH[id] = d.prices || [];
+      } catch(e) { coinH[id] = []; }
+    }));
+    const labels = [], portVals = [], btcVals = [];
+    btcPrices.forEach(([ts, btcP], i) => {
+      labels.push(new Date(ts).toLocaleDateString('el-GR', {day:'2-digit',month:'short'}));
+      let pv = 0;
+      activeCoinIds.forEach(id => {
+        const hist = coinH[id] || [], qty = ud[id]?.qty || 0;
+        if (!hist.length) { pv += qty * (prices[id] || 0); }
+        else { const idx = Math.min(Math.round((i/btcPrices.length)*hist.length), hist.length-1); pv += qty * (hist[idx]?.[1] || prices[id] || 0); }
+      });
+      portVals.push(parseFloat(pv.toFixed(2))); btcVals.push(parseFloat(btcP.toFixed(2)));
+    });
+    buildCompareChart(labels, portVals, btcVals);
+  } catch(e) {}
+}
+
+function setRange(days, btn) {
+  compareRange = days;
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const t = {7:'7 ημέρες', 30:'30 ημέρες', 90:'90 ημέρες'};
+  document.getElementById('compare-title').textContent = 'Portfolio vs Bitcoin — ' + t[days];
+  loadHistoricalData(days);
+}
+
+function buildCompareChart(labels, portVals, btcVals) {
+  if (compareChart) { compareChart.destroy(); compareChart = null; }
+  if (!portVals.length) return;
+  const pF = portVals[0] || 1, bF = btcVals[0] || 1;
+  const pN = portVals.map(v => parseFloat(((v/pF)*100).toFixed(2)));
+  const bN = btcVals.map(v => parseFloat(((v/bF)*100).toFixed(2)));
+  const step = labels.length > 60 ? Math.ceil(labels.length/60) : 1;
+  const lbl = labels.filter((_,i) => i%step===0);
+  const pn = pN.filter((_,i) => i%step===0);
+  const bn = bN.filter((_,i) => i%step===0);
+  compareChart = new Chart(document.getElementById('chart-compare').getContext('2d'), {
+    type:'line',
+    data:{labels:lbl, datasets:[
+      {label:'Portfolio', data:pn, borderColor:'#2ecc8f', backgroundColor:'rgba(46,204,143,0.08)', borderWidth:2, pointRadius:0, tension:0.3, fill:true},
+      {label:'BTC',       data:bn, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.06)',  borderWidth:2, pointRadius:0, tension:0.3, fill:true},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label: ctx => ctx.dataset.label + ': ' + ctx.raw.toFixed(1) + ' (βάση 100)'},
+          backgroundColor:'#16181f', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'#f0f0f5', bodyColor:'#6b6e80'}
+      },
+      scales:{
+        x:{ticks:{color:'#6b6e80',font:{size:9},maxTicksLimit:8}, grid:{display:false}, border:{color:'transparent'}},
+        y:{ticks:{color:'#6b6e80',font:{size:9},callback:v=>v.toFixed(0)}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'transparent'}}
+      }
+    }
+  });
+}
+
+// ── Table ──
+function buildTable() {
+  let rows = '';
+  activeCoinIds.forEach((id, i) => {
+    const c = coinReg[id] || {id, name:id, sym:id.toUpperCase()};
+    const u = ud[id], hs = u.staked > 0;
+    rows += '<tr id="row-' + id + '">';
+    rows += '<td>';
+    rows += '<div class="coin-row">';
+    rows += '<span class="cdot" style="background:' + PALETTE[i % PALETTE.length] + '"></span>';
+    rows += '<span class="coin-name">' + c.name + '</span>';
+    if (u.synced)  rows += '<span class="badge wa">wallet</span>';
+    if (hs)        rows += '<span class="badge st">staking</span>';
+    if (u.isNew)   rows += '<span class="badge nw">νέο</span>';
+    rows += '</div>';
+    rows += '<div class="coin-sym">' + (c.sym || id.toUpperCase()) + '</div>';
+    rows += '<div class="stk-detail" id="stk-' + id + '" style="display:' + (hs ? 'block' : 'none') + '">';
+    if (hs) rows += u.liquid.toFixed(2) + ' liquid + ' + u.staked.toFixed(2) + ' staked';
+    rows += '</div>';
+    rows += '</td>';
+    rows += '<td id="price-' + id + '">—</td>';
+    rows += '<td id="ch-' + id + '"><span class="badge">—</span></td>';
+    rows += '<td><input class="qty-in' + (u.synced ? ' sy' : '') + '" id="qty-' + id + '" value="' + u.qty + '"/></td>';
+    rows += '<td><input class="avg-in" id="avg-' + id + '" value="' + (u.avg || '') + '" placeholder="—"/></td>';
+    rows += '<td id="val-' + id + '">—</td>';
+    rows += '<td id="pnl-' + id + '">—</td>';
+    rows += '<td id="pnlp-' + id + '">—</td>';
+    rows += '</tr>';
+  });
+  // BTC watch-only
+  rows += '<tr style="opacity:0.45;">';
+  rows += '<td><div class="coin-row"><span class="cdot" style="background:#f59e0b"></span><span class="coin-name">Bitcoin</span><span class="badge wo">παρακολούθηση</span></div><div class="coin-sym">BTC</div></td>';
+  rows += '<td id="price-bitcoin">—</td><td id="ch-bitcoin"><span class="badge">—</span></td>';
+  rows += '<td colspan="5" style="text-align:center;color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:10px;">δεν μετράει στο portfolio</td>';
+  rows += '</tr>';
+  // ETH watch-only
+  rows += '<tr style="opacity:0.45;">';
+  rows += '<td><div class="coin-row"><span class="cdot" style="background:#5b7fff"></span><span class="coin-name">Ethereum</span><span class="badge wo">παρακολούθηση</span></div><div class="coin-sym">ETH</div></td>';
+  rows += '<td id="price-ethereum">—</td><td id="ch-ethereum"><span class="badge">—</span></td>';
+  rows += '<td colspan="5" style="text-align:center;color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:10px;">δεν μετράει στο portfolio</td>';
+  rows += '</tr>';
+
+  document.getElementById('tbl-body').innerHTML = rows;
+
+  // Wire up input events
+  activeCoinIds.forEach(id => {
+    const q = document.getElementById('qty-' + id);
+    const a = document.getElementById('avg-' + id);
+    if (q) q.addEventListener('change', () => { syncInputs(); recalcAll(); });
+    if (a) a.addEventListener('change', () => { syncInputs(); recalcAll(); });
+  });
+
+  updatePriceCells();
+}
+
+function updatePriceCells() {
+  [...activeCoinIds, ...WATCH].forEach(id => {
+    const price = prices[id] || 0, ch = changes[id] || 0;
+    const pe = document.getElementById('price-' + id), ce = document.getElementById('ch-' + id);
+    if (pe) pe.textContent = price ? fmtPrice(price) + '€' : '—';
+    if (ce) ce.innerHTML = '<span class="badge ' + (ch >= 0 ? 'pos' : 'neg') + '">' + (ch >= 0 ? '+' : '') + fmt(ch,2) + '%</span>';
+  });
+  recalcAll();
+}
+
+function recalcAll() {
+  let totVal = 0, totCost = 0;
+  const vals = [], pnls = [], labels = [];
+  activeCoinIds.forEach(id => {
+    const price = prices[id] || 0, qty = getQty(id), avg = getAvg(id);
+    const val = price * qty, cost = avg * qty, pnl = val - cost, pnlp = cost > 0 ? (pnl/cost)*100 : 0;
+    totVal += val; totCost += cost;
+    const c = coinReg[id]; vals.push(val); pnls.push(pnl); labels.push(c?.sym || id.toUpperCase());
+    const col = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    const ve = document.getElementById('val-' + id), pe2 = document.getElementById('pnl-' + id), ppe = document.getElementById('pnlp-' + id);
+    if (ve) ve.textContent = fmtEur(val);
+    if (pe2) { pe2.textContent = (pnl >= 0 ? '+' : '') + fmtEur(pnl); pe2.style.color = col; }
+    if (ppe) { ppe.textContent = avg > 0 ? (pnlp >= 0 ? '+' : '') + fmt(pnlp,1) + '%' : '—'; if (avg > 0) ppe.style.color = col; }
+  });
+  updateSummary(totVal, totCost);
+  buildSmallCharts(labels, vals, pnls);
+}
+
+function updateSummary(totVal, totCost) {
+  const pnl = totVal - totCost, pnlp = totCost > 0 ? (pnl/totCost)*100 : 0;
+  document.getElementById('total-val').textContent = fmtEur(totVal);
+  document.getElementById('total-cost').textContent = fmtEur(totCost);
+  const pe = document.getElementById('total-pnl'); pe.textContent = (pnl >= 0 ? '+' : '') + fmtEur(pnl); pe.className = 'scard-val ' + (pnl >= 0 ? 'pos' : 'neg');
+  const pp = document.getElementById('total-pnlp'); pp.textContent = (pnlp >= 0 ? '+' : '') + fmt(pnlp,2) + '%'; pp.className = 'scard-val ' + (pnlp >= 0 ? 'pos' : 'neg');
+}
+
+function buildSmallCharts(labels, vals, pnls) {
+  if (donutChart) { donutChart.destroy(); donutChart = null; }
+  if (barChart) { barChart.destroy(); barChart = null; }
+  if (!vals.some(v => v > 0)) return;
+  donutChart = new Chart(document.getElementById('chart-donut').getContext('2d'), {
+    type:'doughnut',
+    data:{labels, datasets:[{data: vals.map(v => parseFloat(v.toFixed(2))), backgroundColor:PALETTE, borderWidth:2, borderColor:'#16181f'}]},
+    options:{responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{legend:{position:'right', labels:{color:'#6b6e80',font:{size:10,family:'DM Sans'},boxWidth:8,padding:7}},
+               tooltip:{callbacks:{label: ctx => ' ' + ctx.label + ': ' + fmtEur(ctx.raw)}}}}
+  });
+  barChart = new Chart(document.getElementById('chart-bar').getContext('2d'), {
+    type:'bar',
+    data:{labels, datasets:[{data: pnls.map(p => parseFloat(p.toFixed(2))), backgroundColor: pnls.map(p => p >= 0 ? 'rgba(46,204,143,0.75)' : 'rgba(255,95,109,0.75)'), borderRadius:5, borderSkipped:false}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label: ctx => ' ' + (ctx.raw >= 0 ? '+' : '') + fmtEur(ctx.raw)}}},
+      scales:{
+        x:{ticks:{color:'#6b6e80',font:{size:9}}, grid:{display:false}, border:{color:'transparent'}},
+        y:{ticks:{color:'#6b6e80',font:{size:9},callback:v=>fmtEur(v)}, grid:{color:'rgba(255,255,255,0.05)'}, border:{color:'transparent'}}
+      }
+    }
+  });
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Init ──
+loadSaved();
+loadPrices().then(() => loadHistoricalData(compareRange));
+setInterval(loadPrices, 60000);
+</script>
+</body>
+</html>
