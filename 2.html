@@ -4,93 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <title>Cosmos Hub Ultimate Tracker v5.1</title>
+    <title>Cosmos Portfolio - CSV Engine</title>
     <style>
-        body { background-color: #030712; color: #f3f4f6; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid #1f2937; }
-        .reward-glow { text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
-        .indigo-glow { text-shadow: 0 0 15px rgba(99, 102, 241, 0.5); }
-        .status-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        body { background-color: #020617; color: #f8fafc; font-family: sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border: 1px solid #1e293b; }
+        .drop-zone { border: 2px dashed #334155; transition: 0.3s; }
+        .drop-zone:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.05); }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-6 md:p-12">
 
-    <div class="max-w-6xl mx-auto">
-        <div class="glass p-8 rounded-[2rem] mb-8 flex flex-col md:flex-row gap-6 items-center border-b-4 border-b-indigo-600">
-            <div class="flex-1 w-full text-center md:text-left">
-                <h1 class="text-2xl font-black text-white mb-4 tracking-tighter uppercase">Cosmos Analytics <span class="text-indigo-500">PRO</span></h1>
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Wallet Address</label>
-                <input id="address" type="text" placeholder="cosmos1..." 
-                       class="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl mt-1 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-10">
+            <h1 class="text-3xl font-black text-indigo-500 uppercase tracking-tighter">Cosmos CSV Analyzer</h1>
+            <p class="text-slate-500 text-sm">Υπολογισμός Μ.Ο. απευθείας από το Mintscan Export</p>
+        </header>
+
+        <div class="glass p-8 rounded-3xl mb-8 drop-zone text-center cursor-pointer" id="dropArea">
+            <input type="file" id="csvFile" accept=".csv" class="hidden">
+            <div id="uploadText">
+                <p class="text-lg font-bold">Σύρε το CSV εδώ ή κάνε κλικ</p>
+                <p class="text-slate-500 text-xs mt-2 uppercase tracking-widest">Υποστηρίζεται αρχείο από Mintscan</p>
             </div>
-            <button onclick="runUltimateAnalysis()" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-5 rounded-2xl font-black text-sm transition transform active:scale-95 shadow-2xl shadow-indigo-500/30">
-                🚀 ΑΝΑΛΥΣΗ
-            </button>
         </div>
 
-        <div id="mainUI" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="glass p-6 rounded-3xl text-center">
-                    <p class="text-slate-500 text-[10px] uppercase font-black tracking-widest">Συνολικό ATOM</p>
-                    <h3 id="totalAtom" class="text-3xl font-black mt-1 indigo-glow">0.00</h3>
+        <div id="results" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass p-8 rounded-3xl border-l-4 border-l-indigo-500">
+                    <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Υπολογισμένος Μ.Ο.</p>
+                    <h2 id="finalMO" class="text-4xl font-black mt-2 text-white">$ 0.00</h2>
+                    <p id="progressText" class="text-[10px] text-indigo-400 mt-2 italic">Ready to process...</p>
                 </div>
-                <div class="glass p-6 rounded-3xl text-center border-l-2 border-l-emerald-500/30">
-                    <p class="text-slate-500 text-[10px] uppercase font-black tracking-widest">Μέσος Όρος (M.O.)</p>
-                    <h3 id="avgCost" class="text-3xl font-black mt-1 text-emerald-400">$ --.--</h3>
-                    <p id="moStatus" class="text-[9px] text-slate-600 mt-1 italic uppercase tracking-tighter">Αναμονή...</p>
-                </div>
-                <div class="glass p-6 rounded-3xl text-center">
-                    <p class="text-yellow-500 text-[10px] uppercase font-black tracking-widest">Επιτόκιο (APY)</p>
-                    <h3 id="apyVal" class="text-3xl font-black mt-1 text-yellow-500">--%</h3>
-                </div>
-                <div class="glass p-6 rounded-3xl text-center border-l-2 border-l-amber-500/30">
-                    <p class="text-slate-500 text-[10px] uppercase font-black tracking-widest">Rewards</p>
-                    <h3 id="pendingRewards" class="text-3xl font-black mt-1 reward-glow text-amber-400">0.00</h3>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <div class="glass rounded-[2rem] overflow-hidden lg:col-span-2 border border-slate-800">
-                    <div class="p-6 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
-                        <h4 class="font-black text-xs uppercase tracking-widest">Validators & Staking</h4>
-                        <button onclick="downloadCSV()" id="csvBtn" class="hidden bg-emerald-600 hover:bg-emerald-500 text-[10px] px-4 py-2 rounded-xl font-black transition tracking-widest">
-                            EXPORT CSV
-                        </button>
-                    </div>
-                    <div id="valList" class="p-6 space-y-4 max-h-[450px] overflow-y-auto">
-                        </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="glass p-10 rounded-[2rem] text-center border-t-4 border-t-indigo-600 relative">
-                        <p class="text-indigo-400 font-black text-xs uppercase tracking-widest mb-4">1-Year Forecast</p>
-                        <h2 id="projectionVal" class="text-5xl font-black mb-2 tracking-tighter">0.00</h2>
-                        <p class="text-slate-500 text-[10px] uppercase font-bold">ATOM (Compounded)</p>
-                        <div class="mt-6 pt-6 border-t border-slate-800">
-                            <p class="text-[9px] text-slate-600 leading-relaxed uppercase">
-                                Η πρόβλεψη βασίζεται στο τρέχον APY του Cosmos Hub (~14%) και την αυτόματη επανεπένδυση των rewards.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="glass p-6 rounded-[2rem] border border-slate-800/50">
-                        <h5 class="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-3">System Logs</h5>
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                <p class="text-[10px] text-slate-500">CoinGecko Key: <span class="text-slate-300">Active</span></p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                                <p class="text-[10px] text-slate-500">Chain: <span class="text-slate-300">Cosmos Hub (cosmoshub-4)</span></p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="glass p-8 rounded-3xl">
+                    <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Σύνολο Συναλλαγών</p>
+                    <h2 id="totalTx" class="text-4xl font-black mt-2 text-white">0</h2>
                 </div>
             </div>
         </div>
@@ -98,151 +45,75 @@
 
     <script>
         const API_KEY = "CG-wjaFXkM7y83LvnEgMENX8eqq";
-        const REST_URL = "https://rest.cosmos.directory/cosmoshub";
-        let analyzedTransactions = []; 
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('csvFile');
 
-        async function runUltimateAnalysis() {
-            const addr = document.getElementById('address').value.trim();
-            if(!addr.startsWith('cosmos1')) return alert("Παρακαλώ εισάγετε μια έγκυρη διεύθυνση Cosmos.");
+        dropArea.onclick = () => fileInput.click();
 
-            document.getElementById('mainUI').classList.remove('hidden');
-            document.getElementById('csvBtn').classList.add('hidden');
-            document.getElementById('valList').innerHTML = '<p class="text-center animate-pulse py-10">Ανάκτηση δεδομένων από το blockchain...</p>';
-            analyzedTransactions = [];
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
-            try {
-                // Parallel fetching
-                const [bal, stke, rew, mint] = await Promise.all([
-                    fetch(`${REST_URL}/cosmos/bank/v1beta1/balances/${addr}`).then(r => r.json()),
-                    fetch(`${REST_URL}/cosmos/staking/v1beta1/delegations/${addr}`).then(r => r.json()),
-                    fetch(`${REST_URL}/cosmos/distribution/v1beta1/delegators/${addr}/rewards`).then(r => r.json()),
-                    fetch(`${REST_URL}/cosmos/mint/v1beta1/inflation`).then(r => r.json())
-                ]);
-
-                // Basic calculations
-                const avail = (bal.balances.find(b => b.denom === 'uatom')?.amount || 0) / 1000000;
-                const staked = stke.delegation_responses.reduce((s, d) => s + parseFloat(d.balance.amount), 0) / 1000000;
-                const totalRewards = (rew.total.find(r => r.denom === 'uatom')?.amount || 0) / 1000000;
-                const inflation = parseFloat(mint.inflation);
-
-                const total = avail + staked;
-                document.getElementById('totalAtom').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
-                document.getElementById('pendingRewards').innerText = totalRewards.toFixed(4);
-
-                // APY Logic
-                const apy = (inflation / 0.65) * 100;
-                document.getElementById('apyVal').innerText = apy.toFixed(2) + "%";
-                const projected = total * Math.pow((1 + (apy/100)), 1);
-                document.getElementById('projectionVal').innerText = projected.toLocaleString(undefined, {minimumFractionDigits: 2});
-
-                renderVals(stke.delegation_responses, rew.rewards);
-                
-                // Start MO Calculation with High Safety Delay
-                calculateMOPro(addr);
-
-            } catch (err) { 
-                console.error(err); 
-                document.getElementById('valList').innerHTML = '<p class="text-red-500 text-center">Σφάλμα κατά τη σύνδεση. Ελέγξτε τη διεύθυνση.</p>';
-            }
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => processCSV(e.target.result);
+            reader.readAsText(file);
         }
 
-        function renderVals(delegations, rewards) {
-            const container = document.getElementById('valList');
-            container.innerHTML = '';
+        async function processCSV(csvData) {
+            document.getElementById('results').classList.remove('hidden');
+            const lines = csvData.split('\n');
+            const headers = lines[0].split(',');
             
-            if(delegations.length === 0) {
-                container.innerHTML = '<p class="text-center text-slate-500 py-10 uppercase font-bold text-xs">Δεν βρέθηκαν Staked ATOM</p>';
-                return;
-            }
+            // Βρίσκουμε τις σωστές στήλες (Mintscan format)
+            const dateIdx = headers.findIndex(h => h.includes('Timestamp') || h.includes('Time'));
+            const amountIdx = headers.findIndex(h => h.includes('Amount'));
+            const typeIdx = headers.findIndex(h => h.includes('Type'));
 
-            delegations.forEach(d => {
-                const rew = (rewards.find(r => r.validator_address === d.delegation.validator_address)?.reward.find(a => a.denom === 'uatom')?.amount || 0) / 1000000;
-                container.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-900/30 p-5 rounded-[1.5rem] border border-slate-800/50 hover:border-indigo-500/50 transition-all">
-                        <div>
-                            <p class="text-[9px] text-slate-600 font-mono mb-1 truncate w-40 md:w-full">${d.delegation.validator_address}</p>
-                            <p class="text-base font-black text-white">${(d.balance.amount/1000000).toFixed(2)} <span class="text-[10px] text-slate-500">ATOM</span></p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-amber-400 text-xs font-black tracking-tighter italic">+${rew.toFixed(4)} REWARDS</span>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+            let totalSpentUSD = 0;
+            let totalVolumeATOM = 0;
+            let txCount = 0;
+            const priceCache = {};
 
-        async function calculateMOPro(addr) {
-            const status = document.getElementById('moStatus');
-            const avgBox = document.getElementById('avgCost');
-            status.innerText = "SAFE MODE ACTIVE...";
-            status.classList.add('status-pulse');
-            
-            try {
-                // Fetch last 15 incoming transfers
-                const txRes = await fetch(`${REST_URL}/cosmos/tx/v1beta1/txs?events=transfer.recipient='${addr}'&pagination.limit=15`);
-                const txData = await txRes.json();
-                
-                let totalSpentUSD = 0; let totalVol = 0;
-                const priceCache = {}; 
+            for (let i = 1; i < lines.length; i++) {
+                const columns = lines[i].split(',');
+                if (columns.length < 2) continue;
 
-                for(let tx of txData.tx_responses) {
-                    const dateRaw = tx.timestamp.split('T')[0];
-                    const dateCG = dateRaw.split('-').reverse().join('-');
-                    const amount = (tx.tx.body.messages[0].amount?.[0]?.amount || 0) / 1000000;
+                const type = columns[typeIdx]?.toLowerCase() || "";
+                // Φιλτράρουμε μόνο εισερχόμενες συναλλαγές
+                if (type.includes('receive') || type.includes('transfer')) {
+                    const rawDate = columns[dateIdx].split(' ')[0]; // YYYY-MM-DD
+                    const amountStr = columns[amountIdx].replace(/"/g, '').split(' ')[0];
+                    const amount = parseFloat(amountStr);
 
-                    if(amount > 0) {
-                        // Cache check to save API calls
-                        if(!priceCache[dateCG]) {
-                            status.innerText = `FETCHING PRICE: ${dateCG}`;
+                    if (amount > 0) {
+                        const dateCG = rawDate.split('-').reverse().join('-'); // DD-MM-YYYY
+
+                        if (!priceCache[dateCG]) {
+                            document.getElementById('progressText').innerText = `Fetching price for ${dateCG}...`;
+                            await new Promise(r => setTimeout(r, 1500)); // Delay for safety
                             
-                            // High safety delay for Demo Key
-                            await new Promise(r => setTimeout(r, 2200)); 
-                            
-                            const pRes = await fetch(`https://api.coingecko.com/api/v3/coins/cosmos/history?date=${dateCG}&localization=false&x_cg_demo_api_key=${API_KEY}`);
-                            
-                            if (pRes.status === 429) throw new Error("Limit");
-                            
-                            const pData = await pRes.json();
-                            priceCache[dateCG] = pData.market_data?.current_price?.usd || 0;
+                            try {
+                                const pRes = await fetch(`https://api.coingecko.com/api/v3/coins/cosmos/history?date=${dateCG}&localization=false&x_cg_demo_api_key=${API_KEY}`);
+                                const pData = await pRes.json();
+                                priceCache[dateCG] = pData.market_data?.current_price?.usd || 0;
+                            } catch (err) {
+                                console.error("API Error");
+                                priceCache[dateCG] = 0;
+                            }
                         }
-                        
-                        const price = priceCache[dateCG];
-                        totalSpentUSD += (amount * price);
-                        totalVol += amount;
 
-                        analyzedTransactions.push({ 
-                            date: dateRaw, 
-                            amount: amount, 
-                            priceAtTime: price.toFixed(2), 
-                            totalUSD: (amount * price).toFixed(2) 
-                        });
+                        totalSpentUSD += (amount * priceCache[dateCG]);
+                        totalVolumeATOM += amount;
+                        txCount++;
+                        
+                        document.getElementById('totalTx').innerText = txCount;
                     }
                 }
-                
-                avgBox.innerText = totalVol > 0 ? `$${(totalSpentUSD/totalVol).toFixed(2)}` : "$0.00";
-                status.innerText = "ΑΝΑΛΥΣΗ ΟΛΟΚΛΗΡΩΘΗΚΕ";
-                status.classList.remove('status-pulse');
-                if(analyzedTransactions.length > 0) document.getElementById('csvBtn').classList.remove('hidden');
-
-            } catch (err) { 
-                console.error(err);
-                status.innerText = "API LIMIT REACHED - TRY AGAIN IN 1 MIN";
-                status.classList.remove('status-pulse');
             }
-        }
 
-        function downloadCSV() {
-            let csvContent = "data:text/csv;charset=utf-8,Date,Amount_ATOM,Price_USD,Total_Value_USD\n";
-            analyzedTransactions.forEach(t => {
-                csvContent += `${t.date},${t.amount},${t.priceAtTime},${t.totalUSD}\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "cosmos_portfolio_history.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const finalMO = totalVolumeATOM > 0 ? (totalSpentUSD / totalVolumeATOM) : 0;
+            document.getElementById('finalMO').innerText = `$${finalMO.toFixed(2)}`;
+            document.getElementById('progressText').innerText = "Ανάλυση ολοκληρώθηκε!";
         }
     </script>
 </body>
