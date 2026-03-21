@@ -3,23 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Crypto Portfolio Pro</title>
+<title>Crypto Portfolio</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
   --bg:#0a0c12;--surface:#13151e;--surface2:#1a1d28;
   --border:rgba(255,255,255,0.07);--text:#f0f0f5;--muted:#6b6e80;
   --accent:#5b7fff;--green:#2ecc8f;--red:#ff5f6d;--amber:#f59e0b;--purple:#a78bfa;
+  --green-bg:rgba(46,204,143,0.12);--red-bg:rgba(255,95,109,0.12);
+  --amber-bg:rgba(245,158,11,0.12);--purple-bg:rgba(167,139,250,0.12);
   --radius:14px;--radius-sm:8px;
 }
-.light-mode {
-  --bg:#f4f5f7; --surface:#ffffff; --surface2:#e9ecef;
-  --border:rgba(0,0,0,0.1); --text:#111827; --muted:#6b7280;
-}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;overflow-x:hidden; transition: background 0.3s, color 0.3s;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;overflow-x:hidden;}
 
-/* Settings */
+/* Settings Panel Styles */
 .s-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;opacity:0;pointer-events:none;transition:opacity 0.25s;}
 .s-overlay.open{opacity:1;pointer-events:all;}
 .s-panel{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:var(--bg);border-left:1px solid var(--border);z-index:101;transform:translateX(100%);transition:transform 0.28s ease;overflow-y:auto;padding-bottom:40px;}
@@ -34,59 +33,137 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .s-tabcontent.active{display:flex;}
 .s-sec{display:flex;flex-direction:column;gap:8px;}
 .s-stitle{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
-.btn-sync-s{background:var(--amber);color:#0a0c12;font-weight:600;width:100%;padding:10px;border-radius:8px;border:none;cursor:pointer;}
-.btn-action{background:var(--surface2);color:var(--text);font-weight:500;width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);cursor:pointer;}
+.s-label{font-size:11px;font-weight:500;color:var(--text);}
+.s-hint{font-size:10px;color:var(--muted);line-height:1.4;}
+.s-hint a{color:var(--accent);}
+.s-input{font-size:12px;font-family:'DM Mono',monospace;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%;}
+.s-input:focus{outline:none;border-color:var(--accent);}
+.s-ta{font-size:11px;font-family:'DM Mono',monospace;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%;resize:vertical;min-height:72px;line-height:1.6;}
+.s-ta:focus{outline:none;border-color:var(--accent);}
+.s-div{border:none;border-top:1px solid var(--border);}
+.api-wrap{position:relative;}
+.api-wrap input{padding-right:80px;}
+.api-tog{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--muted);cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;}
+.api-st{font-size:10px;margin-top:3px;}
+.api-st.ok{color:var(--green);}
+.api-st.warn{color:var(--muted);}
+.thr-in{width:80px;font-size:13px;font-family:'DM Mono',monospace;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);text-align:right;}
+.s-log{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.9;max-height:240px;overflow-y:auto;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;display:none;}
+.s-log.show{display:block;}
 
-/* Banner */
-.banner{position:sticky;top:0;z-index:90;background:linear-gradient(135deg,#060d1f 0%,#0f1a35 40%,#1a0a30 100%);border-bottom:1px solid rgba(91,127,255,0.15);overflow:hidden;}
-.light-mode .banner{background:linear-gradient(135deg,#5b7fff 0%,#a78bfa 100%);}
-.banner-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;position:relative;z-index:1;}
-.banner-title{font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;}
-.banner-sub{font-size:10px;color:rgba(255,255,255,0.7);margin-top:2px;font-family:'DM Mono',monospace;}
-.banner-btn{height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;font-weight:500;}
+/* Banner & Navigation */
+.banner{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#060d1f 0%,#0f1a35 40%,#1a0a30 100%);border-bottom:1px solid rgba(91,127,255,0.15);overflow:hidden;}
+.banner-orb{position:absolute;border-radius:50%;filter:blur(40px);pointer-events:none;}
+.banner-orb1{width:120px;height:120px;background:rgba(91,127,255,0.25);top:-40px;left:60px;}
+.banner-orb2{width:80px;height:80px;background:rgba(167,139,250,0.2);top:-20px;right:120px;}
+.banner-orb3{width:60px;height:60px;background:rgba(34,211,238,0.12);bottom:-20px;left:200px;}
+.banner-inner{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;position:relative;z-index:1;}
+.banner-l{display:flex;align-items:center;gap:10px;min-width:0;}
+.banner-logo{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,rgba(91,127,255,0.3),rgba(167,139,250,0.3));border:1px solid rgba(91,127,255,0.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(91,127,255,0.3),inset 0 0 10px rgba(255,255,255,0.05);}
+.banner-logo svg{width:26px;height:26px;}
+.banner-text{min-width:0;}
+.banner-title{font-size:16px;font-weight:700;letter-spacing:-0.3px;background:linear-gradient(90deg,#ffffff 0%,#a5b4fc 60%,#c084fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap;}
+.banner-sub{font-size:10px;color:rgba(160,168,200,0.7);margin-top:2px;font-family:'DM Mono',monospace;}
+.banner-center{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#2ecc8f;box-shadow:0 0 6px #2ecc8f;animation:pulse 2s infinite;}
+.live-lbl{font-size:10px;font-family:'DM Mono',monospace;color:#2ecc8f;}
+.banner-r{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.banner-btn{height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.75);cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;white-space:nowrap;}
+.banner-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);}
+.btn-save-banner{background:linear-gradient(135deg,rgba(91,127,255,0.8),rgba(126,105,255,0.8));border-color:rgba(91,127,255,0.5);color:#fff;min-width:120px;justify-content:center;}
+.btn-save-banner.saved{background:linear-gradient(135deg,rgba(46,204,143,0.8),rgba(16,185,129,0.8));border-color:rgba(46,204,143,0.5);}
+.save-tick{display:none;}
+.btn-save-banner.saved .save-tick{display:inline;}
+.btn-save-banner.saved .save-label{display:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 
-/* Main */
+/* Main Layout */
 .dash{max-width:700px;margin:0 auto;padding:12px 12px 60px;}
-.sec-toggle-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;margin-bottom:10px;text-transform:uppercase;}
-.collapsible-content{transition:all 0.25s;overflow:hidden;}
+
+/* General Toggle Styles (Arrow behavior) */
+.sec-toggle-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all 0.15s;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;}
+.sec-toggle-btn:hover{background:rgba(255,255,255,0.06);color:var(--text);}
+.toggle-icon{font-size:10px;transition:transform 0.25s;}
+.sec-toggle-btn.collapsed .toggle-icon{transform:rotate(180deg);}
+.collapsible-content{transition:all 0.25s ease-out;overflow:hidden;}
 .collapsible-content.hidden{display:none;}
 
-/* Skeletons */
-.skeleton { background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; color: transparent !important; border-radius: 4px; pointer-events: none; }
-@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-/* Cards & Widgets */
+/* Summary Section */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;}
-.sc-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
-.sc-val{font-size:17px;font-weight:600;font-family:'DM Mono',monospace;}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.sc-lbl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:5px;}
+.sc-val{font-size:17px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-0.5px;}
+.sc-val.pos{color:var(--green);}
+.sc-val.neg{color:var(--red);}
 
-/* Allocation Bar */
-.alloc-wrap{margin-bottom:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px;}
-.alloc-bar{height:8px; border-radius:4px; display:flex; overflow:hidden; width:100%; background:var(--surface2); margin-top:8px;}
-.alloc-segment{height:100%; transition:width 0.3s ease;}
-.alloc-labels{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; font-size:9px; color:var(--muted);}
-.alloc-dot{display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:3px;}
+/* Watch Tickers */
+.wr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.wr-gold{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.wc, .wc-gold{background:var(--surface);border-radius:var(--radius);padding:12px 13px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--border);}
+.wc.btc{border-color:rgba(245,158,11,0.25);}
+.wc.eth{border-color:rgba(91,127,255,0.25);}
+.wc-gold{border-color:rgba(212,175,55,0.2);}
+.wc-logo, .gw-logo-sm{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,0.06);}
+.wn{font-size:12px;font-weight:600;color:var(--text);}
+.wsym{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:1px;}
+.wp{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:-0.5px;}
+.chg{font-size:10px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:99px;}
+.chg.pos{background:var(--green-bg);color:var(--green);}
+.chg.neg{background:var(--red-bg);color:var(--red);}
 
-/* Fear & Greed */
-.fng-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
-.fng-val{font-size:22px; font-weight:700; font-family:'DM Mono',monospace;}
-.fng-class{font-size:11px; font-weight:600; text-transform:uppercase; padding:3px 8px; border-radius:99px; background:var(--surface2);}
+/* Charts */
+.ph-card{background:linear-gradient(135deg,#0f1729 0%,#13151e 70%);border:1px solid rgba(91,127,255,0.2);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:12px;}
+.rb-row{display:flex;gap:5px;margin-bottom:9px;}
+.rb{font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;border:none;background:var(--surface2);color:var(--muted);font-family:'DM Mono',monospace;}
+.rb.active{background:rgba(91,127,255,0.2);color:var(--accent);}
 
-/* Coins List */
+/* Portfolio List */
+.sec-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
 .coins-wrap{display:flex;flex-direction:column;gap:10px;}
-.coin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
-.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;}
-.cname{font-size:14px;font-weight:600;}
+.coin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;gap:8px;}
+.chl{display:flex;align-items:center;gap:9px;}
+.cdot{width:9px;height:9px;border-radius:50%;}
+.cname{font-size:14px;font-weight:600;display:flex;align-items:center;gap:5px;}
 .cprice{font-size:16px;font-weight:600;font-family:'DM Mono',monospace;}
 .cb{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 12px;}
 .cin{width:100%;font-size:12px;font-family:'DM Mono',monospace;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);text-align:right;}
-.empty-state{text-align:center; padding:40px 20px; background:var(--surface); border:1px dashed var(--border); border-radius:var(--radius); color:var(--muted);}
+
+/* Staking Panel */
+.stk-box{margin:0 14px 12px;padding:10px 12px;background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.18);border-radius:10px;}
+.stk-ttl{font-size:9px;font-weight:600;color:var(--purple);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px;}
+.stk-row{display:flex;align-items:center;justify-content:space-between;font-size:10px;margin-bottom:5px;}
+.stk-val{font-family:'DM Mono',monospace;color:var(--purple);}
+
+/* Staking Rewards Section */
+.rewards-card{background:var(--surface);border:1px solid rgba(167,139,250,0.2);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;}
+.rewards-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(167,139,250,0.05);}
+.rewards-coin{display:flex;align-items:center;gap:9px;}
+.rewards-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border);}
+.rewards-cell{padding:10px;border-right:1px solid var(--border);text-align:center;}
+.rewards-period{font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.rewards-eur{font-size:12px;font-weight:700;color:var(--green);font-family:'DM Mono',monospace;}
+
+/* Price Alerts */
+.alerts-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
+.alert-item{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);}
+.alert-coin{font-size:11px;font-weight:600;font-family:'DM Mono',monospace;min-width:40px;}
+.alert-price{font-size:12px;font-family:'DM Mono',monospace;flex:1;}
+.alert-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;}
+.alert-add{display:flex;gap:6px;padding:10px 14px;background:rgba(255,255,255,0.02);flex-wrap:wrap;}
+.alert-sel, .alert-inp{font-size:11px;font-family:'DM Mono',monospace;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);}
+.alert-add-btn{font-size:11px;padding:6px 12px;border-radius:var(--radius-sm);background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;}
 
 /* Toast */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:99px;opacity:0;transition:all 0.25s;pointer-events:none;z-index:200;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.green{background:var(--green);}
+.toast.amber{background:var(--amber);color:#0a0c12;}
+
+/* Utility */
+.badge{font-size:9px;padding:2px 6px;border-radius:99px;font-weight:500;font-family:'DM Mono',monospace;background:rgba(255,255,255,0.1);}
+.btn-sync-s{background:var(--amber);color:#0a0c12;font-weight:600;width:100%;padding:10px;border-radius:8px;border:none;cursor:pointer;margin-top:10px;}
 </style>
 </head>
 <body>
@@ -98,298 +175,271 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <button class="s-close" id="s-close-btn">✕</button>
   </div>
   <div class="s-tabs">
-    <button class="s-tab active" data-tab="wallet">💼 Δεδομένα</button>
-    <button class="s-tab" data-tab="theme">🎨 Θέμα</button>
+    <button class="s-tab active" data-tab="wallet">💼 Wallet</button>
+    <button class="s-tab" data-tab="api">🔑 API</button>
   </div>
   <div class="s-tabcontent active" id="tab-wallet">
     <div class="s-sec">
-      <div class="s-stitle">Δοκιμή & Εκκίνηση</div>
-      <button class="btn-sync-s" id="sync-demo-btn">⟳ Προσθήκη Demo Δεδομένων</button>
-    </div>
-    <hr style="border-color:var(--border); margin:10px 0;">
-    <div class="s-sec">
-      <div class="s-stitle">💾 Δεδομένα (Export/Import)</div>
-      <button class="btn-action" id="export-btn">📤 Εξαγωγή Δεδομένων (Copy)</button>
-      <button class="btn-action" id="import-btn">📥 Εισαγωγή Δεδομένων (Paste)</button>
-      <button class="btn-action" id="clear-btn" style="color:var(--red); border-color:rgba(255,95,109,0.3); background:rgba(255,95,109,0.1);">🗑 Καθαρισμός Δεδομένων</button>
+      <div class="s-stitle">🔗 Wallet Διευθύνσεις</div>
+      <textarea class="s-ta" id="cosmos-addrs" placeholder="Cosmos addresses..."></textarea>
+      <textarea class="s-ta" id="cardano-addrs" placeholder="Cardano addresses..."></textarea>
+      <button class="btn-sync-s" id="sync-btn">⟳ Συγχρονισμός Wallet</button>
+      <div class="s-log" id="sync-log"></div>
     </div>
   </div>
-  <div class="s-tabcontent" id="tab-theme">
+  <div class="s-tabcontent" id="tab-api">
     <div class="s-sec">
-      <div class="s-stitle">Λειτουργία Οθόνης</div>
-      <button class="btn-action" id="theme-toggle-btn">Άλλαξε σε Φωτεινό/Σκοτεινό</button>
+      <div class="s-stitle">🔑 CoinGecko API Key</div>
+      <input class="s-input" type="password" id="cg-key" placeholder="CG-xxxxxxxx"/>
     </div>
   </div>
 </div>
 
 <div class="banner">
+  <div class="banner-orb banner-orb1"></div>
+  <div class="banner-orb banner-orb2"></div>
   <div class="banner-inner">
-    <div>
-      <div class="banner-title">Crypto Portfolio Pro</div>
-      <div class="banner-sub" id="last-update">Φόρτωση δεδομένων...</div>
+    <div class="banner-l">
+      <div class="banner-logo">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="4" fill="white"/>
+          <ellipse cx="20" cy="20" rx="16" ry="6" stroke="white" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div class="banner-text">
+        <div class="banner-title">Cosmos Portfolio</div>
+        <div class="banner-sub" id="last-update">Φόρτωση...</div>
+      </div>
     </div>
-    <div style="display:flex; gap:8px;">
-      <button class="banner-btn" id="save-btn">Αποθήκευση</button>
+    <div class="banner-center">
+      <span class="live-dot"></span>
+      <span class="live-lbl">Live</span>
+    </div>
+    <div class="banner-r">
+      <button class="banner-btn btn-save-banner" id="save-btn">
+        <span class="save-label">Αποθήκευση</span>
+        <span class="save-tick">✓ Αποθηκεύτηκε</span>
+      </button>
       <button class="banner-btn" id="gear-btn">⚙</button>
     </div>
   </div>
 </div>
 
 <div class="dash">
-  <div class="fng-card" id="fng-card">
-    <div>
-      <div style="font-size:10px; color:var(--muted); text-transform:uppercase; margin-bottom:2px;">Αγορά (Fear & Greed)</div>
-      <div class="fng-class skeleton" id="fng-class">Φορτωση</div>
-    </div>
-    <div class="fng-val skeleton" id="fng-val">--</div>
-  </div>
 
   <div class="sg-wrap">
-    <button class="sec-toggle-btn" id="sg-toggle"><span>📊 Σύνοψη & Κατανομή</span> <span>▲</span></button>
+    <button class="sec-toggle-btn" id="sg-toggle">
+      <span>📊 Σύνοψη</span>
+      <span class="toggle-icon">▲</span>
+    </button>
     <div class="collapsible-content" id="sg-cards">
       <div class="sg">
-        <div class="sc"><div class="sc-lbl">Αξία portfolio</div><div class="sc-val skeleton" id="total-val">0.00€</div></div>
-        <div class="sc"><div class="sc-lbl">Κέρδος / Ζημία €</div><div class="sc-val skeleton" id="total-pnl">0.00€</div></div>
-      </div>
-      <div class="alloc-wrap">
-        <div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Κατανομή Portfolio</div>
-        <div class="alloc-bar" id="alloc-bar"></div>
-        <div class="alloc-labels" id="alloc-labels"></div>
+        <div class="sc"><div class="sc-lbl">Αξία portfolio</div><div class="sc-val" id="total-val">—</div></div>
+        <div class="sc"><div class="sc-lbl">Κέρδος / Ζημία €</div><div class="sc-val" id="total-pnl">—</div></div>
       </div>
     </div>
   </div>
 
-  <div class="sec-title" style="margin-top:15px;">Τα νομίσματά σου</div>
+  <div class="ph-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="ct">Αξία Portfolio</div>
+      <div class="rb-row">
+        <button class="rb ph-rb active" data-phdays="30">30D</button>
+        <button class="rb ph-rb" data-phdays="90">90D</button>
+      </div>
+    </div>
+    <div id="ph-current-val" style="font-size:24px;font-weight:700;margin:10px 0;">—</div>
+    <div style="height:180px;"><canvas id="chart-phistory"></canvas></div>
+  </div>
+
+  <div class="wr">
+    <div class="wc btc">
+      <div class="wl">
+        <img class="wc-logo" src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png">
+        <div><div class="wn">Bitcoin</div><div class="wsym">BTC</div></div>
+      </div>
+      <div style="text-align:right">
+        <div class="wp btc" id="btc-price">—</div>
+        <span class="chg" id="btc-chg">—</span>
+      </div>
+    </div>
+    <div class="wc eth">
+      <div class="wl">
+        <img class="wc-logo" src="https://assets.coingecko.com/coins/images/279/small/ethereum.png">
+        <div><div class="wn">Ethereum</div><div class="wsym">ETH</div></div>
+      </div>
+      <div style="text-align:right">
+        <div class="wp eth" id="eth-price">—</div>
+        <span class="chg" id="eth-chg">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wr-gold" id="gold-watch-row"></div>
+
+  <div class="alerts-card">
+    <button class="sec-toggle-btn" id="alerts-toggle">
+      <span>🔔 Ειδοποιήσεις Τιμής</span>
+      <span class="toggle-icon">▲</span>
+    </button>
+    <div class="collapsible-content" id="alerts-content">
+      <div id="alert-list"></div>
+      <div class="alert-add">
+        <select class="alert-sel" id="alert-coin-sel">
+          <option value="bitcoin">BTC</option>
+          <option value="ethereum">ETH</option>
+          <option value="cosmos">ATOM</option>
+          <option value="osmosis">OSMO</option>
+          <option value="dymension">DYM</option>
+          <option value="saga-2">SAGA</option>
+          <option value="cardano">ADA</option>
+        </select>
+        <select class="alert-sel" id="alert-dir-sel">
+          <option value="above">≥</option>
+          <option value="below">≤</option>
+        </select>
+        <input class="alert-inp" id="alert-price-inp" type="number" placeholder="τιμή €">
+        <button class="alert-add-btn" id="alert-add-btn">+ Προσθήκη</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rewards-section" id="rewards-section" style="display:none;">
+    <button class="sec-toggle-btn" id="rewards-toggle">
+      <span>💰 Εκτιμώμενες Αποδόσεις Staking</span>
+      <span class="toggle-icon">▲</span>
+    </button>
+    <div class="collapsible-content" id="rewards-content">
+      <div id="rewards-cards"></div>
+    </div>
+  </div>
+
+  <div class="sec-title">Portfolio</div>
   <div class="coins-wrap" id="coins-wrap"></div>
+
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// Σύστημα εντοπισμού σφαλμάτων
-window.addEventListener('error', function(e) {
-  alert("Πρόβλημα κώδικα: " + e.message);
-});
+// configuration & IDs
+const BTC_ID='bitcoin',ETH_ID='ethereum';
+const KNOWN_LOGOS = {
+  'bitcoin': 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
+  'ethereum': 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+  'cosmos': 'https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png',
+  'osmosis': 'https://assets.coingecko.com/coins/images/16724/small/osmo.png',
+  'dymension': 'https://assets.coingecko.com/coins/images/34151/small/dym.png',
+  'saga-2': 'https://assets.coingecko.com/coins/images/33234/small/saga.png',
+  'cardano': 'https://assets.coingecko.com/coins/images/975/small/cardano.png'
+};
 
-// Εκτέλεση μόλις φορτώσει όλη η σελίδα για να είμαστε σίγουροι
-document.addEventListener("DOMContentLoaded", function() {
-  try {
-    var ud = {};
-    try {
-      var savedData = localStorage.getItem('cp_data_v6');
-      if (savedData) ud = JSON.parse(savedData);
-      if (typeof ud !== 'object' || ud === null) ud = {};
-    } catch(e) { ud = {}; }
+const CHAIN_APR={'cosmos':14.5,'osmosis':12.0,'dymension':40.0,'saga-2':25.0};
+const GOLD_WATCH_IDS = ['cosmos', 'osmosis', 'dymension', 'saga-2', 'cardano'];
 
-    var activeCoinIds = Object.keys(ud);
-    var prices = {};
-    var PAL = ['#2ecc8f','#5b7fff','#f59e0b','#a78bfa','#ec4899','#22d3ee'];
+let prices = {}, changes = {};
+let activeCoinIds = [];
+let ud = {}; // User Data
 
-    function showToast(msg, type) {
-      var t = document.getElementById('toast');
-      t.textContent = msg; 
-      t.className = 'toast show ' + type;
-      setTimeout(function() { t.classList.remove('show'); }, 2500);
+// Toggle Logic Helper
+function initToggle(btnId, contentId, storageKey) {
+  const btn = document.getElementById(btnId);
+  const content = document.getElementById(contentId);
+  let isVisible = localStorage.getItem(storageKey) !== 'false';
+
+  function update() {
+    if(isVisible) {
+      content.classList.remove('hidden');
+      btn.classList.remove('collapsed');
+    } else {
+      content.classList.add('hidden');
+      btn.classList.add('collapsed');
     }
-
-    function save() {
-      activeCoinIds.forEach(function(id) {
-        var qtyEl = document.getElementById('qty-' + id);
-        var avgEl = document.getElementById('avg-' + id);
-        if(qtyEl) {
-          ud[id].qty = parseFloat(qtyEl.value);
-          if (isNaN(ud[id].qty)) ud[id].qty = 0;
-        }
-        if(avgEl) {
-          ud[id].avg = parseFloat(avgEl.value);
-          if (isNaN(ud[id].avg)) ud[id].avg = 0;
-        }
-      });
-      localStorage.setItem('cp_data_v6', JSON.stringify(ud));
-      showToast('✓ Αποθηκεύτηκε', 'green');
-      recalc();
-    }
-
-    function renderPortfolio() {
-      var wrap = document.getElementById('coins-wrap');
-      if(activeCoinIds.length === 0) {
-        wrap.innerHTML = '<div class="empty-state">' +
-            '<h3 style="color:var(--text); margin-bottom:8px;">Καλωσόρισες! 👋</h3>' +
-            '<p style="font-size:12px; margin-bottom:15px;">Το portfolio σου είναι προς το παρόν άδειο.</p>' +
-            '<p style="font-size:12px;">Πάτα το <strong>γρανάζι ⚙️</strong> και επίλεξε "Προσθήκη Demo".</p>' +
-          '</div>';
-        return;
-      }
-      var html = '';
-      activeCoinIds.forEach(function(id, i) {
-        var col = PAL[i % PAL.length];
-        var safeQty = ud[id].qty || 0;
-        var safeAvg = ud[id].avg || 0;
-        html += '<div class="coin-card">' +
-            '<div class="ch">' +
-              '<div class="cname"><span style="color:' + col + '">●</span> ' + id.toUpperCase() + '</div>' +
-              '<div class="cprice skeleton" id="price-' + id + '">-- €</div>' +
-            '</div>' +
-            '<div class="cb">' +
-              '<div><div style="font-size:9px;color:var(--muted);">ΠΟΣΟΤΗΤΑ</div><input class="cin qty-input" id="qty-' + id + '" value="' + safeQty + '"></div>' +
-              '<div><div style="font-size:9px;color:var(--muted);">ΜΕΣΗ ΤΙΜΗ ΑΓΟΡΑΣ</div><input class="cin avg-input" id="avg-' + id + '" value="' + safeAvg + '"></div>' +
-              '<div style="grid-column: span 2; margin-top:5px;"><div style="font-size:9px;color:var(--muted);">ΑΞΙΑ (€)</div><div style="text-align:right; font-weight:bold; font-family:\'DM Mono\';" id="val-' + id + '">0.00€</div></div>' +
-            '</div>' +
-          '</div>';
-      });
-      wrap.innerHTML = html;
-      
-      // Προσθήκη listeners στα inputs
-      var inputs = document.querySelectorAll('.cin');
-      for(var j=0; j<inputs.length; j++) {
-        inputs[j].addEventListener('change', recalc);
-      }
-    }
-
-    function recalc() {
-      var totalVal = 0;
-      var allocVals = [];
-      var allocLabels = [];
-
-      activeCoinIds.forEach(function(id, i) {
-        var qtyEl = document.getElementById('qty-' + id);
-        var qty = 0;
-        if (qtyEl && qtyEl.value) qty = parseFloat(qtyEl.value);
-        else if (ud[id] && ud[id].qty) qty = parseFloat(ud[id].qty);
-        if (isNaN(qty)) qty = 0;
-
-        var p = prices[id] || 0;
-        var val = qty * p;
-        totalVal += val;
-
-        var valEl = document.getElementById('val-' + id);
-        if(valEl) valEl.textContent = val.toFixed(2) + '€';
-        
-        if(val > 0) {
-          allocVals.push(val);
-          allocLabels.push(id.toUpperCase());
-        }
-      });
-
-      document.getElementById('total-val').textContent = totalVal.toFixed(2) + '€';
-      
-      var allocBar = document.getElementById('alloc-bar');
-      var allocLbls = document.getElementById('alloc-labels');
-      if(totalVal > 0) {
-        var barHtml = '';
-        var lblHtml = '';
-        for(var j=0; j<allocVals.length; j++) {
-          var percent = (allocVals[j] / totalVal) * 100;
-          var c = PAL[j % PAL.length];
-          barHtml += '<div class="alloc-segment" style="width:' + percent + '%; background:' + c + '"></div>';
-          lblHtml += '<div><span class="alloc-dot" style="background:' + c + '"></span>' + allocLabels[j] + ' ' + percent.toFixed(1) + '%</div>';
-        }
-        allocBar.innerHTML = barHtml;
-        allocLbls.innerHTML = lblHtml;
-      } else {
-        allocBar.innerHTML = ''; 
-        allocLbls.innerHTML = 'Δεν υπάρχει υπόλοιπο.';
-      }
-    }
-
-    async function loadData() {
-      try {
-        if(activeCoinIds.length > 0) {
-          var res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + activeCoinIds.join(',') + '&vs_currencies=eur');
-          if(res.ok) {
-            var data = await res.json();
-            activeCoinIds.forEach(function(id) {
-              prices[id] = (data[id] && data[id].eur) ? data[id].eur : 0;
-              var priceEl = document.getElementById('price-' + id);
-              if(priceEl) priceEl.textContent = prices[id].toFixed(2) + '€';
-            });
-          }
-        }
-        recalc();
-
-        var fgRes = await fetch('https://api.alternative.me/fng/');
-        if(fgRes.ok) {
-          var fgData = await fgRes.json();
-          if (fgData && fgData.data && fgData.data.length > 0) {
-            var val = fgData.data[0].value;
-            var classif = fgData.data[0].value_classification;
-            document.getElementById('fng-val').textContent = val;
-            var classEl = document.getElementById('fng-class');
-            classEl.textContent = classif;
-            if(val <= 40) classEl.style.color = 'var(--red)';
-            else if(val >= 60) classEl.style.color = 'var(--green)';
-            else classEl.style.color = 'var(--amber)';
-          }
-        }
-        document.getElementById('last-update').textContent = 'Ανανεώθηκε: ' + new Date().toLocaleTimeString();
-      } catch(e) { 
-        document.getElementById('last-update').textContent = 'Αποτυχία API';
-      } finally {
-        var skeletons = document.querySelectorAll('.skeleton');
-        for (var k = 0; k < skeletons.length; k++) skeletons[k].classList.remove('skeleton');
-      }
-    }
-
-    // Κουμπιά UI 
-    document.getElementById('gear-btn').addEventListener('click', function() { document.getElementById('s-panel').classList.add('open'); document.getElementById('s-overlay').classList.add('open'); });
-    document.getElementById('s-close-btn').addEventListener('click', function() { document.getElementById('s-panel').classList.remove('open'); document.getElementById('s-overlay').classList.remove('open'); });
-    document.getElementById('s-overlay').addEventListener('click', function() { document.getElementById('s-panel').classList.remove('open'); document.getElementById('s-overlay').classList.remove('open'); });
-    document.getElementById('save-btn').addEventListener('click', save);
-
-    document.getElementById('sync-demo-btn').addEventListener('click', function() {
-      var demoData = { 'bitcoin': {qty: 0.1, avg: 50000}, 'ethereum': {qty: 1.5, avg: 2500}, 'cosmos': {qty: 50, avg: 8} };
-      localStorage.setItem('cp_data_v6', JSON.stringify(demoData));
-      location.reload();
-    });
-
-    document.getElementById('clear-btn').addEventListener('click', function() {
-      if(confirm("Διαγραφή δεδομένων;")) { localStorage.removeItem('cp_data_v6'); location.reload(); }
-    });
-
-    document.getElementById('export-btn').addEventListener('click', function() {
-      prompt("Αντέγραψε το κείμενο:", localStorage.getItem('cp_data_v6') || '{}');
-    });
-
-    document.getElementById('import-btn').addEventListener('click', function() {
-      var dataStr = prompt("Κάνε επικόλληση:");
-      if(dataStr && dataStr.indexOf('{') !== -1) { localStorage.setItem('cp_data_v6', dataStr); location.reload(); }
-    });
-
-    document.getElementById('sg-toggle').addEventListener('click', function() {
-      var content = document.getElementById('sg-cards');
-      content.classList.toggle('hidden');
-      this.querySelector('span:last-child').style.transform = content.classList.contains('hidden') ? 'rotate(180deg)' : 'rotate(0deg)';
-    });
-
-    var isLight = localStorage.getItem('cp_light_mode') === 'true';
-    if(isLight) document.body.classList.add('light-mode');
-    document.getElementById('theme-toggle-btn').addEventListener('click', function() {
-      isLight = !isLight;
-      if(isLight) document.body.classList.add('light-mode');
-      else document.body.classList.remove('light-mode');
-      localStorage.setItem('cp_light_mode', isLight);
-    });
-
-    var tabs = document.querySelectorAll('.s-tab');
-    for(var t = 0; t < tabs.length; t++) {
-      tabs[t].addEventListener('click', function() {
-        var allTabs = document.querySelectorAll('.s-tab');
-        var allContents = document.querySelectorAll('.s-tabcontent');
-        for(var j=0; j<allTabs.length; j++) allTabs[j].classList.remove('active');
-        for(var k=0; k<allContents.length; k++) allContents[k].classList.remove('active');
-        this.classList.add('active');
-        document.getElementById('tab-' + this.getAttribute('data-tab')).classList.add('active');
-      });
-    }
-
-    renderPortfolio();
-    loadData();
-    setInterval(loadData, 60000);
-
-  } catch(err) {
-    alert("Βρέθηκε κρίσιμο σφάλμα κατά την εκκίνηση: " + err.message);
+    localStorage.setItem(storageKey, isVisible);
   }
+
+  btn.addEventListener('click', () => { isVisible = !isVisible; update(); });
+  update();
+}
+
+// Formatters
+const fmt = (n, d=2) => new Intl.NumberFormat('el-GR', {minimumFractionDigits: d, maximumFractionDigits: d}).format(n);
+const fmtEur = n => fmt(n) + '€';
+
+// Basic API Fetch
+async function loadPrices() {
+  const ids = [BTC_ID, ETH_ID, ...GOLD_WATCH_IDS, ...activeCoinIds].join(',');
+  try {
+    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`);
+    const data = await r.json();
+    Object.keys(data).forEach(id => {
+      prices[id] = data[id].eur;
+      changes[id] = data[id].eur_24h_change;
+    });
+    updateUI();
+  } catch(e) { console.error("Price fetch failed", e); }
+}
+
+function updateUI() {
+  // Update BTC/ETH
+  document.getElementById('btc-price').textContent = fmtEur(prices[BTC_ID] || 0);
+  document.getElementById('eth-price').textContent = fmtEur(prices[ETH_ID] || 0);
+  
+  // Build Gold Watch
+  const gwRow = document.getElementById('gold-watch-row');
+  gwRow.innerHTML = GOLD_WATCH_IDS.map(id => {
+    const p = prices[id] || 0;
+    const c = changes[id] || 0;
+    return `
+      <div class="wc-gold">
+        <div class="wl">
+          <img class="gw-logo-sm" src="${KNOWN_LOGOS[id] || ''}">
+          <div class="wn">${id.charAt(0).toUpperCase() + id.slice(1)}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="wp">${fmtEur(p)}</div>
+          <span class="chg ${c>=0?'pos':'neg'}">${c>=0?'+':''}${fmt(c)}%</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+  renderPortfolio();
+}
+
+function renderPortfolio() {
+  const wrap = document.getElementById('coins-wrap');
+  // Simple rendering for demo - would be expanded with actual wallet data logic
+  if(activeCoinIds.length === 0 && wrap.innerHTML === "") {
+    wrap.innerHTML = '<div style="color:var(--muted); padding:20px; text-align:center;">Συνδέστε το Wallet για εμφάνιση δεδομένων.</div>';
+  }
+}
+
+// Toast
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Initializations
+document.getElementById('gear-btn').addEventListener('click', () => {
+  document.getElementById('s-panel').classList.add('open');
+  document.getElementById('s-overlay').classList.add('open');
 });
+document.getElementById('s-close-btn').addEventListener('click', () => {
+  document.getElementById('s-panel').classList.remove('open');
+  document.getElementById('s-overlay').classList.remove('open');
+});
+
+// Activate Toggles
+initToggle('sg-toggle', 'sg-cards', 'sg_visible');
+initToggle('alerts-toggle', 'alerts-content', 'alerts_visible');
+initToggle('rewards-toggle', 'rewards-content', 'rewards_visible');
+
+loadPrices();
+setInterval(loadPrices, 60000);
 </script>
 </body>
 </html>
