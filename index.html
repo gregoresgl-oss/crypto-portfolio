@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* Το CSS παραμένει ακριβώς το ίδιο για να μη μεταβληθεί η εμφάνιση */
+/* ΔΙΑΤΗΡΗΣΗ ΟΛΩΝ ΤΩΝ CSS STYLES ΟΠΩΣ ΤΟ ΑΡΧΙΚΟ */
 :root{
   --bg:#0a0c12;--surface:#13151e;--surface2:#1a1d28;
   --border:rgba(255,255,255,0.07);--text:#f0f0f5;--muted:#6b6e80;
@@ -18,6 +18,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;overflow-x:hidden;}
+
+/* Settings */
 .s-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;opacity:0;pointer-events:none;transition:opacity 0.25s;}
 .s-overlay.open{opacity:1;pointer-events:all;}
 .s-panel{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:var(--bg);border-left:1px solid var(--border);z-index:101;transform:translateX(100%);transition:transform 0.28s ease;overflow-y:auto;padding-bottom:40px;}
@@ -25,11 +27,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .s-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:1;}
 .s-head-title{font-size:14px;font-weight:600;}
 .s-close{width:30px;height:30px;border-radius:var(--radius-sm);background:var(--surface2);border:none;cursor:pointer;font-size:16px;color:var(--muted);display:flex;align-items:center;justify-content:center;}
+/* Settings tabs */
 .s-tabs{display:flex;gap:4px;padding:10px 18px 0;border-bottom:1px solid var(--border);position:sticky;top:57px;background:var(--bg);z-index:1;}
 .s-tab{font-size:11px;font-weight:500;padding:6px 12px;border-radius:6px 6px 0 0;border:none;cursor:pointer;background:transparent;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s;}
 .s-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(91,127,255,0.05);}
 .s-tabcontent{display:none;padding:16px 18px;flex-direction:column;gap:16px;}
 .s-tabcontent.active{display:flex;}
+/* Common elements */
 .s-sec{display:flex;flex-direction:column;gap:8px;}
 .s-stitle{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
 .s-label{font-size:11px;font-weight:500;color:var(--text);}
@@ -39,6 +43,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .s-input:focus{outline:none;border-color:var(--accent);}
 .s-ta{font-size:11px;font-family:'DM Mono',monospace;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%;resize:vertical;min-height:72px;line-height:1.6;}
 .s-ta:focus{outline:none;border-color:var(--accent);}
+.s-ta::placeholder,.s-input::placeholder{color:var(--muted);}
+.s-div{border:none;border-top:1px solid var(--border);}
 .api-wrap{position:relative;}
 .api-wrap input{padding-right:80px;}
 .api-tog{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--muted);cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;}
@@ -46,25 +52,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .api-st.ok{color:var(--green);}
 .api-st.warn{color:var(--muted);}
 .thr-in{width:80px;font-size:13px;font-family:'DM Mono',monospace;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);text-align:right;}
+.thr-in:focus{outline:none;border-color:var(--accent);}
 .s-log{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.9;max-height:240px;overflow-y:auto;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;display:none;}
 .s-log.show{display:block;}
+/* Gold watch manager */
 .gw-list{display:flex;flex-direction:column;gap:6px;}
 .gw-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
 .gw-logo{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--surface);}
 .gw-name{font-size:12px;font-weight:600;flex:1;}
 .gw-sym{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
 .gw-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0 4px;}
+.gw-del:hover{color:var(--red);}
 .gw-add-row{display:flex;gap:6px;margin-top:4px;}
 .gw-search{flex:1;}
 .gw-add-btn{padding:8px 14px;border-radius:var(--radius-sm);background:rgba(212,175,55,0.15);color:#d4af37;border:1px solid rgba(212,175,55,0.3);cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;}
 .gw-suggestions{display:flex;flex-direction:column;gap:4px;margin-top:6px;max-height:160px;overflow-y:auto;}
 .gw-sug-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:7px;cursor:pointer;border:1px solid transparent;transition:all 0.15s;}
+.gw-sug-item:hover{border-color:rgba(212,175,55,0.3);background:rgba(212,175,55,0.05);}
+.gw-sug-logo{width:22px;height:22px;border-radius:50%;object-fit:cover;background:var(--surface);}
+/* Appearance settings */
 .s-range{width:100%;accent-color:var(--accent);}
 .s-color-row{display:flex;gap:8px;flex-wrap:wrap;}
 .s-color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
 .s-color-opt.active{border-color:#fff;transform:scale(1.15);}
 .s-select{font-size:12px;font-family:'DM Sans',sans-serif;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%;}
+.s-select:focus{outline:none;border-color:var(--accent);}
 .s-preview{background:var(--surface2);border-radius:8px;padding:10px 12px;font-size:13px;font-family:'DM Mono',monospace;margin-top:4px;}
+.s-log .ok{color:var(--green);}
+.s-log .warn{color:var(--amber);}
+.s-log .err{color:var(--red);}
+.s-log .acc{color:var(--accent);}
+
+/* Banner */
 .banner{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,#060d1f 0%,#0f1a35 40%,#1a0a30 100%);border-bottom:1px solid rgba(91,127,255,0.15);overflow:hidden;}
 .banner-orb{position:absolute;border-radius:50%;filter:blur(40px);pointer-events:none;}
 .banner-orb1{width:120px;height:120px;background:rgba(91,127,255,0.25);top:-40px;left:60px;}
@@ -72,73 +91,234 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .banner-orb3{width:60px;height:60px;background:rgba(34,211,238,0.12);bottom:-20px;left:200px;}
 .banner-inner{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;position:relative;z-index:1;}
 .banner-l{display:flex;align-items:center;gap:10px;min-width:0;}
-.banner-logo{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,rgba(91,127,255,0.3),rgba(167,139,250,0.3));border:1px solid rgba(91,127,255,0.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.banner-logo{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,rgba(91,127,255,0.3),rgba(167,139,250,0.3));border:1px solid rgba(91,127,255,0.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(91,127,255,0.3),inset 0 0 10px rgba(255,255,255,0.05);}
+.banner-logo svg{width:26px;height:26px;}
+.banner-text{min-width:0;}
 .banner-title{font-size:16px;font-weight:700;letter-spacing:-0.3px;background:linear-gradient(90deg,#ffffff 0%,#a5b4fc 60%,#c084fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap;}
 .banner-sub{font-size:10px;color:rgba(160,168,200,0.7);margin-top:2px;font-family:'DM Mono',monospace;}
+.banner-center{display:flex;align-items:center;gap:5px;flex-shrink:0;}
 .live-dot{width:7px;height:7px;border-radius:50%;background:#2ecc8f;box-shadow:0 0 6px #2ecc8f;animation:pulse 2s infinite;}
 .live-lbl{font-size:10px;font-family:'DM Mono',monospace;color:#2ecc8f;}
-.banner-btn{height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.75);cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;transition:all 0.15s;}
-.btn-save-banner{background:linear-gradient(135deg,rgba(91,127,255,0.8),rgba(126,105,255,0.8));color:#fff;min-width:120px;justify-content:center;}
-.btn-save-banner.saved{background:linear-gradient(135deg,rgba(46,204,143,0.8),rgba(16,185,129,0.8));}
+.banner-r{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.banner-btn{height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.75);cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;white-space:nowrap;}
+.banner-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);}
+.banner-btn:active{opacity:0.75;transform:scale(0.97);}
+.btn-save-banner{background:linear-gradient(135deg,rgba(91,127,255,0.8),rgba(126,105,255,0.8));border-color:rgba(91,127,255,0.5);color:#fff;min-width:120px;justify-content:center;}
+.btn-save-banner.saved{background:linear-gradient(135deg,rgba(46,204,143,0.8),rgba(16,185,129,0.8));border-color:rgba(46,204,143,0.5);}
 .save-tick{display:none;}
 .btn-save-banner.saved .save-tick{display:inline;}
 .btn-save-banner.saved .save-label{display:none;}
+.banner-gear{width:34px;padding:0;justify-content:center;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* Main */
 .dash{max-width:700px;margin:0 auto;padding:12px 12px 60px;}
+.btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;border:none;transition:all 0.15s;white-space:nowrap;}
+.btn-ghost{background:var(--surface2);color:var(--muted);}
+.btn-save{background:var(--accent);color:#fff;min-width:110px;}
+.btn-save.saved{background:var(--green);}
+.save-tick{display:none;}
+.btn-save.saved .save-tick{display:inline;}
+.btn-save.saved .save-label{display:none;}
+.btn-gear{width:34px;height:34px;border-radius:var(--radius-sm);background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.btn-sync-s{background:var(--amber);color:#0a0c12;font-weight:600;width:100%;}
+
+/* Summary */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;}
-.sc-lbl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
-.sc-val{font-size:17px;font-weight:600;font-family:'DM Mono',monospace;}
+.sc-lbl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:5px;}
+.sc-val{font-size:17px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-0.5px;}
 .sc-val.pos{color:var(--green);}
 .sc-val.neg{color:var(--red);}
-.wr,.wr-gold{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-.wc,.wc-gold{background:var(--surface);border-radius:var(--radius);padding:12px 13px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);}
-.wc.btc{border-color:rgba(245,158,11,0.25);}
-.wc.eth{border-color:rgba(91,127,255,0.25);}
-.wc-gold{border-color:rgba(212,175,55,0.2);}
+
+/* Watch tickers — unified style */
+.wr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.wr-gold{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+/* All watch cards share same base */
+.wc, .wc-gold{
+  background:var(--surface);
+  border-radius:var(--radius);
+  padding:12px 13px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  transition:border-color 0.15s;
+}
+.wc.btc{border:1px solid rgba(245,158,11,0.25);}
+.wc.eth{border:1px solid rgba(91,127,255,0.25);}
+.wc-gold{border:1px solid rgba(212,175,55,0.2);}
+.wc.btc:hover{border-color:rgba(245,158,11,0.5);}
+.wc.eth:hover{border-color:rgba(91,127,255,0.5);}
+.wc-gold:hover{border-color:rgba(212,175,55,0.45);}
+/* Left side: logo + name */
 .wl{display:flex;align-items:center;gap:10px;}
-.wc-logo,.gw-logo-sm{width:34px;height:34px;border-radius:50%;object-fit:cover;}
-.wn,.wn-gold{font-size:12px;font-weight:600;}
-.wsym{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;}
-.wp{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;}
+/* Logo circle fallback */
+.wi{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.wi.btc{background:var(--amber-bg);color:var(--amber);}
+.wi.eth{background:rgba(91,127,255,0.12);color:#5b7fff;}
+.wi.gold{background:rgba(212,175,55,0.1);color:#d4af37;font-size:11px;}
+/* Real logo image */
+.wc-logo{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,0.06);}
+.gw-logo-sm{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,0.06);}
+/* Name */
+.wn{font-size:12px;font-weight:600;color:var(--text);}
+.wn-gold{font-size:12px;font-weight:600;color:var(--text);}
+.wsym{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:1px;}
+/* Price + change */
+.wp{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:-0.5px;}
+.wp.btc{color:var(--amber);}
+.wp.eth{color:#5b7fff;}
+.wp-gold{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;color:#d4af37;letter-spacing:-0.5px;}
 .chg,.chg-sm{font-size:10px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:99px;}
 .chg.pos,.chg-sm.pos{background:var(--green-bg);color:var(--green);}
 .chg.neg,.chg-sm.neg{background:var(--red-bg);color:var(--red);}
+
+/* Charts */
 .cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:12px;}
-.ctr{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;}
+.ctr{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:5px;}
 .ct{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+.cleg{display:flex;gap:11px;}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
+.ld{width:7px;height:7px;border-radius:50%;}
 .rb-row{display:flex;gap:5px;margin-bottom:9px;}
 .rb{font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;border:none;background:var(--surface2);color:var(--muted);font-family:'DM Mono',monospace;}
 .rb.active{background:rgba(91,127,255,0.2);color:var(--accent);}
 .cw{position:relative;height:185px;}
-.coin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
-.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;}
-.chl{display:flex;align-items:center;gap:9px;}
-.cdot{width:9px;height:9px;border-radius:50%;}
-.cname{font-size:14px;font-weight:600;}
+
+/* Coin Cards */
+.sec-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.coins-wrap{display:flex;flex-direction:column;gap:10px;}
+.coin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color 0.2s;}
+.coin-card:hover{border-color:rgba(255,255,255,0.12);}
+
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;gap:8px;}
+.chl{display:flex;align-items:center;gap:9px;min-width:0;}
+.cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.ci{min-width:0;}
+.cname{font-size:14px;font-weight:600;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.csym{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+.cbadges{margin-top:3px;display:flex;gap:4px;flex-wrap:wrap;}
+.chr{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
 .cprice{font-size:16px;font-weight:600;font-family:'DM Mono',monospace;}
+
 .cb{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 12px;}
 .cf{display:flex;flex-direction:column;gap:3px;}
-.cfl{font-size:9px;color:var(--muted);text-transform:uppercase;}
+.cfl{font-size:9px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;}
 .cfv{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;}
+.cfv.pos{color:var(--green);}
+.cfv.neg{color:var(--red);}
 .cin{width:100%;font-size:12px;font-family:'DM Mono',monospace;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);text-align:right;}
+.cin:focus{outline:none;border-color:var(--accent);}
+.cin.sy{border-color:rgba(245,158,11,0.35);}
+
+/* Staking panel */
 .stk-box{margin:0 14px 12px;padding:10px 12px;background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.18);border-radius:10px;}
-.badge{display:inline-block;font-size:9px;padding:2px 6px;border-radius:99px;font-weight:500;font-family:'DM Mono',monospace;margin-right:4px;}
+.stk-ttl{font-size:9px;font-weight:600;color:var(--purple);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px;}
+.stk-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px;}
+.stk-row:last-child{margin-bottom:0;}
+.stk-lbl{font-size:10px;color:var(--muted);}
+.stk-val{font-size:11px;font-family:'DM Mono',monospace;color:var(--purple);text-align:right;}
+.apr-pill{font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:99px;background:rgba(46,204,143,0.12);color:var(--green);}
+.val-row{display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid rgba(167,139,250,0.15);}
+.val-name{font-size:10px;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.val-amt{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;}
+
+/* Badges */
+.badge{display:inline-block;font-size:9px;padding:2px 6px;border-radius:99px;font-weight:500;font-family:'DM Mono',monospace;}
 .badge.wa{background:var(--amber-bg);color:var(--amber);}
 .badge.st{background:var(--purple-bg);color:var(--purple);}
-.sg-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;color:var(--muted);font-size:11px;margin-bottom:8px;}
+.badge.nw{background:rgba(91,127,255,0.15);color:var(--accent);}
+.badge.chg-p{background:var(--green-bg);color:var(--green);}
+.badge.chg-n{background:var(--red-bg);color:var(--red);}
+.badge.jail{background:var(--red-bg);color:var(--red);}
+.badge.actv{background:var(--green-bg);color:var(--green);}
+
+/* Summary toggle */
+.sg-wrap{margin-bottom:12px;}
+.sg-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;color:var(--muted);font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all 0.15s;margin-bottom:8px;}
+.sg-toggle:hover{background:rgba(255,255,255,0.06);color:var(--text);}
+.sg-toggle-label{text-transform:uppercase;letter-spacing:0.06em;}
+.sg-toggle-icon{font-size:10px;transition:transform 0.2s;}
+.sg-toggle.collapsed .sg-toggle-icon{transform:rotate(180deg);}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;transition:all 0.25s;}
 .sg.hidden{display:none;}
+
+/* Staking Rewards Section */
+.rewards-section{margin-bottom:14px;}
 .rewards-card{background:var(--surface);border:1px solid rgba(167,139,250,0.2);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;}
 .rewards-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(167,139,250,0.05);}
-.rewards-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border);}
-.rewards-cell{padding:11px 12px;border-right:1px solid var(--border);}
-.rewards-period{font-size:9px;color:var(--muted);text-transform:uppercase;}
+.rewards-coin{display:flex;align-items:center;gap:9px;}
+.rewards-cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.rewards-name{font-size:13px;font-weight:600;}
+.rewards-sym{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-left:3px;}
+.rewards-apr{font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:99px;background:rgba(46,204,143,0.12);color:var(--green);}
+.rewards-staked{font-size:11px;color:var(--purple);font-family:'DM Mono',monospace;}
+.rewards-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;}
+.rewards-cell{padding:11px 12px;border-right:1px solid var(--border);border-top:1px solid var(--border);}
+.rewards-cell:last-child{border-right:none;}
+.rewards-period{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;}
 .rewards-eur{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:var(--green);}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:all 0.25s;z-index:200;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(-10px);}
+.rewards-coin-amt{font-size:10px;font-family:'DM Mono',monospace;color:var(--purple);margin-top:2px;}
+.rewards-empty{padding:14px;text-align:center;color:var(--muted);font-size:12px;}
+.rewards-total{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border);background:rgba(46,204,143,0.04);}
+.rewards-total-lbl{font-size:10px;color:var(--muted);font-weight:500;}
+.rewards-total-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:var(--green);}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:99px;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;z-index:200;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.green{background:var(--green);}
-.ph-card{background:linear-gradient(135deg,#0f1729 0%,#13151e 70%);border:1px solid rgba(91,127,255,0.2);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+.toast.amber{background:var(--amber);color:#0a0c12;}
+
+/* Theme presets */
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.theme-card{cursor:pointer;border-radius:8px;border:2px solid var(--border);overflow:hidden;transition:all 0.15s;}
+.theme-card:hover,.theme-card.active{border-color:var(--accent);}
+.theme-preview{height:36px;width:100%;}
+.theme-name{font-size:10px;text-align:center;padding:4px;color:var(--muted);}
+.theme-card.active .theme-name{color:var(--accent);}
+/* Card style */
+.card-style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.card-style-opt{cursor:pointer;border-radius:6px;border:2px solid var(--border);overflow:hidden;text-align:center;padding:6px 4px;font-size:10px;color:var(--muted);transition:all 0.15s;}
+.card-style-opt:hover,.card-style-opt.active{border-color:var(--accent);color:var(--accent);}
+.cso-preview{height:24px;border-radius:4px;margin-bottom:4px;}
+.default-preview{background:var(--surface);border:1px solid var(--border);}
+.glass-preview{background:rgba(255,255,255,0.05);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);}
+.flat-preview{background:var(--surface2);border:none;}
+.neon-preview{background:var(--surface);border:1px solid var(--accent);box-shadow:0 0 6px rgba(91,127,255,0.3);}
+/* Radius buttons */
+.radius-btn{padding:8px 16px;border-radius:4px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:16px;flex:1;transition:all 0.15s;}
+.radius-btn:hover,.radius-btn.active{border-color:var(--accent);color:var(--accent);}
+/* Toggle rows */
+.s-toggle-row{display:flex;align-items:center;gap:10px;cursor:pointer;padding:2px 0;}
+.s-cb{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+/* Density buttons */
+.density-btn{flex:1;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.density-btn.active{background:rgba(91,127,255,0.15);border-color:var(--accent);color:var(--accent);}
+
+/* Portfolio history chart */
+.ph-card{background:linear-gradient(135deg,#0f1729 0%,#13151e 70%);border:1px solid rgba(91,127,255,0.2);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 4px 24px rgba(0,0,0,0.3);}
+.ph-wrap{position:relative;}
+
+/* Price alerts */
 .alerts-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
+.alerts-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);}
+.alert-list{display:flex;flex-direction:column;gap:0;}
 .alert-item{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);}
+.alert-item:last-child{border-bottom:none;}
+.alert-coin{font-size:11px;font-weight:600;font-family:'DM Mono',monospace;min-width:40px;}
+.alert-dir{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);}
+.alert-price{font-size:12px;font-family:'DM Mono',monospace;color:var(--text);flex:1;}
+.alert-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:0 2px;flex-shrink:0;}
+.alert-del:hover{color:var(--red);}
+.alert-add{display:flex;gap:6px;padding:10px 14px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.alert-sel{font-size:11px;font-family:'DM Mono',monospace;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);}
+.alert-sel:focus{outline:none;border-color:var(--accent);}
+.alert-inp{font-size:11px;font-family:'DM Mono',monospace;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:90px;}
+.alert-inp:focus{outline:none;border-color:var(--accent);}
+.alert-add-btn{font-size:11px;padding:6px 12px;border-radius:var(--radius-sm);background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;}
+.alert-triggered{background:rgba(46,204,143,0.08);border-color:rgba(46,204,143,0.2);}
+.notif-banner{display:none;align-items:center;gap:8px;padding:8px 14px;background:rgba(245,158,11,0.08);border-bottom:1px solid rgba(245,158,11,0.15);font-size:11px;color:var(--amber);}
+.notif-banner.show{display:flex;}
+.notif-btn{font-size:10px;padding:3px 9px;border-radius:99px;background:var(--amber);color:#0a0c12;border:none;cursor:pointer;font-weight:600;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -161,162 +341,463 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   <div class="s-tabcontent active" id="tab-wallet">
     <div class="s-sec">
       <div class="s-stitle">🔗 Wallet Διευθύνσεις</div>
-      <div class="s-label">Cosmos (ATOM, OSMO κ.ά.)</div>
-      <textarea class="s-ta" id="cosmos-addrs" placeholder="cosmos1abc..."></textarea>
+      <div class="s-label">Cosmos (ATOM, OSMO, JUNO, DYM, SAGA, TIA κ.ά.)</div>
+      <div class="s-hint">Μία ανά γραμμή</div>
+      <textarea class="s-ta" id="cosmos-addrs" placeholder="cosmos1abc...&#10;cosmos1xyz..."></textarea>
       <div class="s-label">Cardano (ADA)</div>
       <textarea class="s-ta" id="cardano-addrs" placeholder="addr1abc..."></textarea>
     </div>
     <div class="s-sec">
       <div class="s-stitle">⚖️ Ελάχιστη αξία εμφάνισης</div>
-      <input class="thr-in" id="threshold" type="number" value="100"/>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input class="thr-in" id="threshold" type="number" value="100" min="0"/>
+        <span style="font-size:12px;color:var(--muted)">€</span>
+      </div>
     </div>
-    <button class="btn btn-sync-s" id="sync-btn" style="padding:10px; border-radius:8px; cursor:pointer; background:var(--amber); font-weight:bold;">⟳ Συγχρονισμός</button>
-    <div class="s-log" id="sync-log"></div>
+    <div class="s-sec">
+      <button class="btn btn-sync-s" id="sync-btn">⟳ Συγχρονισμός Wallet</button>
+      <div class="s-log" id="sync-log"></div>
+    </div>
   </div>
 
   <div class="s-tabcontent" id="tab-watch">
-    <div class="gw-list" id="gw-list"></div>
-    <div class="gw-add-row">
-      <input class="s-input gw-search" id="gw-search" placeholder="Αναζήτηση..."/>
+    <div class="s-sec">
+      <div class="s-stitle">⭐ Χρυσή λίστα παρακολούθησης</div>
+      <div class="s-hint">Τα νομίσματα που εμφανίζονται στη χρυσή σειρά τιμών</div>
+      <div class="gw-list" id="gw-list"></div>
+      <div class="gw-add-row">
+        <input class="s-input gw-search" id="gw-search" placeholder="Αναζήτηση νομίσματος (π.χ. cosmos)"/>
+        <button class="gw-add-btn" id="gw-search-btn">🔍</button>
+      </div>
+      <div class="gw-suggestions" id="gw-suggestions"></div>
     </div>
-    <div class="gw-suggestions" id="gw-suggestions"></div>
   </div>
 
   <div class="s-tabcontent" id="tab-appear">
-    <div class="s-stitle">🎨 Accent Color</div>
-    <div class="s-color-row" id="accent-colors">
-        <div class="s-color-opt active" data-color="#5b7fff" style="background:#5b7fff"></div>
-        <div class="s-color-opt" data-color="#2ecc8f" style="background:#2ecc8f"></div>
-        <div class="s-color-opt" data-color="#a78bfa" style="background:#a78bfa"></div>
-        <div class="s-color-opt" data-color="#f59e0b" style="background:#f59e0b"></div>
+
+    <div class="s-sec">
+      <div class="s-stitle">✨ Έτοιμα θέματα</div>
+      <div class="theme-grid" id="theme-presets">
+        <div class="theme-card" data-theme="cosmos"><div class="theme-preview" style="background:linear-gradient(135deg,#060d1f,#0f1a35)"></div><div class="theme-name">Cosmos</div></div>
+        <div class="theme-card" data-theme="midnight"><div class="theme-preview" style="background:linear-gradient(135deg,#080808,#12121f)"></div><div class="theme-name">Midnight</div></div>
+        <div class="theme-card" data-theme="forest"><div class="theme-preview" style="background:linear-gradient(135deg,#071510,#0d2018)"></div><div class="theme-name">Forest</div></div>
+        <div class="theme-card" data-theme="ember"><div class="theme-preview" style="background:linear-gradient(135deg,#150a08,#1f1208)"></div><div class="theme-name">Ember</div></div>
+        <div class="theme-card" data-theme="royal"><div class="theme-preview" style="background:linear-gradient(135deg,#0a0618,#120a25)"></div><div class="theme-name">Royal</div></div>
+        <div class="theme-card" data-theme="ocean"><div class="theme-preview" style="background:linear-gradient(135deg,#030f1a,#071828)"></div><div class="theme-name">Ocean</div></div>
+      </div>
+    </div>
+
+    <hr class="s-div"/>
+
+    <div class="s-sec">
+      <div class="s-stitle">🎨 Χρώμα accent</div>
+      <div class="s-color-row" id="accent-colors">
+        <div class="s-color-opt active" data-color="#5b7fff" style="background:#5b7fff" title="Cosmos Blue"></div>
+        <div class="s-color-opt" data-color="#2ecc8f" style="background:#2ecc8f" title="Mint"></div>
+        <div class="s-color-opt" data-color="#a78bfa" style="background:#a78bfa" title="Violet"></div>
+        <div class="s-color-opt" data-color="#f59e0b" style="background:#f59e0b" title="Amber"></div>
+        <div class="s-color-opt" data-color="#ec4899" style="background:#ec4899" title="Pink"></div>
+        <div class="s-color-opt" data-color="#22d3ee" style="background:#22d3ee" title="Cyan"></div>
+        <div class="s-color-opt" data-color="#ff7f50" style="background:#ff7f50" title="Coral"></div>
+        <div class="s-color-opt" data-color="#d4af37" style="background:#d4af37" title="Gold"></div>
+      </div>
+    </div>
+
+    <div class="s-sec">
+      <div class="s-stitle">🖊 Προσαρμοσμένο χρώμα accent</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="color" id="custom-accent" value="#5b7fff" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);cursor:pointer;padding:2px;"/>
+        <button class="gw-add-btn" id="apply-custom-accent" style="flex:1;">Εφαρμογή</button>
+      </div>
+    </div>
+
+    <hr class="s-div"/>
+
+    <div class="s-sec">
+      <div class="s-stitle">🔤 Γραμματοσειρά</div>
+      <select class="s-select" id="font-sel">
+        <option value="'DM Sans', sans-serif" selected>DM Sans (default)</option>
+        <option value="'Inter', sans-serif">Inter</option>
+        <option value="'Roboto', sans-serif">Roboto</option>
+        <option value="system-ui, sans-serif">System UI</option>
+        <option value="'DM Mono', monospace">DM Mono (mono)</option>
+      </select>
+    </div>
+    <div class="s-sec">
+      <div class="s-stitle">📏 Μέγεθος κειμένου</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:10px;color:var(--muted);">A</span>
+        <input class="s-range" id="font-size-range" type="range" min="12" max="17" value="14" step="1" style="flex:1;"/>
+        <span style="font-size:16px;color:var(--muted);">A</span>
+      </div>
+      <div class="s-preview" id="font-preview">Cosmos Portfolio · 8.491€ · +12,3%</div>
+    </div>
+
+    <hr class="s-div"/>
+
+    <div class="s-sec">
+      <div class="s-stitle">🃏 Στυλ καρτελών</div>
+      <div class="card-style-grid" id="card-styles">
+        <div class="card-style-opt active" data-style="default">
+          <div class="cso-preview default-preview"></div>
+          <span>Default</span>
+        </div>
+        <div class="card-style-opt" data-style="glass">
+          <div class="cso-preview glass-preview"></div>
+          <span>Glass</span>
+        </div>
+        <div class="card-style-opt" data-style="flat">
+          <div class="cso-preview flat-preview"></div>
+          <span>Flat</span>
+        </div>
+        <div class="card-style-opt" data-style="neon">
+          <div class="cso-preview neon-preview"></div>
+          <span>Neon</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="s-sec">
+      <div class="s-stitle">📐 Γωνίες καρτελών</div>
+      <div style="display:flex;gap:6px;">
+        <button class="radius-btn active" data-r="4px" style="border-radius:4px;">■</button>
+        <button class="radius-btn" data-r="8px" style="border-radius:8px;">▪</button>
+        <button class="radius-btn" data-r="14px" style="border-radius:14px;">◉</button>
+        <button class="radius-btn" data-r="22px" style="border-radius:22px;">⬭</button>
+      </div>
+    </div>
+
+    <hr class="s-div"/>
+
+    <div class="s-sec">
+      <div class="s-stitle">📊 Χρώμα γραφήματος portfolio</div>
+      <div class="s-color-row" id="chart-colors">
+        <div class="s-color-opt active" data-chart="up:#2ecc8f,down:#ff5f6d" style="background:linear-gradient(#2ecc8f,#ff5f6d)"></div>
+        <div class="s-color-opt" data-chart="up:#5b7fff,down:#5b7fff" style="background:#5b7fff"></div>
+        <div class="s-color-opt" data-chart="up:#a78bfa,down:#a78bfa" style="background:#a78bfa"></div>
+        <div class="s-color-opt" data-chart="up:#d4af37,down:#d4af37" style="background:#d4af37"></div>
+        <div class="s-color-opt" data-chart="up:#22d3ee,down:#22d3ee" style="background:#22d3ee"></div>
+      </div>
+      <div class="s-hint">Πράσινο/Κόκκινο = αλλάζει χρώμα βάσει κέρδους</div>
+    </div>
+
+    <hr class="s-div"/>
+
+    <div class="s-sec">
+      <div class="s-stitle">✨ Εφέ & Animation</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb" id="glow-toggle" checked/><span class="s-label">Banner glow orbs</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb" id="anim-toggle" checked/><span class="s-label">Animated live dot</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb" id="hover-toggle" checked/><span class="s-label">Hover effects σε κάρτες</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb" id="shadow-toggle" checked/><span class="s-label">Σκιές (shadows)</span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-tabcontent" id="tab-layout">
+
+    <div class="s-sec">
+      <div class="s-stitle">💱 Νόμισμα εμφάνισης</div>
+      <select class="s-select" id="currency-sel">
+        <option value="eur" selected>€ Euro (EUR)</option>
+        <option value="usd">$ Dollar (USD)</option>
+        <option value="gbp">£ Pound (GBP)</option>
+        <option value="btc">₿ Bitcoin (BTC)</option>
+      </select>
+      <div class="s-hint" id="currency-rate-hint">Οι τιμές θα εμφανίζονται στο επιλεγμένο νόμισμα</div>
+    </div>
+
+    <hr class="s-div"/>
+
+    <div class="s-sec">
+      <div class="s-stitle">👁 Εμφάνιση sections</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb section-toggle" id="sec-summary" data-sec="sg-wrap" checked/><span class="s-label">📊 Σύνοψη (Αξία, Κόστος κ.λπ.)</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb section-toggle" id="sec-ph" data-sec-q=".ph-card" checked/><span class="s-label">📈 Γράφημα αξίας portfolio</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb section-toggle" id="sec-watch" data-sec-q=".wr" checked/><span class="s-label">₿ BTC / ETH tickers</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb section-toggle" id="sec-gold" data-sec="gold-watch-row" checked/><span class="s-label">⭐ Χρυσή σειρά τιμών</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb section-toggle" id="sec-compare" data-sec-q=".cc" checked/><span class="s-label">📉 Portfolio vs BTC chart</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb section-toggle" id="sec-alerts" data-sec-q=".alerts-card" checked/><span class="s-label">🔔 Ειδοποιήσεις τιμής</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb section-toggle" id="sec-rewards" data-sec="rewards-section" checked/><span class="s-label">💰 Εκτιμώμενες αποδόσεις staking</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb section-toggle" id="sec-portfolio" data-sec-q=".sec-title" checked/><span class="s-label">💼 Λίστα portfolio</span></label>
+      </div>
+    </div>
+
+    <hr class="s-div"/>
+
+    <div class="s-sec">
+      <div class="s-stitle">🔢 Εμφάνιση δεδομένων</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb" id="show-pnl-pct" checked/><span class="s-label">Εμφάνιση P&L σε %</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb" id="show-avg" checked/><span class="s-label">Εμφάνιση μέσης τιμής αγοράς</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb" id="show-staking" checked/><span class="s-label">Εμφάνιση staking details</span></label>
+        <label class="s-toggle-row"><input type="checkbox" class="s-cb" id="show-validators" checked/><span class="s-label">Εμφάνιση validators</span></label>
+      </div>
+    </div>
+
+    <hr class="s-div"/>
+
+    <div class="s-sec">
+      <div class="s-stitle">📱 Πυκνότητα</div>
+      <div style="display:flex;gap:6px;">
+        <button class="density-btn active" data-density="normal">Κανονική</button>
+        <button class="density-btn" data-density="compact">Compact</button>
+        <button class="density-btn" data-density="spacious">Άνετη</button>
+      </div>
+    </div>
+
+    <div class="s-sec">
+      <div class="s-stitle">⏱ Αυτόματη ανανέωση</div>
+      <select class="s-select" id="refresh-sel">
+        <option value="30">Κάθε 30 δευτερόλεπτα</option>
+        <option value="60" selected>Κάθε 1 λεπτό</option>
+        <option value="120">Κάθε 2 λεπτά</option>
+        <option value="300">Κάθε 5 λεπτά</option>
+        <option value="0">Χειροκίνητα μόνο</option>
+      </select>
+    </div>
+
+    <div class="s-sec">
+      <div class="s-stitle">🏷 Τίτλος banner</div>
+      <input class="s-input" id="banner-title-input" placeholder="Cosmos Portfolio" maxlength="30"/>
+      <button class="gw-add-btn" id="apply-banner-title" style="margin-top:6px;width:100%;justify-content:center;">Εφαρμογή</button>
     </div>
   </div>
 
   <div class="s-tabcontent" id="tab-api">
-    <div class="s-stitle">🔑 CoinGecko API Key</div>
-    <input class="s-input" type="password" id="cg-key" placeholder="CG-xxx"/>
-    <button class="btn btn-sync-s" id="manual-save-btn" style="margin-top:10px; background:var(--accent); color:white; padding:8px; border-radius:5px;">💾 Αποθήκευση</button>
+    <div class="s-sec">
+      <div class="s-stitle">🔑 CoinGecko API Key</div>
+      <div class="s-hint">Από το <a href="https://www.coingecko.com/en/developers/dashboard" target="_blank">coingecko.com/developers</a> — δωρεάν Demo key</div>
+      <div class="api-wrap">
+        <input class="s-input" type="password" id="cg-key" placeholder="CG-xxxxxxxxxxxxxxxxx"/>
+        <span class="api-tog" id="key-toggle">εμφάνιση</span>
+      </div>
+      <div class="api-st warn" id="api-status">Χωρίς κλειδί</div>
+    </div>
+    <div class="s-sec">
+      <div class="s-stitle">💾 Αποθήκευση & Επαναφορά</div>
+      <button class="btn btn-sync-s" id="manual-save-btn" style="background:var(--accent);">💾 Αποθήκευση τώρα</button>
+      <button class="btn" id="reset-btn" style="background:rgba(255,95,109,0.15);color:var(--red);border:1px solid rgba(255,95,109,0.3);margin-top:4px;">🗑 Επαναφορά αρχικών</button>
+    </div>
   </div>
 </div>
 
 <div class="banner">
   <div class="banner-orb banner-orb1"></div>
   <div class="banner-orb banner-orb2"></div>
+  <div class="banner-orb banner-orb3"></div>
+
   <div class="banner-inner">
     <div class="banner-l">
       <div class="banner-logo">
-        <svg viewBox="0 0 40 40" width="26" fill="white"><circle cx="20" cy="20" r="4"/><ellipse cx="20" cy="20" rx="16" ry="6" stroke="white" stroke-width="1.5" fill="none"/></svg>
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="4" fill="white"/>
+          <ellipse cx="20" cy="20" rx="16" ry="6" stroke="white" stroke-width="1.5" fill="none" opacity="0.9"/>
+          <ellipse cx="20" cy="20" rx="16" ry="6" stroke="white" stroke-width="1.5" fill="none" opacity="0.7" transform="rotate(60 20 20)"/>
+          <ellipse cx="20" cy="20" rx="16" ry="6" stroke="white" stroke-width="1.5" fill="none" opacity="0.5" transform="rotate(120 20 20)"/>
+        </svg>
       </div>
       <div class="banner-text">
         <div class="banner-title">Cosmos Portfolio</div>
         <div class="banner-sub" id="last-update">Φόρτωση...</div>
       </div>
     </div>
-    <div class="banner-center"><span class="live-dot"></span><span class="live-lbl">Live</span></div>
+
+    <div class="banner-center">
+      <span class="live-dot"></span>
+      <span class="live-lbl">Live</span>
+    </div>
+
     <div class="banner-r">
-      <button class="banner-btn" id="refresh-btn">⟳</button>
-      <button class="banner-btn btn-save-banner" id="save-btn"><span class="save-label">Save</span><span class="save-tick">✓</span></button>
-      <button class="banner-btn" id="gear-btn">⚙</button>
+      <button class="banner-btn" id="refresh-btn" title="Ανανέωση">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+      <button class="banner-btn btn-save-banner" id="save-btn">
+        <span class="save-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-2px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Αποθήκευση
+        </span>
+        <span class="save-tick">✓ Αποθηκεύτηκε</span>
+      </button>
+      <button class="banner-btn banner-gear" id="gear-btn" title="Ρυθμίσεις">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
     </div>
   </div>
 </div>
 
 <div class="dash">
+
   <div class="sg-wrap">
-    <button class="sg-toggle" id="sg-toggle"><span>Σύνοψη</span> <span id="sg-icon">▲</span></button>
+    <button class="sg-toggle" id="sg-toggle" title="Εμφάνιση/Απόκρυψη">
+      <span class="sg-toggle-label">Σύνοψη</span>
+      <span class="sg-toggle-icon" id="sg-icon">▲</span>
+    </button>
     <div class="sg" id="sg-cards">
-      <div class="sc"><div class="sc-lbl">Αξία</div><div class="sc-val" id="total-val">—</div></div>
-      <div class="sc"><div class="sc-lbl">P&L</div><div class="sc-val" id="total-pnl">—</div></div>
+      <div class="sc"><div class="sc-lbl">Αξία portfolio</div><div class="sc-val" id="total-val">—</div></div>
+      <div class="sc"><div class="sc-lbl">Κόστος αγοράς</div><div class="sc-val" id="total-cost">—</div></div>
+      <div class="sc"><div class="sc-lbl">Κέρδος / Ζημία €</div><div class="sc-val" id="total-pnl">—</div></div>
+      <div class="sc"><div class="sc-lbl">Κέρδος / Ζημία %</div><div class="sc-val" id="total-pnlp">—</div></div>
     </div>
   </div>
 
   <div class="ph-card">
-    <div class="ct">Αξία Portfolio</div>
-    <div id="ph-current-val" style="font-size:24px; font-weight:bold;">—</div>
-    <div style="height:200px;"><canvas id="chart-phistory"></canvas></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:6px;">
+      <div>
+        <div class="ct">Αξία Portfolio</div>
+        <div id="ph-current-val" style="font-size:26px;font-weight:700;font-family:'DM Mono',monospace;color:#f0f0f5;letter-spacing:-1px;margin-top:2px;">—</div>
+        <div id="ph-change-label" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:2px;"></div>
+      </div>
+      <div class="rb-row" style="margin-bottom:0;">
+        <button class="rb ph-rb active" data-phdays="30">30D</button>
+        <button class="rb ph-rb" data-phdays="90">90D</button>
+        <button class="rb ph-rb" data-phdays="365">1Y</button>
+      </div>
+    </div>
+    <div class="ph-wrap" style="height:200px;margin-top:10px;"><canvas id="chart-phistory"></canvas></div>
   </div>
 
   <div class="wr">
     <div class="wc btc">
-      <div class="wl"><img class="wc-logo" src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" alt="BTC"><div>BTC</div></div>
-      <div class="wp" id="btc-price">—</div>
+      <div class="wl">
+        <img class="wc-logo" id="logo-bitcoin" src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" alt="BTC"/>
+        <div><div class="wn">Bitcoin</div><div class="wsym">BTC</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+        <span class="wp btc" id="btc-price">—</span>
+        <span class="chg" id="btc-chg">—</span>
+      </div>
     </div>
     <div class="wc eth">
-      <div class="wl"><img class="wc-logo" src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" alt="ETH"><div>ETH</div></div>
-      <div class="wp" id="eth-price">—</div>
+      <div class="wl">
+        <img class="wc-logo" id="logo-ethereum" src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" alt="ETH"/>
+        <div><div class="wn">Ethereum</div><div class="wsym">ETH</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+        <span class="wp eth" id="eth-price">—</span>
+        <span class="chg" id="eth-chg">—</span>
+      </div>
     </div>
   </div>
 
   <div class="wr-gold" id="gold-watch-row"></div>
 
   <div class="cc">
-    <div class="ct">Portfolio vs BTC</div>
+    <div class="ctr">
+      <span class="ct" id="compare-title">Portfolio vs Bitcoin — 30 ημέρες</span>
+      <div class="cleg">
+        <span class="li"><span class="ld" style="background:#2ecc8f"></span>Portfolio</span>
+        <span class="li"><span class="ld" style="background:#f59e0b"></span>BTC</span>
+      </div>
+    </div>
+    <div class="rb-row">
+      <button class="rb" data-days="7">7D</button>
+      <button class="rb active" data-days="30">30D</button>
+      <button class="rb" data-days="90">90D</button>
+    </div>
     <div class="cw"><canvas id="chart-compare"></canvas></div>
   </div>
 
-  <div class="rewards-section" id="rewards-section" style="display:none;">
-    <div class="ct">Staking Rewards</div>
-    <div id="rewards-cards"></div>
+  <div class="alerts-card">
+    <div class="alerts-head">
+      <span class="ct">🔔 Ειδοποιήσεις τιμής</span>
+      <span id="alert-count" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;"></span>
+    </div>
+    <div class="notif-banner" id="notif-banner">
+      <span style="flex:1">Ενεργοποίησε ειδοποιήσεις για να λαμβάνεις alerts</span>
+      <button class="notif-btn" id="notif-btn">Ενεργοποίηση</button>
+    </div>
+    <div class="alert-list" id="alert-list"></div>
+    <div class="alert-add">
+      <select class="alert-sel" id="alert-coin-sel"></select>
+      <select class="alert-sel" id="alert-dir-sel">
+        <option value="above">≥ πάνω από</option>
+        <option value="below">≤ κάτω από</option>
+      </select>
+      <input class="alert-inp" id="alert-price-inp" type="number" placeholder="τιμή" min="0"/>
+      <button class="alert-add-btn" id="alert-add-btn">+ Προσθήκη</button>
+    </div>
   </div>
 
-  <div class="sec-title" style="margin:20px 0 10px; font-weight:bold; color:var(--muted);">PORTFOLIO</div>
+  <div class="rewards-section" id="rewards-section" style="display:none;">
+    <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>💰 Εκτιμώμενες Αποδόσεις Staking</span>
+      <span style="font-size:9px;color:var(--muted);font-weight:400;text-transform:none;">βάσει τρέχουσας τιμής & APR</span>
+    </div>
+    <div id="rewards-cards"></div>
+    <div class="rewards-card" style="background:rgba(46,204,143,0.04);">
+      <div class="rewards-grid">
+        <div class="rewards-cell">
+          <div class="rewards-period">Ημερήσιο σύνολο</div>
+          <div class="rewards-eur" id="rtotal-day">—</div>
+        </div>
+        <div class="rewards-cell">
+          <div class="rewards-period">Εβδομαδιαίο σύνολο</div>
+          <div class="rewards-eur" id="rtotal-week">—</div>
+        </div>
+        <div class="rewards-cell">
+          <div class="rewards-period">Μηνιαίο σύνολο</div>
+          <div class="rewards-eur" id="rtotal-month">—</div>
+        </div>
+        <div class="rewards-cell" style="border-right:none;">
+          <div class="rewards-period">Ετήσιο σύνολο</div>
+          <div class="rewards-eur" id="rtotal-year">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">Portfolio</div>
   <div class="coins-wrap" id="coins-wrap"></div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-/* CORE LOGIC - FIXED & CLEANED */
-const BTC_ID='bitcoin', ETH_ID='ethereum';
-const PAL=['#2ecc8f','#ff7f50','#a78bfa','#22d3ee','#ec4899','#84cc16','#ff5f6d','#5b7fff'];
-const CHAIN_APR={'cosmos':14.5,'osmosis':12.0,'juno-network':35.0,'dymension':40.0,'saga-2':25.0,'celestia':12.0};
+/* JS Logic Cleaned - Appearance Intact */
+const PAL=['#2ecc8f','#ff7f50','#a78bfa','#22d3ee','#ec4899','#84cc16','#ff5f6d','#94a3b8','#60a5fa','#34d399','#fb923c','#c084fc','#fbbf24','#f472b6','#4ade80','#f87171','#a1a1aa','#38bdf8','#5b7fff','#e879f9'];
+const BTC_ID='bitcoin',ETH_ID='ethereum';
+const CHAIN_APR={'cosmos':14.5,'osmosis':12.0,'juno-network':35.0,'dymension':40.0,'saga-2':25.0,'celestia':12.0,'stargaze':30.0,'akash-network':20.0,'secret':22.0,'injective-protocol':8.0,'kava':18.0,'evmos':50.0};
+
+const DEFAULT_GOLD=[
+  {id:'cosmos', sym:'ATOM', name:'Cosmos'},
+  {id:'osmosis', sym:'OSMO', name:'Osmosis'},
+  {id:'juno-network', sym:'JUNO', name:'Juno'},
+  {id:'saga-2', sym:'SAGA', name:'Saga'},
+  {id:'dymension', sym:'DYM', name:'Dymension'},
+  {id:'cardano', sym:'ADA', name:'Cardano'},
+  {id:'gameswift', sym:'GSWIFT', name:'GameSwift'}
+];
 
 const COSMOS_CHAINS=[
   {id:'cosmos', name:'Cosmos', sym:'ATOM', prefix:'cosmos', denom:'uatom', dec:6, ep:['https://cosmos-rest.publicnode.com']},
   {id:'osmosis', name:'Osmosis', sym:'OSMO', prefix:'osmo', denom:'uosmo', dec:6, ep:['https://osmosis-rest.publicnode.com']},
+  {id:'juno-network', name:'Juno', sym:'JUNO', prefix:'juno', denom:'ujuno', dec:6, ep:['https://rest.cosmos.directory/juno']},
   {id:'dymension', name:'Dymension', sym:'DYM', prefix:'dym', denom:'adym', dec:18, ep:['https://dymension-rest.publicnode.com']},
+  {id:'saga-2', name:'Saga', sym:'SAGA', prefix:'saga', denom:'uusaga', dec:6, ep:['https://rest.cosmos.directory/saga']},
   {id:'celestia', name:'Celestia', sym:'TIA', prefix:'celestia', denom:'utia', dec:6, ep:['https://celestia-rest.publicnode.com']}
 ];
 
-let activeCoinIds = [];
-let ud = {};
-let prices = {};
-let changes = {};
-let displayCurrency = 'eur';
+let activeCoinIds=[];
+let ud={};
+let prices={};
+let changes={};
+let GOLD_WATCH = JSON.parse(localStorage.getItem('gold_watch_v1')) || [...DEFAULT_GOLD];
+let alerts = JSON.parse(localStorage.getItem('cp_alerts_v1')) || [];
+let appearSettings = JSON.parse(localStorage.getItem('appearance_v2')) || {};
 let currencyRate = 1;
 let currencySymbol = '€';
 
-// Initialize data structures
-function initUD(id) { if(!ud[id]) ud[id]={qty:0, avg:0, liquid:0, staked:0, synced:false, validators:[]}; }
+// Helper: Init User Data
+function ensureUD(id){ if(!ud[id]) ud[id]={qty:0, avg:0, liquid:0, staked:0, synced:false, validators:[]}; }
 
-// LocalStorage helpers
-function loadSaved(){
-  const saved = JSON.parse(localStorage.getItem('cp_v10') || '{}');
-  if(saved.coins) Object.assign(ud, saved.coins);
-  if(saved.ids) activeCoinIds = saved.ids;
-  document.getElementById('cosmos-addrs').value = saved.cosmosAddrs || '';
-  document.getElementById('cardano-addrs').value = saved.cardanoAddrs || '';
-}
-
-function saveData(){
-  activeCoinIds.forEach(id => {
-    const q = document.getElementById(`qty-${id}`);
-    const a = document.getElementById(`avg-${id}`);
-    if(q) ud[id].qty = parseFloat(q.value) || 0;
-    if(a) ud[id].avg = parseFloat(a.value) || 0;
-  });
-  const data = {ids: activeCoinIds, coins: ud, cosmosAddrs: document.getElementById('cosmos-addrs').value, cardanoAddrs: document.getElementById('cardano-addrs').value};
-  localStorage.setItem('cp_v10', JSON.stringify(data));
-  showToast('Αποθηκεύτηκε', 'green');
-}
-
-// Formatting
-const fmt = (n, d) => new Intl.NumberFormat('el-GR', {minimumFractionDigits: d, maximumFractionDigits: d}).format(n);
-const fmtCur = (n) => `${fmt(n * currencyRate, n * currencyRate >= 1 ? 2 : 4)}${currencySymbol}`;
-
-// API Logic
-async function loadPrices() {
-  const ids = [...new Set([...activeCoinIds, BTC_ID, ETH_ID])].join(',');
+// Logic: API fetch with Retry
+async function fetchPrices() {
+  const ids = [...new Set([...activeCoinIds, ...GOLD_WATCH.map(c=>c.id), BTC_ID, ETH_ID])].join(',');
   try {
     const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`);
     const data = await r.json();
@@ -324,27 +805,72 @@ async function loadPrices() {
       prices[id] = data[id].eur;
       changes[id] = data[id].eur_24h_change;
     });
+    updateTime();
     updateUI();
-  } catch(e) { console.error("Price fetch failed"); }
+  } catch(e) { console.error("Price fetch error"); }
+}
+
+function updateTime() {
+  const now = new Date();
+  document.getElementById('last-update').textContent = now.toLocaleDateString('el-GR') + ' ' + now.toLocaleTimeString('el-GR', {hour:'2-digit', minute:'2-digit'});
 }
 
 function updateUI() {
-  document.getElementById('btc-price').textContent = fmtCur(prices[BTC_ID] || 0);
-  document.getElementById('eth-price').textContent = fmtCur(prices[ETH_ID] || 0);
-  document.getElementById('last-update').textContent = new Date().toLocaleTimeString('el-GR');
+  updateWatchTickers();
+  buildGoldWatchRow();
   buildCards();
-  recalcTotal();
+  recalcAll();
+  renderAlerts();
+  checkAlerts();
+}
+
+function updateWatchTickers() {
+  const bp = prices[BTC_ID] || 0;
+  const ep = prices[ETH_ID] || 0;
+  document.getElementById('btc-price').textContent = fmtCur(bp);
+  document.getElementById('eth-price').textContent = fmtCur(ep);
+  
+  const bc = changes[BTC_ID] || 0;
+  const ec = changes[ETH_ID] || 0;
+  const be = document.getElementById('btc-chg');
+  const ee = document.getElementById('eth-chg');
+  be.textContent = (bc>=0?'+':'') + bc.toFixed(2) + '%';
+  be.className = 'chg ' + (bc>=0?'pos':'neg');
+  ee.textContent = (ec>=0?'+':'') + ec.toFixed(2) + '%';
+  ee.className = 'chg ' + (ec>=0?'pos':'neg');
+}
+
+function buildGoldWatchRow() {
+  const row = document.getElementById('gold-watch-row');
+  row.innerHTML = GOLD_WATCH.map(c => {
+    const p = prices[c.id] || 0;
+    const ch = changes[c.id] || 0;
+    return `
+      <div class="wc-gold">
+        <div class="wl">
+          <div class="wi gold">${c.sym.slice(0,2)}</div>
+          <div><div class="wn-gold">${c.name}</div><div class="wsym">${c.sym}</div></div>
+        </div>
+        <div style="text-align:right">
+          <div class="wp-gold">${fmtCur(p)}</div>
+          <div class="chg-sm ${ch>=0?'pos':'neg'}">${(ch>=0?'+':'')+ch.toFixed(2)}%</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function fmtCur(n) {
+  const val = n * currencyRate;
+  return new Intl.NumberFormat('el-GR', { style: 'currency', currency: appearSettings.currency?.toUpperCase() || 'EUR' }).format(val);
 }
 
 function buildCards() {
   const wrap = document.getElementById('coins-wrap');
   wrap.innerHTML = '';
   activeCoinIds.forEach((id, i) => {
-    initUD(id);
+    ensureUD(id);
     const p = prices[id] || 0;
     const q = ud[id].qty;
-    const val = p * q;
-    
     const card = document.createElement('div');
     card.className = 'coin-card';
     card.innerHTML = `
@@ -353,58 +879,101 @@ function buildCards() {
         <div class="cprice">${fmtCur(p)}</div>
       </div>
       <div class="cb">
-        <div class="cf"><div class="cfl">ΠΟΣΟΤΗΤΑ</div><input class="cin" id="qty-${id}" value="${q}"></div>
-        <div class="cf"><div class="cfl">ΑΞΙΑ</div><div class="cfv">${fmtCur(val)}</div></div>
-      </div>
-    `;
+        <div class="cf"><div class="cfl">Ποσότητα</div><input class="cin" type="number" id="qty-${id}" value="${q}"></div>
+        <div class="cf"><div class="cfl">Αξία</div><div class="cfv" id="val-${id}">${fmtCur(p*q)}</div></div>
+      </div>`;
     wrap.appendChild(card);
-    
-    // Auto-save typing
-    card.querySelector('input').addEventListener('input', () => {
-        ud[id].qty = parseFloat(card.querySelector('input').value) || 0;
-        recalcTotal();
+    card.querySelector('input').addEventListener('input', (e) => {
+      ud[id].qty = parseFloat(e.target.value) || 0;
+      recalcAll();
     });
   });
 }
 
-function recalcTotal() {
-  let total = 0;
-  activeCoinIds.forEach(id => total += (prices[id] || 0) * (ud[id].qty || 0));
-  document.getElementById('total-val').textContent = fmtCur(total);
-  document.getElementById('ph-current-val').textContent = fmtCur(total);
+function recalcAll() {
+  let totVal = 0;
+  activeCoinIds.forEach(id => {
+    const v = (prices[id] || 0) * (ud[id].qty || 0);
+    totVal += v;
+    const el = document.getElementById(`val-${id}`);
+    if(el) el.textContent = fmtCur(v);
+  });
+  document.getElementById('total-val').textContent = fmtCur(totVal);
+  document.getElementById('ph-current-val').textContent = fmtCur(totVal);
+  buildRewards();
 }
 
-// UI Triggers
-document.getElementById('gear-btn').addEventListener('click', () => {
-    document.getElementById('s-panel').classList.add('open');
-    document.getElementById('s-overlay').classList.add('open');
-});
-document.getElementById('s-close-btn').addEventListener('click', () => {
-    document.getElementById('s-panel').classList.remove('open');
-    document.getElementById('s-overlay').classList.remove('open');
-});
-document.getElementById('save-btn').addEventListener('click', saveData);
-document.getElementById('refresh-btn').addEventListener('click', loadPrices);
-
-function showToast(m, c) {
-    const t = document.getElementById('toast');
-    t.textContent = m; t.className = `toast show ${c}`;
-    setTimeout(() => t.classList.remove('show'), 2000);
+function buildRewards() {
+  const section = document.getElementById('rewards-section');
+  const coins = activeCoinIds.filter(id => CHAIN_APR[id] && ud[id].qty > 0);
+  if(!coins.length) { section.style.display='none'; return; }
+  section.style.display='block';
+  
+  let dTot=0, wTot=0, mTot=0, yTot=0;
+  document.getElementById('rewards-cards').innerHTML = coins.map(id => {
+    const apr = CHAIN_APR[id]/100;
+    const qty = ud[id].qty;
+    const p = prices[id] || 0;
+    const yCoins = qty * apr;
+    const yEur = yCoins * p;
+    yTot += yEur; mTot += yEur/12; wTot += yEur/52; dTot += yEur/365;
+    
+    return `
+      <div class="rewards-card">
+        <div class="rewards-head"><span>${id.toUpperCase()}</span><span class="rewards-apr">APR ${CHAIN_APR[id]}%</span></div>
+        <div class="rewards-grid">
+          <div class="rewards-cell"><div class="rewards-period">Ημέρα</div><div class="rewards-eur">${fmtCur(yEur/365)}</div></div>
+          <div class="rewards-cell"><div class="rewards-period">Έτος</div><div class="rewards-eur">${fmtCur(yEur)}</div></div>
+        </div>
+      </div>`;
+  }).join('');
+  
+  document.getElementById('rtotal-day').textContent = fmtCur(dTot);
+  document.getElementById('rtotal-year').textContent = fmtCur(yTot);
 }
 
-// Start
-loadSaved();
-loadPrices();
-setInterval(loadPrices, 60000);
+// Logic: Alerts
+function renderAlerts() {
+  const list = document.getElementById('alert-list');
+  list.innerHTML = alerts.map((a, i) => `
+    <div class="alert-item">
+      <span>${a.coin.toUpperCase()} ${a.dir==='above'?'>=':'<='} ${a.target}</span>
+      <button onclick="deleteAlert(${i})">✕</button>
+    </div>`).join('');
+}
 
-// Tab switching
-document.querySelectorAll('.s-tab').forEach(t => {
-    t.addEventListener('click', () => {
-        document.querySelectorAll('.s-tab, .s-tabcontent').forEach(el => el.classList.remove('active'));
-        t.classList.add('active');
-        document.getElementById(`tab-${t.dataset.tab}`).classList.add('active');
-    });
+window.deleteAlert = (i) => { alerts.splice(i, 1); localStorage.setItem('cp_alerts_v1', JSON.stringify(alerts)); renderAlerts(); };
+
+function checkAlerts() {
+  alerts.forEach(a => {
+    const cur = prices[a.coin];
+    if(!cur) return;
+    const hit = a.dir==='above'? cur >= a.target : cur <= a.target;
+    if(hit) showToast(`ALERT: ${a.coin.toUpperCase()} hit ${a.target}`, 'amber');
+  });
+}
+
+function showToast(m, t) {
+  const el = document.getElementById('toast');
+  el.textContent = m; el.className = `toast show ${t}`;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Init
+document.getElementById('gear-btn').addEventListener('click', () => document.getElementById('s-panel').classList.add('open'));
+document.getElementById('s-close-btn').addEventListener('click', () => document.getElementById('s-panel').classList.remove('open'));
+document.getElementById('save-btn').addEventListener('click', () => { 
+  localStorage.setItem('cp_v10', JSON.stringify({ids: activeCoinIds, coins: ud}));
+  showToast('Αποθηκεύτηκε!', 'green');
 });
+
+// Load existing data
+const saved = JSON.parse(localStorage.getItem('cp_v10'));
+if(saved) { activeCoinIds = saved.ids || []; ud = saved.coins || {}; }
+
+fetchPrices();
+setInterval(fetchPrices, 60000);
+
 </script>
 </body>
 </html>
