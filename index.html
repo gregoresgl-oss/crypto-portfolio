@@ -45,4 +45,155 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .light-mode .banner{background:linear-gradient(135deg,#5b7fff 0%,#a78bfa 100%);}
 .banner-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;position:relative;z-index:1;}
 .banner-title{font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;}
-.banner-sub{font-size:10px
+.banner-sub{font-size:10px;color:rgba(255,255,255,0.7);margin-top:2px;font-family:'DM Mono',monospace;}
+.banner-btn{height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;font-weight:500;}
+
+/* Main */
+.dash{max-width:700px;margin:0 auto;padding:12px 12px 60px;}
+.sec-toggle-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;margin-bottom:10px;text-transform:uppercase;}
+.collapsible-content{transition:all 0.25s;overflow:hidden;}
+.collapsible-content.hidden{display:none;}
+
+/* Skeletons */
+.skeleton { background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; color: transparent !important; border-radius: 4px; pointer-events: none; }
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Cards & Widgets */
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;}
+.sc-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
+.sc-val{font-size:17px;font-weight:600;font-family:'DM Mono',monospace;}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+
+/* Allocation Bar */
+.alloc-wrap{margin-bottom:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px;}
+.alloc-bar{height:8px; border-radius:4px; display:flex; overflow:hidden; width:100%; background:var(--surface2); margin-top:8px;}
+.alloc-segment{height:100%; transition:width 0.3s ease;}
+.alloc-labels{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; font-size:9px; color:var(--muted);}
+.alloc-dot{display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:3px;}
+
+/* Fear & Greed */
+.fng-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+.fng-val{font-size:22px; font-weight:700; font-family:'DM Mono',monospace;}
+.fng-class{font-size:11px; font-weight:600; text-transform:uppercase; padding:3px 8px; border-radius:99px; background:var(--surface2);}
+
+/* Coins List & Empty State */
+.coins-wrap{display:flex;flex-direction:column;gap:10px;}
+.coin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;}
+.cname{font-size:14px;font-weight:600;}
+.cprice{font-size:16px;font-weight:600;font-family:'DM Mono',monospace;}
+.cb{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 12px;}
+.cin{width:100%;font-size:12px;font-family:'DM Mono',monospace;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);text-align:right;}
+.empty-state{text-align:center; padding:40px 20px; background:var(--surface); border:1px dashed var(--border); border-radius:var(--radius); color:var(--muted);}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:99px;opacity:0;transition:all 0.25s;pointer-events:none;z-index:200;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.green{background:var(--green);}
+</style>
+</head>
+<body>
+
+<div class="s-overlay" id="s-overlay"></div>
+<div class="s-panel" id="s-panel">
+  <div class="s-head">
+    <span class="s-head-title">⚙ Ρυθμίσεις</span>
+    <button class="s-close" id="s-close-btn">✕</button>
+  </div>
+  <div class="s-tabs">
+    <button class="s-tab active" data-tab="wallet">💼 Wallet & Data</button>
+    <button class="s-tab" data-tab="theme">🎨 Θέμα</button>
+  </div>
+  <div class="s-tabcontent active" id="tab-wallet">
+    <div class="s-sec">
+      <div class="s-stitle">🔗 Wallet Διευθύνσεις</div>
+      <textarea class="s-ta" id="cosmos-addrs" placeholder="Cosmos addresses..."></textarea>
+      <textarea class="s-ta" id="cardano-addrs" placeholder="Cardano addresses..."></textarea>
+      <button class="btn-sync-s" id="sync-btn" onclick="addDemoCoins()">⟳ Προσθήκη Demo (Για δοκιμή)</button>
+    </div>
+    <hr style="border-color:var(--border); margin:10px 0;">
+    <div class="s-sec">
+      <div class="s-stitle">💾 Δεδομένα (Export/Import)</div>
+      <button class="btn-action" onclick="exportData()">📤 Εξαγωγή Δεδομένων (Copy)</button>
+      <button class="btn-action" onclick="importData()">📥 Εισαγωγή Δεδομένων (Paste)</button>
+      <button class="btn-action" onclick="clearData()" style="color:var(--red); border-color:rgba(255,95,109,0.3); background:rgba(255,95,109,0.1);">🗑 Καθαρισμός Δεδομένων</button>
+    </div>
+  </div>
+  <div class="s-tabcontent" id="tab-theme">
+    <div class="s-sec">
+      <div class="s-stitle">Λειτουργία Οθόνης</div>
+      <button class="btn-action" id="theme-toggle-btn">Άλλαξε σε Φωτεινό/Σκοτεινό</button>
+    </div>
+  </div>
+</div>
+
+<div class="banner">
+  <div class="banner-inner">
+    <div>
+      <div class="banner-title">Crypto Portfolio Pro</div>
+      <div class="banner-sub" id="last-update">Φόρτωση δεδομένων...</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="banner-btn" id="save-btn">Αποθήκευση</button>
+      <button class="banner-btn" id="gear-btn">⚙</button>
+    </div>
+  </div>
+</div>
+
+<div class="dash">
+
+  <div class="fng-card" id="fng-card">
+    <div>
+      <div style="font-size:10px; color:var(--muted); text-transform:uppercase; margin-bottom:2px;">Αγορά (Fear & Greed)</div>
+      <div class="fng-class skeleton" id="fng-class">Φορτωση</div>
+    </div>
+    <div class="fng-val skeleton" id="fng-val">--</div>
+  </div>
+
+  <div class="sg-wrap">
+    <button class="sec-toggle-btn" id="sg-toggle"><span>📊 Σύνοψη & Κατανομή</span> <span>▲</span></button>
+    <div class="collapsible-content" id="sg-cards">
+      <div class="sg">
+        <div class="sc"><div class="sc-lbl">Αξία portfolio</div><div class="sc-val skeleton" id="total-val">0.00€</div></div>
+        <div class="sc"><div class="sc-lbl">Κέρδος / Ζημία €</div><div class="sc-val skeleton" id="total-pnl">0.00€</div></div>
+      </div>
+      <div class="alloc-wrap">
+        <div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Κατανομή Portfolio</div>
+        <div class="alloc-bar" id="alloc-bar"></div>
+        <div class="alloc-labels" id="alloc-labels"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title" style="margin-top:15px;">Τα νομίσματά σου</div>
+  <div class="coins-wrap" id="coins-wrap"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Βασικές Μεταβλητές & Δεδομένα
+let ud = JSON.parse(localStorage.getItem('cp_data_v4') || '{}');
+let activeCoinIds = Object.keys(ud); // Παίρνει δυναμικά τα νομίσματα από τα αποθηκευμένα δεδομένα
+let prices = {};
+const PAL = ['#2ecc8f','#5b7fff','#f59e0b','#a78bfa','#ec4899','#22d3ee'];
+
+function save() {
+  activeCoinIds.forEach(id => {
+    if(document.getElementById('qty-'+id)) {
+      ud[id].qty = parseFloat(document.getElementById('qty-'+id).value || 0);
+      ud[id].avg = parseFloat(document.getElementById('avg-'+id).value || 0);
+    }
+  });
+  localStorage.setItem('cp_data_v4', JSON.stringify(ud));
+  showToast('✓ Αποθηκεύτηκε', 'green');
+  recalc();
+}
+
+function renderPortfolio() {
+  const wrap = document.getElementById('coins-wrap');
+  
+  // Έλεγχος Empty State (Αν δεν υπάρχουν νομίσματα)
+  if(activeCoinIds.length === 0) {
+    wrap.innerHTML =
