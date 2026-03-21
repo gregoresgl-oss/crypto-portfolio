@@ -34,8 +34,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .s-tabcontent.active{display:flex;}
 .s-sec{display:flex;flex-direction:column;gap:8px;}
 .s-stitle{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
-.s-ta{font-size:11px;font-family:'DM Mono',monospace;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%;resize:vertical;min-height:72px;}
-.s-input{font-size:12px;font-family:'DM Mono',monospace;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%;}
 .btn-sync-s{background:var(--amber);color:#0a0c12;font-weight:600;width:100%;padding:10px;border-radius:8px;border:none;cursor:pointer;}
 .btn-action{background:var(--surface2);color:var(--text);font-weight:500;width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);cursor:pointer;}
 
@@ -75,7 +73,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .fng-val{font-size:22px; font-weight:700; font-family:'DM Mono',monospace;}
 .fng-class{font-size:11px; font-weight:600; text-transform:uppercase; padding:3px 8px; border-radius:99px; background:var(--surface2);}
 
-/* Coins List & Empty State */
+/* Coins List */
 .coins-wrap{display:flex;flex-direction:column;gap:10px;}
 .coin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
 .ch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;}
@@ -106,14 +104,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   <div class="s-tabcontent active" id="tab-wallet">
     <div class="s-sec">
       <div class="s-stitle">Δοκιμή & Εκκίνηση</div>
-      <button class="btn-sync-s" id="sync-btn" onclick="addDemoCoins()">⟳ Προσθήκη Demo Δεδομένων</button>
+      <button class="btn-sync-s" id="sync-demo-btn">⟳ Προσθήκη Demo Δεδομένων</button>
     </div>
     <hr style="border-color:var(--border); margin:10px 0;">
     <div class="s-sec">
       <div class="s-stitle">💾 Δεδομένα (Export/Import)</div>
-      <button class="btn-action" onclick="exportData()">📤 Εξαγωγή Δεδομένων (Copy)</button>
-      <button class="btn-action" onclick="importData()">📥 Εισαγωγή Δεδομένων (Paste)</button>
-      <button class="btn-action" onclick="clearData()" style="color:var(--red); border-color:rgba(255,95,109,0.3); background:rgba(255,95,109,0.1);">🗑 Καθαρισμός Δεδομένων</button>
+      <button class="btn-action" id="export-btn">📤 Εξαγωγή Δεδομένων (Copy)</button>
+      <button class="btn-action" id="import-btn">📥 Εισαγωγή Δεδομένων (Paste)</button>
+      <button class="btn-action" id="clear-btn" style="color:var(--red); border-color:rgba(255,95,109,0.3); background:rgba(255,95,109,0.1);">🗑 Καθαρισμός Δεδομένων</button>
     </div>
   </div>
   <div class="s-tabcontent" id="tab-theme">
@@ -138,7 +136,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 </div>
 
 <div class="dash">
-
   <div class="fng-card" id="fng-card">
     <div>
       <div style="font-size:10px; color:var(--muted); text-transform:uppercase; margin-bottom:2px;">Αγορά (Fear & Greed)</div>
@@ -164,155 +161,235 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
   <div class="sec-title" style="margin-top:15px;">Τα νομίσματά σου</div>
   <div class="coins-wrap" id="coins-wrap"></div>
-
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// Ασφαλής ανάγνωση δεδομένων για να μην κρασάρει ποτέ!
-var ud = {};
-try {
-  var savedData = localStorage.getItem('cp_data_v5');
-  if (savedData) {
-    ud = JSON.parse(savedData);
-  }
-  if (typeof ud !== 'object' || ud === null) {
-    ud = {};
-  }
-} catch(e) {
-  ud = {};
-}
+// Σύστημα εντοπισμού σφαλμάτων
+window.addEventListener('error', function(e) {
+  alert("Πρόβλημα κώδικα: " + e.message);
+});
 
-var activeCoinIds = Object.keys(ud);
-var prices = {};
-var PAL = ['#2ecc8f','#5b7fff','#f59e0b','#a78bfa','#ec4899','#22d3ee'];
-
-function save() {
-  activeCoinIds.forEach(function(id) {
-    var qtyEl = document.getElementById('qty-' + id);
-    var avgEl = document.getElementById('avg-' + id);
-    if(qtyEl) {
-      ud[id].qty = parseFloat(qtyEl.value);
-      if (isNaN(ud[id].qty)) ud[id].qty = 0;
-    }
-    if(avgEl) {
-      ud[id].avg = parseFloat(avgEl.value);
-      if (isNaN(ud[id].avg)) ud[id].avg = 0;
-    }
-  });
-  localStorage.setItem('cp_data_v5', JSON.stringify(ud));
-  showToast('✓ Αποθηκεύτηκε', 'green');
-  recalc();
-}
-
-function renderPortfolio() {
-  var wrap = document.getElementById('coins-wrap');
-  
-  // Έλεγχος Empty State
-  if(activeCoinIds.length === 0) {
-    wrap.innerHTML = '<div class="empty-state">' +
-        '<h3 style="color:var(--text); margin-bottom:8px;">Καλωσόρισες! 👋</h3>' +
-        '<p style="font-size:12px; margin-bottom:15px;">Το portfolio σου είναι προς το παρόν άδειο.</p>' +
-        '<p style="font-size:12px;">Πάτα το <strong>γρανάζι ⚙️</strong> πάνω δεξιά και επίλεξε "Προσθήκη Demo".</p>' +
-      '</div>';
-    return;
-  }
-
-  var html = '';
-  activeCoinIds.forEach(function(id, i) {
-    var col = PAL[i % PAL.length];
-    var safeQty = ud[id].qty || 0;
-    var safeAvg = ud[id].avg || 0;
-    
-    html += '<div class="coin-card">' +
-        '<div class="ch">' +
-          '<div class="cname"><span style="color:' + col + '">●</span> ' + id.toUpperCase() + '</div>' +
-          '<div class="cprice skeleton" id="price-' + id + '">-- €</div>' +
-        '</div>' +
-        '<div class="cb">' +
-          '<div><div style="font-size:9px;color:var(--muted);">ΠΟΣΟΤΗΤΑ</div><input class="cin" id="qty-' + id + '" value="' + safeQty + '" onchange="recalc()"></div>' +
-          '<div><div style="font-size:9px;color:var(--muted);">ΜΕΣΗ ΤΙΜΗ ΑΓΟΡΑΣ</div><input class="cin" id="avg-' + id + '" value="' + safeAvg + '" onchange="recalc()"></div>' +
-          '<div style="grid-column: span 2; margin-top:5px;"><div style="font-size:9px;color:var(--muted);">ΑΞΙΑ (€)</div><div style="text-align:right; font-weight:bold; font-family:\'DM Mono\';" id="val-' + id + '">0.00€</div></div>' +
-        '</div>' +
-      '</div>';
-  });
-  wrap.innerHTML = html;
-}
-
-function recalc() {
-  var totalVal = 0;
-  var allocVals = [];
-  var allocLabels = [];
-
-  activeCoinIds.forEach(function(id, i) {
-    var qtyEl = document.getElementById('qty-' + id);
-    var qty = 0;
-    if (qtyEl && qtyEl.value) {
-      qty = parseFloat(qtyEl.value);
-    } else if (ud[id] && ud[id].qty) {
-      qty = parseFloat(ud[id].qty);
-    }
-    if (isNaN(qty)) qty = 0;
-
-    var p = prices[id] || 0;
-    var val = qty * p;
-    totalVal += val;
-
-    var valEl = document.getElementById('val-' + id);
-    if(valEl) valEl.textContent = val.toFixed(2) + '€';
-    
-    if(val > 0) {
-      allocVals.push(val);
-      allocLabels.push(id.toUpperCase());
-    }
-  });
-
-  document.getElementById('total-val').textContent = totalVal.toFixed(2) + '€';
-  
-  var allocBar = document.getElementById('alloc-bar');
-  var allocLbls = document.getElementById('alloc-labels');
-  
-  if(totalVal > 0) {
-    var barHtml = '';
-    var lblHtml = '';
-    for(var j=0; j<allocVals.length; j++) {
-      var percent = (allocVals[j] / totalVal) * 100;
-      var c = PAL[j % PAL.length];
-      barHtml += '<div class="alloc-segment" style="width:' + percent + '%; background:' + c + '"></div>';
-      lblHtml += '<div><span class="alloc-dot" style="background:' + c + '"></span>' + allocLabels[j] + ' ' + percent.toFixed(1) + '%</div>';
-    }
-    allocBar.innerHTML = barHtml;
-    allocLbls.innerHTML = lblHtml;
-  } else {
-    allocBar.innerHTML = ''; 
-    allocLbls.innerHTML = 'Δεν υπάρχει υπόλοιπο για κατανομή.';
-  }
-}
-
-async function loadData() {
+// Εκτέλεση μόλις φορτώσει όλη η σελίδα για να είμαστε σίγουροι
+document.addEventListener("DOMContentLoaded", function() {
   try {
-    // Φόρτωση τιμών (ΜΟΝΟ αν υπάρχουν νομίσματα)
-    if(activeCoinIds.length > 0) {
-      var res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + activeCoinIds.join(',') + '&vs_currencies=eur');
-      if(res.ok) {
-        var data = await res.json();
-        activeCoinIds.forEach(function(id) {
-          if (data[id] && data[id].eur) {
-            prices[id] = data[id].eur;
-          } else {
-            prices[id] = 0;
-          }
-          var priceEl = document.getElementById('price-' + id);
-          if(priceEl) priceEl.textContent = prices[id].toFixed(2) + '€';
-        });
+    var ud = {};
+    try {
+      var savedData = localStorage.getItem('cp_data_v6');
+      if (savedData) ud = JSON.parse(savedData);
+      if (typeof ud !== 'object' || ud === null) ud = {};
+    } catch(e) { ud = {}; }
+
+    var activeCoinIds = Object.keys(ud);
+    var prices = {};
+    var PAL = ['#2ecc8f','#5b7fff','#f59e0b','#a78bfa','#ec4899','#22d3ee'];
+
+    function showToast(msg, type) {
+      var t = document.getElementById('toast');
+      t.textContent = msg; 
+      t.className = 'toast show ' + type;
+      setTimeout(function() { t.classList.remove('show'); }, 2500);
+    }
+
+    function save() {
+      activeCoinIds.forEach(function(id) {
+        var qtyEl = document.getElementById('qty-' + id);
+        var avgEl = document.getElementById('avg-' + id);
+        if(qtyEl) {
+          ud[id].qty = parseFloat(qtyEl.value);
+          if (isNaN(ud[id].qty)) ud[id].qty = 0;
+        }
+        if(avgEl) {
+          ud[id].avg = parseFloat(avgEl.value);
+          if (isNaN(ud[id].avg)) ud[id].avg = 0;
+        }
+      });
+      localStorage.setItem('cp_data_v6', JSON.stringify(ud));
+      showToast('✓ Αποθηκεύτηκε', 'green');
+      recalc();
+    }
+
+    function renderPortfolio() {
+      var wrap = document.getElementById('coins-wrap');
+      if(activeCoinIds.length === 0) {
+        wrap.innerHTML = '<div class="empty-state">' +
+            '<h3 style="color:var(--text); margin-bottom:8px;">Καλωσόρισες! 👋</h3>' +
+            '<p style="font-size:12px; margin-bottom:15px;">Το portfolio σου είναι προς το παρόν άδειο.</p>' +
+            '<p style="font-size:12px;">Πάτα το <strong>γρανάζι ⚙️</strong> και επίλεξε "Προσθήκη Demo".</p>' +
+          '</div>';
+        return;
+      }
+      var html = '';
+      activeCoinIds.forEach(function(id, i) {
+        var col = PAL[i % PAL.length];
+        var safeQty = ud[id].qty || 0;
+        var safeAvg = ud[id].avg || 0;
+        html += '<div class="coin-card">' +
+            '<div class="ch">' +
+              '<div class="cname"><span style="color:' + col + '">●</span> ' + id.toUpperCase() + '</div>' +
+              '<div class="cprice skeleton" id="price-' + id + '">-- €</div>' +
+            '</div>' +
+            '<div class="cb">' +
+              '<div><div style="font-size:9px;color:var(--muted);">ΠΟΣΟΤΗΤΑ</div><input class="cin qty-input" id="qty-' + id + '" value="' + safeQty + '"></div>' +
+              '<div><div style="font-size:9px;color:var(--muted);">ΜΕΣΗ ΤΙΜΗ ΑΓΟΡΑΣ</div><input class="cin avg-input" id="avg-' + id + '" value="' + safeAvg + '"></div>' +
+              '<div style="grid-column: span 2; margin-top:5px;"><div style="font-size:9px;color:var(--muted);">ΑΞΙΑ (€)</div><div style="text-align:right; font-weight:bold; font-family:\'DM Mono\';" id="val-' + id + '">0.00€</div></div>' +
+            '</div>' +
+          '</div>';
+      });
+      wrap.innerHTML = html;
+      
+      // Προσθήκη listeners στα inputs
+      var inputs = document.querySelectorAll('.cin');
+      for(var j=0; j<inputs.length; j++) {
+        inputs[j].addEventListener('change', recalc);
       }
     }
-    recalc();
 
-    // Φόρτωση Fear & Greed Index
-    var fgRes = await fetch('https://api.alternative.me/fng/');
-    if(fgRes.ok) {
-      var fgData = await fgRes.json();
-      if (fgData && fgData.data && fgData.data.length > 0) {
-        var val = fg
+    function recalc() {
+      var totalVal = 0;
+      var allocVals = [];
+      var allocLabels = [];
+
+      activeCoinIds.forEach(function(id, i) {
+        var qtyEl = document.getElementById('qty-' + id);
+        var qty = 0;
+        if (qtyEl && qtyEl.value) qty = parseFloat(qtyEl.value);
+        else if (ud[id] && ud[id].qty) qty = parseFloat(ud[id].qty);
+        if (isNaN(qty)) qty = 0;
+
+        var p = prices[id] || 0;
+        var val = qty * p;
+        totalVal += val;
+
+        var valEl = document.getElementById('val-' + id);
+        if(valEl) valEl.textContent = val.toFixed(2) + '€';
+        
+        if(val > 0) {
+          allocVals.push(val);
+          allocLabels.push(id.toUpperCase());
+        }
+      });
+
+      document.getElementById('total-val').textContent = totalVal.toFixed(2) + '€';
+      
+      var allocBar = document.getElementById('alloc-bar');
+      var allocLbls = document.getElementById('alloc-labels');
+      if(totalVal > 0) {
+        var barHtml = '';
+        var lblHtml = '';
+        for(var j=0; j<allocVals.length; j++) {
+          var percent = (allocVals[j] / totalVal) * 100;
+          var c = PAL[j % PAL.length];
+          barHtml += '<div class="alloc-segment" style="width:' + percent + '%; background:' + c + '"></div>';
+          lblHtml += '<div><span class="alloc-dot" style="background:' + c + '"></span>' + allocLabels[j] + ' ' + percent.toFixed(1) + '%</div>';
+        }
+        allocBar.innerHTML = barHtml;
+        allocLbls.innerHTML = lblHtml;
+      } else {
+        allocBar.innerHTML = ''; 
+        allocLbls.innerHTML = 'Δεν υπάρχει υπόλοιπο.';
+      }
+    }
+
+    async function loadData() {
+      try {
+        if(activeCoinIds.length > 0) {
+          var res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + activeCoinIds.join(',') + '&vs_currencies=eur');
+          if(res.ok) {
+            var data = await res.json();
+            activeCoinIds.forEach(function(id) {
+              prices[id] = (data[id] && data[id].eur) ? data[id].eur : 0;
+              var priceEl = document.getElementById('price-' + id);
+              if(priceEl) priceEl.textContent = prices[id].toFixed(2) + '€';
+            });
+          }
+        }
+        recalc();
+
+        var fgRes = await fetch('https://api.alternative.me/fng/');
+        if(fgRes.ok) {
+          var fgData = await fgRes.json();
+          if (fgData && fgData.data && fgData.data.length > 0) {
+            var val = fgData.data[0].value;
+            var classif = fgData.data[0].value_classification;
+            document.getElementById('fng-val').textContent = val;
+            var classEl = document.getElementById('fng-class');
+            classEl.textContent = classif;
+            if(val <= 40) classEl.style.color = 'var(--red)';
+            else if(val >= 60) classEl.style.color = 'var(--green)';
+            else classEl.style.color = 'var(--amber)';
+          }
+        }
+        document.getElementById('last-update').textContent = 'Ανανεώθηκε: ' + new Date().toLocaleTimeString();
+      } catch(e) { 
+        document.getElementById('last-update').textContent = 'Αποτυχία API';
+      } finally {
+        var skeletons = document.querySelectorAll('.skeleton');
+        for (var k = 0; k < skeletons.length; k++) skeletons[k].classList.remove('skeleton');
+      }
+    }
+
+    // Κουμπιά UI 
+    document.getElementById('gear-btn').addEventListener('click', function() { document.getElementById('s-panel').classList.add('open'); document.getElementById('s-overlay').classList.add('open'); });
+    document.getElementById('s-close-btn').addEventListener('click', function() { document.getElementById('s-panel').classList.remove('open'); document.getElementById('s-overlay').classList.remove('open'); });
+    document.getElementById('s-overlay').addEventListener('click', function() { document.getElementById('s-panel').classList.remove('open'); document.getElementById('s-overlay').classList.remove('open'); });
+    document.getElementById('save-btn').addEventListener('click', save);
+
+    document.getElementById('sync-demo-btn').addEventListener('click', function() {
+      var demoData = { 'bitcoin': {qty: 0.1, avg: 50000}, 'ethereum': {qty: 1.5, avg: 2500}, 'cosmos': {qty: 50, avg: 8} };
+      localStorage.setItem('cp_data_v6', JSON.stringify(demoData));
+      location.reload();
+    });
+
+    document.getElementById('clear-btn').addEventListener('click', function() {
+      if(confirm("Διαγραφή δεδομένων;")) { localStorage.removeItem('cp_data_v6'); location.reload(); }
+    });
+
+    document.getElementById('export-btn').addEventListener('click', function() {
+      prompt("Αντέγραψε το κείμενο:", localStorage.getItem('cp_data_v6') || '{}');
+    });
+
+    document.getElementById('import-btn').addEventListener('click', function() {
+      var dataStr = prompt("Κάνε επικόλληση:");
+      if(dataStr && dataStr.indexOf('{') !== -1) { localStorage.setItem('cp_data_v6', dataStr); location.reload(); }
+    });
+
+    document.getElementById('sg-toggle').addEventListener('click', function() {
+      var content = document.getElementById('sg-cards');
+      content.classList.toggle('hidden');
+      this.querySelector('span:last-child').style.transform = content.classList.contains('hidden') ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+
+    var isLight = localStorage.getItem('cp_light_mode') === 'true';
+    if(isLight) document.body.classList.add('light-mode');
+    document.getElementById('theme-toggle-btn').addEventListener('click', function() {
+      isLight = !isLight;
+      if(isLight) document.body.classList.add('light-mode');
+      else document.body.classList.remove('light-mode');
+      localStorage.setItem('cp_light_mode', isLight);
+    });
+
+    var tabs = document.querySelectorAll('.s-tab');
+    for(var t = 0; t < tabs.length; t++) {
+      tabs[t].addEventListener('click', function() {
+        var allTabs = document.querySelectorAll('.s-tab');
+        var allContents = document.querySelectorAll('.s-tabcontent');
+        for(var j=0; j<allTabs.length; j++) allTabs[j].classList.remove('active');
+        for(var k=0; k<allContents.length; k++) allContents[k].classList.remove('active');
+        this.classList.add('active');
+        document.getElementById('tab-' + this.getAttribute('data-tab')).classList.add('active');
+      });
+    }
+
+    renderPortfolio();
+    loadData();
+    setInterval(loadData, 60000);
+
+  } catch(err) {
+    alert("Βρέθηκε κρίσιμο σφάλμα κατά την εκκίνηση: " + err.message);
+  }
+});
+</script>
+</body>
+</html>
