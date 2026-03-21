@@ -1,65 +1,66 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="el">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Cosmos Portfolio Auditor PRO</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Cosmos Portfolio Auditor v8</title>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid #1e293b; }
-        .drop-zone { border: 2px dashed #334155; transition: 0.3s; min-height: 150px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .drop-zone:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.05); }
-        .loading { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        body { background-color: #030712; color: #f3f4f6; font-family: sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(10px); border: 1px solid #1f2937; }
+        #log { font-family: monospace; font-size: 10px; max-height: 150px; overflow-y: auto; }
     </style>
 </head>
-<body class="p-6 md:p-12">
+<body class="p-4 md:p-10">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="mb-8">
-            <h1 class="text-4xl font-black text-indigo-500 uppercase tracking-tighter">Portfolio Auditor v7</h1>
-            <p class="text-slate-500 text-sm">Πλήρης ανάλυση 4ετίας: Αγορές + Rewards (Re-stake)</p>
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-black text-indigo-500 uppercase italic">Portfolio Auditor v8</h1>
+                <p class="text-slate-500 text-xs mt-1">Ανάλυση 4ετίας & Οπτικοποίηση Μ.Ο.</p>
+            </div>
+            <div id="dateRange" class="text-right text-[10px] text-slate-500 uppercase font-bold tracking-widest">
+                Date Range: --
+            </div>
         </header>
 
-        <div class="glass p-8 rounded-[2rem] mb-8 drop-zone" id="dropArea">
-            <input type="file" id="csvFile" accept="*" class="hidden">
-            <div class="text-center">
-                <p class="text-lg font-bold">Ρίξε το μεγάλο CSV εδώ (400+ TRX)</p>
-                <p class="text-slate-500 text-xs mt-2 uppercase">Θα αναλυθούν όλες οι γραμμές αυτόματα</p>
-            </div>
+        <div class="glass p-10 rounded-3xl mb-8 border-dashed border-2 border-slate-700 text-center cursor-pointer hover:border-indigo-500 transition" onclick="document.getElementById('csvFile').click()">
+            <input type="file" id="csvFile" accept="*" class="hidden" onchange="handleFile(this.files[0])">
+            <p class="text-lg font-bold">Ρίξε το CSV εδώ</p>
+            <p class="text-slate-500 text-xs">Θα αναλυθούν Αγορές, IBC Transfers και Staking Rewards</p>
         </div>
 
         <div id="results" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="glass p-6 rounded-2xl border-b-4 border-indigo-500 text-center">
-                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Πραγματικός Μ.Ο.</p>
-                    <h2 id="finalMO" class="text-3xl font-black text-white">$ 0.00</h2>
-                    <p class="text-[9px] text-indigo-400 mt-2 font-bold uppercase tracking-tighter italic">Συμπεριλαμβανομένων των Rewards</p>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="glass p-6 rounded-2xl border-b-4 border-indigo-500">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase">Πραγματικός Μ.Ο.</p>
+                    <h2 id="finalMO" class="text-3xl font-black">$ 0.00</h2>
                 </div>
-                <div class="glass p-6 rounded-2xl text-center">
-                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Συνολικό ATOM</p>
-                    <h2 id="totalVol" class="text-3xl font-black text-white">0.00</h2>
+                <div class="glass p-6 rounded-2xl">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase">Σύνολο ATOM</p>
+                    <h2 id="totalVol" class="text-3xl font-black">0.00</h2>
                 </div>
-                <div class="glass p-6 rounded-2xl text-center">
-                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Συναλλαγές</p>
-                    <h2 id="totalTx" class="text-3xl font-black text-white">0</h2>
+                <div class="glass p-6 rounded-2xl">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase">Transactions</p>
+                    <h2 id="totalTx" class="text-3xl font-black">0</h2>
+                </div>
+                <div class="glass p-6 rounded-2xl border-b-4 border-emerald-500">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase">Total Invested</p>
+                    <h2 id="totalSpent" class="text-3xl font-black">$ 0</h2>
                 </div>
             </div>
 
-            <div id="log" class="glass p-4 rounded-xl h-40 overflow-y-auto text-[10px] font-mono text-slate-400 space-y-1">
-                </div>
+            <div class="glass p-6 rounded-3xl h-80">
+                <canvas id="moChart"></canvas>
+            </div>
+
+            <div id="log" class="glass p-4 rounded-xl text-slate-400 space-y-1"></div>
         </div>
     </div>
 
     <script>
         const API_KEY = "CG-wjaFXkM7y83LvnEgMENX8eqq";
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('csvFile');
-        const log = document.getElementById('log');
-
-        dropArea.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+        let chartInstance = null;
 
         function handleFile(file) {
             if (!file) return;
@@ -70,7 +71,8 @@
 
         async function processCSV(csvData) {
             document.getElementById('results').classList.remove('hidden');
-            log.innerHTML = "<div>🚀 Έναρξη ανάλυσης...</div>";
+            const log = document.getElementById('log');
+            log.innerHTML = "🚀 Starting Deep Scan...";
             
             const lines = csvData.split(/\r?\n/);
             const headers = lines[0].split(',');
@@ -82,33 +84,40 @@
             let totalSpentUSD = 0;
             let totalVolumeATOM = 0;
             let txCount = 0;
+            const chartLabels = [];
+            const chartData = [];
             const priceCache = {};
 
-            for (let i = 1; i < lines.length; i++) {
-                const columns = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                if (columns.length < 2) continue;
+            // Sorting by date (just in case)
+            const sortedLines = lines.slice(1).reverse(); 
+
+            if(sortedLines.length > 0) {
+                const firstDate = sortedLines[0].split(',')[dateIdx];
+                const lastDate = sortedLines[sortedLines.length-1].split(',')[dateIdx];
+                document.getElementById('dateRange').innerText = `${firstDate.split(' ')[0]} TO ${lastDate.split(' ')[0]}`;
+            }
+
+            for (let line of sortedLines) {
+                const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if (columns.length < 3) continue;
 
                 const type = columns[typeIdx]?.toLowerCase() || "";
-                const amountStr = columns[amountIdx]?.replace(/"/g, '').split(' ')[0] || "0";
-                const amount = parseFloat(amountStr);
+                const amountRaw = columns[amountIdx]?.replace(/"/g, '').split(' ')[0] || "0";
+                const amount = parseFloat(amountRaw);
                 const rawDate = columns[dateIdx]?.replace(/"/g, '').split(' ')[0];
 
                 if (amount > 0 && rawDate && rawDate.includes('-')) {
                     const dateCG = rawDate.split('-').reverse().join('-');
-                    
-                    // ΛΟΓΙΚΗ: 
-                    // Αν είναι REWARD/DELEGATE/RE-STAKE -> Κόστος $0 (μειώνει τον Μ.Ο.)
-                    // Αν είναι RECEIVE/TRANSFER -> Τραβάμε ιστορική τιμή αγοράς.
-                    
                     let costPerAtom = 0;
+
+                    // ΑΝ ΕΙΝΑΙ IBC TRANSFER (Από άλλο πορτοφόλι/ανταλλακτήριο) ή RECEIVE -> Υπολογίζεται ως ΑΓΟΡΑ
+                    const isBuy = type.includes('receive') || type.includes('transfer') || type.includes('ibc');
                     const isReward = type.includes('reward') || type.includes('delegate') || type.includes('stake');
 
-                    if (!isReward) {
+                    if (isBuy && !isReward) {
                         if (!priceCache[dateCG]) {
-                            log.innerHTML += `<div>🌐 Αναζήτηση τιμής για αγορά στις ${dateCG}...</div>`;
-                            log.scrollTop = log.scrollHeight;
+                            log.innerHTML += `<div>🔍 Price query: ${dateCG}</div>`;
                             await new Promise(r => setTimeout(r, 2200)); 
-                            
                             try {
                                 const pRes = await fetch(`https://api.coingecko.com/api/v3/coins/cosmos/history?date=${dateCG}&localization=false&x_cg_demo_api_key=${API_KEY}`);
                                 const pData = await pRes.json();
@@ -116,23 +125,55 @@
                             } catch (err) { priceCache[dateCG] = 0; }
                         }
                         costPerAtom = priceCache[dateCG];
-                    } else {
-                        log.innerHTML += `<div class="text-green-500">💎 Reward/Restake: ${amount} ATOM (Κόστος $0)</div>`;
                     }
 
                     totalSpentUSD += (amount * costPerAtom);
                     totalVolumeATOM += amount;
                     txCount++;
 
-                    // UI Updates
+                    const currentMO = totalSpentUSD / totalVolumeATOM;
+
+                    // Update UI
                     document.getElementById('totalTx').innerText = txCount;
                     document.getElementById('totalVol').innerText = totalVolumeATOM.toFixed(2);
-                    const currentMO = totalSpentUSD / totalVolumeATOM;
+                    document.getElementById('totalSpent').innerText = `$${Math.round(totalSpentUSD)}`;
                     document.getElementById('finalMO').innerText = `$${currentMO.toFixed(2)}`;
+                    
+                    chartLabels.push(rawDate);
+                    chartData.push(currentMO.toFixed(2));
                     log.scrollTop = log.scrollHeight;
                 }
             }
-            log.innerHTML += `<div class="text-indigo-400 font-bold">✅ Η ανάλυση 400+ συναλλαγών ολοκληρώθηκε!</div>`;
+            updateChart(chartLabels, chartData);
+        }
+
+        function updateChart(labels, data) {
+            const ctx = document.getElementById('moChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Buy Price ($)',
+                        data: data,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#1f2937' }, ticks: { color: '#94a3b8' } },
+                        x: { display: false }
+                    }
+                }
+            });
         }
     </script>
 </body>
