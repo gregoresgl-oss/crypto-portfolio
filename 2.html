@@ -1,75 +1,54 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="el">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <title>Cosmos CSV Analyzer PRO</title>
+    <title>Cosmos Portfolio Auditor PRO</title>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        body { background-color: #020617; color: #f8fafc; font-family: sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid #1e293b; }
-        .drop-zone { 
-            border: 2px dashed #334155; 
-            transition: all 0.3s ease;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .drop-zone.dragover { 
-            border-color: #6366f1; 
-            background: rgba(99, 102, 241, 0.1);
-            transform: scale(1.02);
-        }
-        .loading-pulse { animation: pulse 2s infinite; }
+        .drop-zone { border: 2px dashed #334155; transition: 0.3s; min-height: 150px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .drop-zone:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.05); }
+        .loading { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body class="p-6 md:p-12">
 
-    <div class="max-w-4xl mx-auto">
-        <header class="mb-10 text-center md:text-left">
-            <h1 class="text-4xl font-black text-indigo-500 uppercase tracking-tighter">Cosmos CSV Analyzer</h1>
-            <p class="text-slate-500 text-sm mt-2">Υπολογισμός Μέσου Όρου (M.O.) από το αρχείο του Mintscan</p>
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-4xl font-black text-indigo-500 uppercase tracking-tighter">Portfolio Auditor v7</h1>
+            <p class="text-slate-500 text-sm">Πλήρης ανάλυση 4ετίας: Αγορές + Rewards (Re-stake)</p>
         </header>
 
-        <div class="glass p-10 rounded-[2.5rem] mb-8 drop-zone cursor-pointer" id="dropArea">
+        <div class="glass p-8 rounded-[2rem] mb-8 drop-zone" id="dropArea">
             <input type="file" id="csvFile" accept="*" class="hidden">
-            <div id="uploadText" class="text-center">
-                <div class="mb-4 flex justify-center">
-                    <svg class="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                    </svg>
-                </div>
-                <p class="text-xl font-bold">Σύρετε το αρχείο CSV εδώ</p>
-                <p class="text-slate-500 text-sm mt-2 font-medium">ή κάντε κλικ για επιλογή από τον υπολογιστή</p>
+            <div class="text-center">
+                <p class="text-lg font-bold">Ρίξε το μεγάλο CSV εδώ (400+ TRX)</p>
+                <p class="text-slate-500 text-xs mt-2 uppercase">Θα αναλυθούν όλες οι γραμμές αυτόματα</p>
             </div>
         </div>
 
         <div id="results" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass p-8 rounded-[2rem] border-l-4 border-l-indigo-600 shadow-2xl">
-                    <p class="text-slate-500 text-xs uppercase font-black tracking-widest">Τελικός Μέσος Όρος</p>
-                    <h2 id="finalMO" class="text-5xl font-black mt-2 text-white">$ 0.00</h2>
-                    <p id="progressText" class="text-xs text-indigo-400 mt-4 font-bold italic uppercase tracking-tighter">Έτοιμο για επεξεργασία...</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="glass p-6 rounded-2xl border-b-4 border-indigo-500 text-center">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Πραγματικός Μ.Ο.</p>
+                    <h2 id="finalMO" class="text-3xl font-black text-white">$ 0.00</h2>
+                    <p class="text-[9px] text-indigo-400 mt-2 font-bold uppercase tracking-tighter italic">Συμπεριλαμβανομένων των Rewards</p>
                 </div>
-                
-                <div class="glass p-8 rounded-[2rem] flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-slate-500 text-xs font-black uppercase tracking-widest">Συναλλαγές:</span>
-                        <span id="totalTx" class="text-2xl font-black text-white">0</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-500 text-xs font-black uppercase tracking-widest">Όγκος ATOM:</span>
-                        <span id="totalVol" class="text-2xl font-black text-white">0.00</span>
-                    </div>
+                <div class="glass p-6 rounded-2xl text-center">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Συνολικό ATOM</p>
+                    <h2 id="totalVol" class="text-3xl font-black text-white">0.00</h2>
+                </div>
+                <div class="glass p-6 rounded-2xl text-center">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Συναλλαγές</p>
+                    <h2 id="totalTx" class="text-3xl font-black text-white">0</h2>
                 </div>
             </div>
-            
-            <div class="glass p-6 rounded-2xl text-[11px] text-slate-500 leading-relaxed">
-                <p>💡 <strong>Συμβουλή:</strong> Αν το αρχείο έχει πολλές εγγραφές, η διαδικασία μπορεί να πάρει μερικά λεπτά λόγω των ορίων του CoinGecko (2.2 δευτερόλεπτα ανά νέα ημερομηνία). Μην κλείσετε το παράθυρο.</p>
-            </div>
+
+            <div id="log" class="glass p-4 rounded-xl h-40 overflow-y-auto text-[10px] font-mono text-slate-400 space-y-1">
+                </div>
         </div>
     </div>
 
@@ -77,32 +56,13 @@
         const API_KEY = "CG-wjaFXkM7y83LvnEgMENX8eqq";
         const dropArea = document.getElementById('dropArea');
         const fileInput = document.getElementById('csvFile');
-        const progressText = document.getElementById('progressText');
+        const log = document.getElementById('log');
 
-        // Event Listeners για το Click και το Drag & Drop
         dropArea.onclick = () => fileInput.click();
-
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.classList.add('dragover');
-        });
-
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.classList.remove('dragover');
-        });
-
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            handleFile(file);
-        });
-
         fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
         function handleFile(file) {
             if (!file) return;
-            progressText.innerText = "Ανάγνωση αρχείου...";
             const reader = new FileReader();
             reader.onload = (e) => processCSV(e.target.result);
             reader.readAsText(file);
@@ -110,20 +70,14 @@
 
         async function processCSV(csvData) {
             document.getElementById('results').classList.remove('hidden');
-            progressText.classList.add('loading-pulse');
+            log.innerHTML = "<div>🚀 Έναρξη ανάλυσης...</div>";
             
             const lines = csvData.split(/\r?\n/);
             const headers = lines[0].split(',');
             
-            // Εύρεση στηλών Mintscan
             const dateIdx = headers.findIndex(h => h.toLowerCase().includes('time'));
             const amountIdx = headers.findIndex(h => h.toLowerCase().includes('amount'));
             const typeIdx = headers.findIndex(h => h.toLowerCase().includes('type'));
-
-            if (dateIdx === -1 || amountIdx === -1) {
-                alert("Σφάλμα: Δεν βρέθηκαν οι απαραίτητες στήλες στο CSV. Σιγουρευτείτε ότι είναι το αρχείο από το Mintscan.");
-                return;
-            }
 
             let totalSpentUSD = 0;
             let totalVolumeATOM = 0;
@@ -131,50 +85,54 @@
             const priceCache = {};
 
             for (let i = 1; i < lines.length; i++) {
-                const columns = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Regex για σωστό split αν υπάρχουν κόμματα σε εισαγωγικά
+                const columns = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 if (columns.length < 2) continue;
 
                 const type = columns[typeIdx]?.toLowerCase() || "";
-                // Φιλτράρουμε Receive, IBC Transfer, κλπ.
-                if (type.includes('receive') || type.includes('transfer') || type === "") {
-                    const rawDate = columns[dateIdx].replace(/"/g, '').split(' ')[0]; // YYYY-MM-DD
-                    const amountStr = columns[amountIdx].replace(/"/g, '').split(' ')[0];
-                    const amount = parseFloat(amountStr);
+                const amountStr = columns[amountIdx]?.replace(/"/g, '').split(' ')[0] || "0";
+                const amount = parseFloat(amountStr);
+                const rawDate = columns[dateIdx]?.replace(/"/g, '').split(' ')[0];
 
-                    if (amount > 0 && rawDate.includes('-')) {
-                        const dateCG = rawDate.split('-').reverse().join('-'); // DD-MM-YYYY
+                if (amount > 0 && rawDate && rawDate.includes('-')) {
+                    const dateCG = rawDate.split('-').reverse().join('-');
+                    
+                    // ΛΟΓΙΚΗ: 
+                    // Αν είναι REWARD/DELEGATE/RE-STAKE -> Κόστος $0 (μειώνει τον Μ.Ο.)
+                    // Αν είναι RECEIVE/TRANSFER -> Τραβάμε ιστορική τιμή αγοράς.
+                    
+                    let costPerAtom = 0;
+                    const isReward = type.includes('reward') || type.includes('delegate') || type.includes('stake');
 
+                    if (!isReward) {
                         if (!priceCache[dateCG]) {
-                            progressText.innerText = `ΑΝΑΚΤΗΣΗ ΤΙΜΗΣ: ${dateCG}...`;
-                            
-                            // Απαραίτητο delay για το CoinGecko
+                            log.innerHTML += `<div>🌐 Αναζήτηση τιμής για αγορά στις ${dateCG}...</div>`;
+                            log.scrollTop = log.scrollHeight;
                             await new Promise(r => setTimeout(r, 2200)); 
                             
                             try {
                                 const pRes = await fetch(`https://api.coingecko.com/api/v3/coins/cosmos/history?date=${dateCG}&localization=false&x_cg_demo_api_key=${API_KEY}`);
                                 const pData = await pRes.json();
                                 priceCache[dateCG] = pData.market_data?.current_price?.usd || 0;
-                            } catch (err) {
-                                console.error("API Limit ή Σφάλμα");
-                                priceCache[dateCG] = 0;
-                            }
+                            } catch (err) { priceCache[dateCG] = 0; }
                         }
-
-                        totalSpentUSD += (amount * priceCache[dateCG]);
-                        totalVolumeATOM += amount;
-                        txCount++;
-                        
-                        // Live ενημέρωση UI
-                        document.getElementById('totalTx').innerText = txCount;
-                        document.getElementById('totalVol').innerText = totalVolumeATOM.toFixed(2);
-                        const currentTempMO = totalSpentUSD / totalVolumeATOM;
-                        document.getElementById('finalMO').innerText = `$${currentTempMO.toFixed(2)}`;
+                        costPerAtom = priceCache[dateCG];
+                    } else {
+                        log.innerHTML += `<div class="text-green-500">💎 Reward/Restake: ${amount} ATOM (Κόστος $0)</div>`;
                     }
+
+                    totalSpentUSD += (amount * costPerAtom);
+                    totalVolumeATOM += amount;
+                    txCount++;
+
+                    // UI Updates
+                    document.getElementById('totalTx').innerText = txCount;
+                    document.getElementById('totalVol').innerText = totalVolumeATOM.toFixed(2);
+                    const currentMO = totalSpentUSD / totalVolumeATOM;
+                    document.getElementById('finalMO').innerText = `$${currentMO.toFixed(2)}`;
+                    log.scrollTop = log.scrollHeight;
                 }
             }
-
-            progressText.innerText = "Η ΑΝΑΛΥΣΗ ΟΛΟΚΛΗΡΩΘΗΚΕ!";
-            progressText.classList.remove('loading-pulse');
+            log.innerHTML += `<div class="text-indigo-400 font-bold">✅ Η ανάλυση 400+ συναλλαγών ολοκληρώθηκε!</div>`;
         }
     </script>
 </body>
