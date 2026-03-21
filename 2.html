@@ -4,35 +4,35 @@
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Cosmos Portfolio Auditor v8</title>
+    <title>Cosmos Multi-Year Auditor v9</title>
     <style>
-        body { background-color: #030712; color: #f3f4f6; font-family: sans-serif; }
-        .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(10px); border: 1px solid #1f2937; }
-        #log { font-family: monospace; font-size: 10px; max-height: 150px; overflow-y: auto; }
+        body { background-color: #020617; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border: 1px solid #1e293b; }
+        .stat-card { border-bottom: 4px solid #6366f1; transition: 0.3s; }
+        #log { font-family: 'Fira Code', monospace; font-size: 10px; max-height: 120px; overflow-y: auto; color: #94a3b8; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
     <div class="max-w-6xl mx-auto">
-        <header class="mb-8 flex justify-between items-end">
+        <header class="mb-8 flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-black text-indigo-500 uppercase italic">Portfolio Auditor v8</h1>
-                <p class="text-slate-500 text-xs mt-1">Ανάλυση 4ετίας & Οπτικοποίηση Μ.Ο.</p>
+                <h1 class="text-3xl font-black text-indigo-500 italic uppercase">Multi-Year Auditor v9</h1>
+                <p class="text-slate-500 text-xs">Ανέβασε όλα τα CSV (2021-2024) μαζί ή ένα-ένα</p>
             </div>
-            <div id="dateRange" class="text-right text-[10px] text-slate-500 uppercase font-bold tracking-widest">
-                Date Range: --
-            </div>
+            <button onclick="resetData()" class="bg-red-900/30 text-red-400 text-[10px] px-4 py-2 rounded-lg font-bold hover:bg-red-800/50 transition">RESET ALL</button>
         </header>
 
-        <div class="glass p-10 rounded-3xl mb-8 border-dashed border-2 border-slate-700 text-center cursor-pointer hover:border-indigo-500 transition" onclick="document.getElementById('csvFile').click()">
-            <input type="file" id="csvFile" accept="*" class="hidden" onchange="handleFile(this.files[0])">
-            <p class="text-lg font-bold">Ρίξε το CSV εδώ</p>
-            <p class="text-slate-500 text-xs">Θα αναλυθούν Αγορές, IBC Transfers και Staking Rewards</p>
+        <div class="glass p-10 rounded-[2rem] mb-8 border-2 border-dashed border-slate-700 text-center cursor-pointer hover:border-indigo-500 transition" 
+             onclick="document.getElementById('csvFile').click()">
+            <input type="file" id="csvFile" accept="*" multiple class="hidden" onchange="handleFiles(this.files)">
+            <p class="text-lg font-bold">Επιλογή ή Drag & Drop CSV αρχείων</p>
+            <p class="text-slate-500 text-sm mt-1">Υποστηρίζεται πολλαπλή επιλογή αρχείων</p>
         </div>
 
         <div id="results" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="glass p-6 rounded-2xl border-b-4 border-indigo-500">
+                <div class="glass p-6 rounded-2xl stat-card">
                     <p class="text-slate-500 text-[10px] font-bold uppercase">Πραγματικός Μ.Ο.</p>
                     <h2 id="finalMO" class="text-3xl font-black">$ 0.00</h2>
                 </div>
@@ -44,107 +44,118 @@
                     <p class="text-slate-500 text-[10px] font-bold uppercase">Transactions</p>
                     <h2 id="totalTx" class="text-3xl font-black">0</h2>
                 </div>
-                <div class="glass p-6 rounded-2xl border-b-4 border-emerald-500">
-                    <p class="text-slate-500 text-[10px] font-bold uppercase">Total Invested</p>
+                <div class="glass p-6 rounded-2xl border-b-4 border-emerald-600">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase">Total Capital Invested</p>
                     <h2 id="totalSpent" class="text-3xl font-black">$ 0</h2>
                 </div>
             </div>
 
-            <div class="glass p-6 rounded-3xl h-80">
+            <div class="glass p-6 rounded-[2rem] h-80 border border-slate-800">
                 <canvas id="moChart"></canvas>
             </div>
 
-            <div id="log" class="glass p-4 rounded-xl text-slate-400 space-y-1"></div>
+            <div id="log" class="glass p-4 rounded-xl space-y-1 border border-slate-800/50"></div>
         </div>
     </div>
 
     <script>
         const API_KEY = "CG-wjaFXkM7y83LvnEgMENX8eqq";
+        let allTransactions = []; // Εδώ αποθηκεύονται ΟΛΕΣ οι συναλλαγές από ΟΛΑ τα αρχεία
         let chartInstance = null;
+        let priceCache = {};
 
-        function handleFile(file) {
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => processCSV(e.target.result);
-            reader.readAsText(file);
+        function resetData() {
+            allTransactions = [];
+            priceCache = {};
+            location.reload();
         }
 
-        async function processCSV(csvData) {
+        function handleFiles(files) {
+            if (!files.length) return;
             document.getElementById('results').classList.remove('hidden');
             const log = document.getElementById('log');
-            log.innerHTML = "🚀 Starting Deep Scan...";
-            
+            log.innerHTML += `<div>📂 Λήψη ${files.length} αρχείων...</div>`;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => parseCSV(e.target.result);
+                reader.readAsText(file);
+            });
+        }
+
+        function parseCSV(csvData) {
             const lines = csvData.split(/\r?\n/);
             const headers = lines[0].split(',');
-            
             const dateIdx = headers.findIndex(h => h.toLowerCase().includes('time'));
             const amountIdx = headers.findIndex(h => h.toLowerCase().includes('amount'));
             const typeIdx = headers.findIndex(h => h.toLowerCase().includes('type'));
 
+            lines.slice(1).forEach(line => {
+                const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if (cols.length < 3) return;
+
+                const rawDate = cols[dateIdx]?.replace(/"/g, '');
+                const amount = parseFloat(cols[amountIdx]?.replace(/"/g, '').split(' ')[0] || "0");
+                const type = cols[typeIdx]?.toLowerCase() || "";
+
+                if (amount > 0 && rawDate) {
+                    // Αποφυγή διπλότυπων (Duplicate Check)
+                    const isDuplicate = allTransactions.some(t => t.date === rawDate && t.amount === amount);
+                    if (!isDuplicate) {
+                        allTransactions.push({ date: rawDate, amount, type });
+                    }
+                }
+            });
+
+            // Ταξινόμηση όλων των συναλλαγών χρονολογικά
+            allTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+            calculateAndDisplay();
+        }
+
+        async function calculateAndDisplay() {
+            const log = document.getElementById('log');
             let totalSpentUSD = 0;
             let totalVolumeATOM = 0;
-            let txCount = 0;
-            const chartLabels = [];
-            const chartData = [];
-            const priceCache = {};
+            let txProcessed = 0;
+            const labels = [];
+            const data = [];
 
-            // Sorting by date (just in case)
-            const sortedLines = lines.slice(1).reverse(); 
+            for (let tx of allTransactions) {
+                const dateCG = tx.date.split(' ')[0].split('-').reverse().join('-');
+                const isBuy = tx.type.includes('receive') || tx.type.includes('transfer') || tx.type.includes('ibc');
+                const isReward = tx.type.includes('reward') || tx.type.includes('delegate') || tx.type.includes('stake');
 
-            if(sortedLines.length > 0) {
-                const firstDate = sortedLines[0].split(',')[dateIdx];
-                const lastDate = sortedLines[sortedLines.length-1].split(',')[dateIdx];
-                document.getElementById('dateRange').innerText = `${firstDate.split(' ')[0]} TO ${lastDate.split(' ')[0]}`;
-            }
-
-            for (let line of sortedLines) {
-                const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                if (columns.length < 3) continue;
-
-                const type = columns[typeIdx]?.toLowerCase() || "";
-                const amountRaw = columns[amountIdx]?.replace(/"/g, '').split(' ')[0] || "0";
-                const amount = parseFloat(amountRaw);
-                const rawDate = columns[dateIdx]?.replace(/"/g, '').split(' ')[0];
-
-                if (amount > 0 && rawDate && rawDate.includes('-')) {
-                    const dateCG = rawDate.split('-').reverse().join('-');
-                    let costPerAtom = 0;
-
-                    // ΑΝ ΕΙΝΑΙ IBC TRANSFER (Από άλλο πορτοφόλι/ανταλλακτήριο) ή RECEIVE -> Υπολογίζεται ως ΑΓΟΡΑ
-                    const isBuy = type.includes('receive') || type.includes('transfer') || type.includes('ibc');
-                    const isReward = type.includes('reward') || type.includes('delegate') || type.includes('stake');
-
-                    if (isBuy && !isReward) {
-                        if (!priceCache[dateCG]) {
-                            log.innerHTML += `<div>🔍 Price query: ${dateCG}</div>`;
-                            await new Promise(r => setTimeout(r, 2200)); 
-                            try {
-                                const pRes = await fetch(`https://api.coingecko.com/api/v3/coins/cosmos/history?date=${dateCG}&localization=false&x_cg_demo_api_key=${API_KEY}`);
-                                const pData = await pRes.json();
-                                priceCache[dateCG] = pData.market_data?.current_price?.usd || 0;
-                            } catch (err) { priceCache[dateCG] = 0; }
-                        }
-                        costPerAtom = priceCache[dateCG];
+                let costPerAtom = 0;
+                if (isBuy && !isReward) {
+                    if (!priceCache[dateCG]) {
+                        log.innerHTML += `<div>🔍 Τιμή για ${dateCG}...</div>`;
+                        log.scrollTop = log.scrollHeight;
+                        await new Promise(r => setTimeout(r, 2200));
+                        try {
+                            const res = await fetch(`https://api.coingecko.com/api/v3/coins/cosmos/history?date=${dateCG}&localization=false&x_cg_demo_api_key=${API_KEY}`);
+                            const pData = await res.json();
+                            priceCache[dateCG] = pData.market_data?.current_price?.usd || 0;
+                        } catch (e) { priceCache[dateCG] = 0; }
                     }
-
-                    totalSpentUSD += (amount * costPerAtom);
-                    totalVolumeATOM += amount;
-                    txCount++;
-
-                    const currentMO = totalSpentUSD / totalVolumeATOM;
-
-                    // Update UI
-                    document.getElementById('totalTx').innerText = txCount;
-                    document.getElementById('totalVol').innerText = totalVolumeATOM.toFixed(2);
-                    document.getElementById('totalSpent').innerText = `$${Math.round(totalSpentUSD)}`;
-                    document.getElementById('finalMO').innerText = `$${currentMO.toFixed(2)}`;
-                    
-                    chartLabels.push(rawDate);
-                    chartData.push(currentMO.toFixed(2));
-                    log.scrollTop = log.scrollHeight;
+                    costPerAtom = priceCache[dateCG];
                 }
+
+                totalSpentUSD += (tx.amount * costPerAtom);
+                totalVolumeATOM += tx.amount;
+                txProcessed++;
+
+                const currentMO = totalSpentUSD / totalVolumeATOM;
+                labels.push(tx.date.split(' ')[0]);
+                data.push(currentMO.toFixed(2));
+
+                // UI Updates
+                document.getElementById('totalTx').innerText = allTransactions.length;
+                document.getElementById('totalVol').innerText = totalVolumeATOM.toFixed(2);
+                document.getElementById('totalSpent').innerText = `$${Math.round(totalSpentUSD)}`;
+                document.getElementById('finalMO').innerText = `$${currentMO.toFixed(2)}`;
             }
-            updateChart(chartLabels, chartData);
+            updateChart(labels, data);
+            log.innerHTML += `<div class="text-emerald-400 font-bold">✅ Ανάλυση ολοκληρώθηκε! Συναλλαγές: ${allTransactions.length}</div>`;
         }
 
         function updateChart(labels, data) {
@@ -155,13 +166,14 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Average Buy Price ($)',
+                        label: 'Avg Cost ($)',
                         data: data,
                         borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
                         fill: true,
-                        tension: 0.4,
-                        pointRadius: 0
+                        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                        tension: 0.3
                     }]
                 },
                 options: {
@@ -169,8 +181,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { grid: { color: '#1f2937' }, ticks: { color: '#94a3b8' } },
-                        x: { display: false }
+                        x: { display: false },
+                        y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } }
                     }
                 }
             });
