@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GGWALL">
+<title>GGWALL — Login</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'Space Grotesk',sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
+:root{
+  --gold:#f5c24a; --gold-deep:#d4af5a; --cream:#f7e7b8;
+  --red:#ff5f6d; --green:#7dd67d;
+  --bg:#0b0d12; --surface:#12151d; --surface2:#1a1f2b;
+  --text:#e7e4d8; --muted:rgba(231,228,216,.5);
+  --border:rgba(245,194,74,.12);
+  --ease-io:cubic-bezier(.65,0,.35,1);
+}
+
+/* ══ EYE STATE MACHINE ══ */
+.ow{position:relative;width:200px;height:200px;margin:0 auto;}
+.ow .ring{position:absolute;inset:0;border-radius:50%;border:1.4px solid transparent;display:flex;align-items:center;justify-content:center;}
+/* IDLE */
+.ow.idle .r1{width:184px;height:184px;top:8px;left:8px;border-color:rgba(212,175,90,.5);animation:spin-cw 24s linear infinite;}
+.ow.idle .r2{width:136px;height:136px;top:32px;left:32px;border-color:rgba(212,175,90,.72);animation:spin-ccw 18s linear infinite;}
+.ow.idle .r3{width:90px;height:90px;top:55px;left:55px;border-color:rgba(212,175,90,.9);animation:spin-cw 12s linear infinite;}
+@keyframes spin-cw {to{transform:rotate(360deg);}}
+@keyframes spin-ccw{to{transform:rotate(-360deg);}}
+/* Planets */
+.ow .planet{position:absolute;border-radius:50%;background:var(--cream);transition:opacity .4s;}
+.ow.idle .r1 .planet{width:6px;height:6px;top:-3px;left:50%;margin-left:-3px;}
+.ow.idle .r2 .planet{width:5px;height:5px;bottom:-2.5px;left:50%;margin-left:-2.5px;}
+.ow.idle .r3 .planet{width:5px;height:5px;top:-2.5px;right:28%;}
+/* SUCCESS */
+.ow.success .r1,.ow.success .r2,.ow.success .r3{
+  top:50%;left:50%;width:184px;height:184px;
+  border-color:var(--gold-deep);border-width:1.6px;
+  animation:iris-converge 2.5s var(--ease-io) forwards;
+}
+.ow.success .r1{animation-delay:0s;}
+.ow.success .r2{animation-delay:.12s;}
+.ow.success .r3{animation-delay:.24s;}
+@keyframes iris-converge{
+  0%{transform:translate(-50%,-50%) scaleY(1);opacity:.6;}
+  60%{border-color:var(--gold);opacity:.85;}
+  100%{transform:translate(-50%,-50%) scaleY(.35);opacity:.92;border-color:var(--gold);box-shadow:0 0 20px rgba(212,175,90,.35);}
+}
+.ow.success .planet{animation:planet-fade .7s .2s forwards;}
+@keyframes planet-fade{to{opacity:0;transform:scale(0);}}
+/* FAIL */
+.ow.fail .r1,.ow.fail .r2,.ow.fail .r3{
+  top:50%;left:50%;width:184px;height:184px;
+  animation:eye-blink-red 1.4s var(--ease-io) forwards;
+}
+.ow.fail .r1{animation-delay:0s;}.ow.fail .r2{animation-delay:.04s;}.ow.fail .r3{animation-delay:.08s;}
+@keyframes eye-blink-red{
+  0%  {transform:translate(-50%,-50%) scaleY(.35);border-color:var(--gold-deep);}
+  28% {transform:translate(-50%,-50%) scaleY(.04);border-color:var(--red);}
+  50% {transform:translate(-50%,-50%) scaleY(.35);border-color:var(--red);box-shadow:0 0 24px rgba(255,95,109,.55);}
+  70% {transform:translate(-50%,-50%) scaleY(.04);border-color:var(--red);}
+  100%{transform:translate(-50%,-50%) scaleY(.35);border-color:var(--gold-deep);box-shadow:none;}
+}
+.ow.fail .planet{opacity:0;}
+/* Pupil */
+.ow .pupil{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 38% 38%,#fff4c2 0%,#f5c24a 30%,#d4af5a 60%,#8a6a2a 100%);box-shadow:inset 0 0 8px rgba(0,0,0,.4),0 0 10px rgba(212,175,90,.4);}
+.ow .pupil::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40%;height:40%;border-radius:50%;background:#0a0800;}
+.ow.idle .pupil{animation:pupil-pulse 3.2s ease-in-out infinite;}
+@keyframes pupil-pulse{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.06);box-shadow:inset 0 0 8px rgba(0,0,0,.4),0 0 18px rgba(247,231,184,.6);}}
+.ow.success .pupil{animation:pupil-awaken 2.5s var(--ease-io) forwards;}
+@keyframes pupil-awaken{0%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.22);}100%{transform:translate(-50%,-50%) scale(1.1);box-shadow:inset 0 0 8px rgba(0,0,0,.5),0 0 30px rgba(247,231,184,.75);}}
+.ow.fail .pupil{animation:pupil-fail 1.4s var(--ease-io) forwards;}
+@keyframes pupil-fail{
+  0%{background:radial-gradient(circle at 38% 38%,#fff4c2 0%,#f5c24a 30%,#d4af5a 60%,#8a6a2a 100%);}
+  50%{background:radial-gradient(circle at 38% 38%,#ffb0b6 0%,#ff5f6d 40%,#8a1a20 100%);box-shadow:inset 0 0 8px rgba(0,0,0,.5),0 0 22px rgba(255,95,109,.65);}
+  100%{background:radial-gradient(circle at 38% 38%,#fff4c2 0%,#f5c24a 30%,#d4af5a 60%,#8a6a2a 100%);}
+}
+@keyframes dots-shake{0%{transform:translateX(0);}15%{transform:translateX(-6px);}30%{transform:translateX(6px);}50%{transform:translateX(-4px);}70%{transform:translateX(4px);}100%{transform:translateX(0);}}
+@keyframes lp{0%,100%{transform:scale(1);}50%{transform:scale(1.05);filter:drop-shadow(0 0 8px rgba(255,95,109,.4));}}
+@keyframes pin-av-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* ══ ORBIT PIN LOGO ══ */
+.pin-top-slot{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px;}
+.pin-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(231,228,216,.55);letter-spacing:1.5px;transition:color .3s;}
+.orbit{position:relative;width:96px;height:96px;display:flex;align-items:center;justify-content:center;}
+.orbit .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(245,194,74,.4);transform-origin:50% 50%;}
+.orbit .r1{inset:10px;}.orbit .r2{inset:22px;border-color:rgba(245,194,74,.55);}.orbit .r3{inset:34px;border-color:rgba(245,194,74,.7);}
+.orbit .planet{position:absolute;width:5px;height:5px;border-radius:50%;background:#f5c24a;box-shadow:0 0 7px #f5c24a;}
+.orbit .p1{top:5px;left:50%;transform:translateX(-50%);}.orbit .p2{bottom:8px;right:8px;}.orbit .p3{top:50%;left:5px;transform:translateY(-50%);}
+.orbit .core{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#f7e7b8,#f5c24a 60%,#d4af5a);box-shadow:0 0 14px rgba(245,194,74,.6);}
+.orbit.idle .r1{animation:ggSpin 14s linear infinite;}.orbit.idle .r2{animation:ggSpin 22s linear infinite reverse;}.orbit.idle .r3{animation:ggSpin 30s linear infinite;}
+.orbit.idle .core{animation:ggPulse 2.8s ease-in-out infinite;}
+@keyframes ggSpin{to{transform:rotate(360deg);}}
+@keyframes ggPulse{0%,100%{transform:scale(1);filter:brightness(1);}50%{transform:scale(1.15);filter:brightness(1.3);}}
+.orbit.success .ring{animation:ggIris 1.2s ease-in-out;}.orbit.success .r2{animation-delay:.05s;}.orbit.success .r3{animation-delay:.1s;}
+.orbit.success .core{animation:ggCoreFlash 1.2s ease-in-out;}.orbit.success .planet{animation:ggPlanetFade 1.2s ease-in-out;}
+@keyframes ggIris{0%{transform:scaleY(1);border-color:rgba(245,194,74,.5);}40%{transform:scaleY(.08);border-color:rgba(245,194,74,1);box-shadow:0 0 10px rgba(245,194,74,.6);}60%{transform:scaleY(.08);}100%{transform:scaleY(1);border-color:rgba(245,194,74,.5);}}
+@keyframes ggCoreFlash{0%,100%{transform:scale(1);box-shadow:0 0 14px rgba(245,194,74,.6);}40%{transform:scale(1.6);box-shadow:0 0 30px rgba(245,194,74,1),0 0 60px rgba(245,194,74,.5);}60%{transform:scale(1.6);}}
+@keyframes ggPlanetFade{0%,100%{opacity:1;}40%,60%{opacity:0;}}
+.orbit.fail{animation:ggShake .6s ease-in-out;}.orbit.fail .ring{animation:ggFailBlink 1s ease-in-out;}.orbit.fail .core{animation:ggFailCore 1s ease-in-out;}
+@keyframes ggFailBlink{0%,100%{border-color:rgba(245,194,74,.5);}20%,60%{border-color:#ff5f6d;box-shadow:0 0 8px rgba(255,95,109,.6);}40%,80%{border-color:rgba(255,95,109,.3);}}
+@keyframes ggFailCore{0%,100%{background:radial-gradient(circle,#f7e7b8,#f5c24a 60%,#d4af5a);box-shadow:0 0 14px rgba(245,194,74,.6);}30%,60%{background:radial-gradient(circle,#ffd1d6,#ff5f6d 60%,#a8343c);box-shadow:0 0 16px rgba(255,95,109,.8);}}
+@keyframes ggShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-4px);}40%{transform:translateX(4px);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
+@media(prefers-reduced-motion:reduce){.orbit.idle .ring,.orbit.idle .core,.orbit.success .ring,.orbit.success .core,.orbit.success .planet,.orbit.fail,.orbit.fail .ring,.orbit.fail .core{animation:none!important;}.orbit.success .core{filter:brightness(1.4);}.orbit.fail{outline:2px solid #ff5f6d;border-radius:50%;}}
+/* Bigger PIN buttons */
+.pin-btn{width:68px;height:68px;border-radius:50%;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.15);color:var(--cream);font-size:20px;font-weight:500;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+.pin-btn:hover{background:rgba(245,194,74,.12);border-color:rgba(245,194,74,.4);}
+.pin-btn:active{transform:scale(.88);background:rgba(245,194,74,.22);}
+.pin-btn.sm{font-size:11px;color:rgba(245,194,74,.55);}
+.hidden-eye{display:none;}
+.pin-dots-shake{animation:dots-shake .45s ease;}
+.orbit-accelerate .r1{animation-duration:4s!important;}
+.orbit-accelerate .r2{animation-duration:3s!important;}
+.orbit-accelerate .r3{animation-duration:2s!important;}
+/* Avatar ring acceleration */
+.orbit-acc::before{animation-duration:2s!important;}
+.orbit-acc::after{animation-duration:1.5s!important;}
+/* Eye visible on returning screen */
+.ow.visible{opacity:1!important;}
+
+/* ══ STARS ══ */
+@keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.9}}
+
+/* ══ UI ══ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;font-family:'Space Grotesk',sans-serif;outline:none;transition:border-color .2s;}
+.inp:focus{border-color:rgba(245,194,74,.5);}
+.inp::placeholder{color:var(--muted);}
+.btn-gold{width:100%;padding:13px;border-radius:8px;background:linear-gradient(135deg,#d4af5a,#f7e7b8 55%,#d4af5a);border:none;color:#0b0d12;font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;letter-spacing:.3px;}
+.btn-gold:hover{opacity:.9;}.btn-gold:active{transform:scale(.98);}
+.btn-ghost{width:100%;padding:11px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:14px;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-ghost:hover{border-color:rgba(245,194,74,.35);color:var(--text);}
+.tab-row{display:flex;background:rgba(255,255,255,.03);border-radius:8px;padding:3px;border:1px solid var(--border);margin-bottom:16px;}
+.tab-btn{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:'Space Grotesk',sans-serif;transition:all .2s;}
+.tab-btn.active{background:rgba(245,194,74,.15);color:var(--gold);}
+/* PIN */
+.pin-dot{width:11px;height:11px;border-radius:50%;border:2px solid rgba(212,175,90,.45);background:transparent;transition:all .15s;}
+.pin-dot.filled{background:var(--gold);border-color:var(--cream);box-shadow:0 0 8px rgba(245,194,74,.65);}
+.pin-dot.error{background:var(--red);border-color:var(--red);}
+.pin-btn{width:64px;height:64px;border-radius:50%;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.15);color:var(--cream);font-size:20px;font-weight:500;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+.pin-btn:hover{background:rgba(245,194,74,.12);border-color:rgba(245,194,74,.4);}
+.pin-btn:active{transform:scale(.9);background:rgba(245,194,74,.22);}
+.pin-btn.sm{font-size:11px;color:rgba(245,194,74,.55);}
+.err{font-size:11px;color:var(--red);min-height:14px;text-align:center;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
+
+/* ══ NEW SCREENS ══ */
+.screen{display:none;width:100%;}
+.screen.active{display:block;}
+.choice-btn{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:var(--surface2);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .15s;text-align:left;margin-bottom:10px;}
+.choice-btn:hover{border-color:rgba(245,194,74,.25);background:rgba(245,194,74,.04);}
+.choice-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.pbar-wrap{height:2px;background:rgba(255,255,255,.06);border-radius:99px;margin-bottom:14px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#d4af5a,#f7e7b8);transition:width .4s ease;}
+.pdots{display:flex;gap:5px;justify-content:center;margin:8px 0 12px;}
+.pdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.1);}
+.pdot.done{background:rgba(125,214,125,.5);}
+.pdot.active{background:var(--gold);box-shadow:0 0 6px rgba(245,194,74,.5);}
+.iw{position:relative;}
+.ie{position:absolute;right:11px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:13px;color:var(--muted);user-select:none;}
+.sbars{display:flex;gap:3px;margin:6px 0 3px;}
+.sbar{flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.07);transition:background .3s;}
+.rules-box{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px 10px;margin-top:6px;}
+.rule{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);margin-bottom:2px;transition:color .2s;}
+.rule:last-child{margin-bottom:0;}
+.rule.ok{color:var(--green);}
+.rdot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.12);flex-shrink:0;transition:all .2s;}
+.rule.ok .rdot{background:var(--green);}
+.av-ring-wrap{width:200px;height:200px;margin:0 auto 10px;position:relative;display:flex;align-items:center;justify-content:center;}
+.av-ring-wrap::before{content:'';position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(245,194,74,.25);animation:spin-cw 20s linear infinite;}
+.av-ring-wrap::after{content:'';position:absolute;inset:10px;border-radius:50%;border:1px solid rgba(245,194,74,.12);animation:spin-ccw 28s linear infinite;}
+.av-ring-img{width:110px;height:110px;border-radius:50%;background:var(--surface2);border:3px solid rgba(245,194,74,.3);display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 0 24px rgba(245,194,74,.12);}
+.av-grid{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:8px 0 12px;}
+.av-opt{width:44px;height:44px;border-radius:50%;background:var(--surface2);border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:21px;cursor:pointer;transition:all .15s;}
+.av-opt:hover,.av-opt.sel{border-color:var(--gold);background:rgba(245,194,74,.08);}
+.av-opt.upload{border-style:dashed;border-color:rgba(245,194,74,.2);font-size:16px;}
+.c-row{display:flex;gap:6px;justify-content:center;margin:6px 0 12px;}
+.co{width:24px;height:24px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;}
+.co:hover,.co.sel{border-color:#fff;transform:scale(1.15);}
+.cpills{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 12px;}
+.cp-ok{background:rgba(125,214,125,.1);border:1px solid rgba(125,214,125,.2);color:var(--green);padding:3px 7px;border-radius:6px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;}
+.cp-pend{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted);padding:3px 7px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;}
+.ibox{background:rgba(245,194,74,.04);border:1px solid rgba(245,194,74,.1);border-radius:8px;padding:9px 11px;font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:10px;}
+.ibox b{color:rgba(245,194,74,.7);}
+.gitem{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.gitem:last-child{border-bottom:none;}
+.gico{width:30px;height:30px;border-radius:8px;background:rgba(245,194,74,.08);border:1px solid rgba(245,194,74,.1);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.attempt-wrap{display:flex;gap:5px;justify-content:center;margin-bottom:6px;}
+.att{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.08);transition:all .2s;}
+.att.warn{background:var(--orange,#fb923c);}
+.att.used{background:var(--red);}
+.lockout-box{background:rgba(255,95,109,.07);border:1px solid rgba(255,95,109,.18);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px;}
+.lockout-timer{font-size:32px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);margin:4px 0;}
+</style>
+</head>
+<body>
+
+<!-- Stars -->
+<div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
+  <div style="position:absolute;width:1px;height:1px;background:#fff;border-radius:50%;top:7%;left:14%;animation:twinkle 2.1s infinite;"></div>
+  <div style="position:absolute;width:2px;height:2px;background:rgba(245,194,74,.6);border-radius:50%;top:18%;left:82%;animation:twinkle 1.7s .3s infinite;"></div>
+  <div style="position:absolute;width:1px;height:1px;background:#fff;border-radius:50%;top:76%;left:91%;animation:twinkle 2.4s .8s infinite;"></div>
+  <div style="position:absolute;width:2px;height:2px;background:rgba(245,194,74,.4);border-radius:50%;top:88%;left:16%;animation:twinkle 1.9s 1s infinite;"></div>
+  <div style="position:absolute;width:1px;height:1px;background:#fff;border-radius:50%;top:32%;left:95%;animation:twinkle 2.6s .5s infinite;"></div>
+  <div style="position:absolute;width:200px;height:200px;background:radial-gradient(ellipse,rgba(245,194,74,.06),transparent 70%);top:-60px;left:50%;transform:translateX(-50%);"></div>
+</div>
+
+<!-- Page -->
+<div style="position:relative;z-index:1;width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:7vh 0 env(safe-area-inset-bottom,20px);">
+<div id="main-wrap" style="width:min(360px,93vw);display:flex;flex-direction:column;gap:14px;">
+
+  <!-- ══ SCREEN: LANDING ══ -->
+  <div class="screen" id="screen-landing">
+    <div style="text-align:center;margin-bottom:8px;">
+      <div class="ow idle" id="ow" role="img" aria-label="GGWALL">
+        <div class="ring r1"><div class="planet"></div></div>
+        <div class="ring r2"><div class="planet"></div></div>
+        <div class="ring r3"><div class="planet"></div></div>
+        <div class="pupil"></div>
+      </div>
+      <div style="margin-top:8px;">
+        <div style="font-size:20px;font-weight:700;letter-spacing:3px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Space Grotesk',sans-serif;">GGWALL</div>
+        <div style="font-size:9px;color:rgba(245,194,74,.45);letter-spacing:.2em;text-transform:uppercase;margin-top:2px;font-family:'JetBrains Mono',monospace;">Ασφαλές Πορτοφόλι</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="choice-btn" onclick="_showScreen('auth')">
+        <div class="choice-ico" style="background:rgba(245,194,74,.08);">🔐</div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text);">Έχω ήδη λογαριασμό</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Σύνδεση με email & κωδικό</div></div>
+      </div>
+      <div class="choice-btn" onclick="_showScreen('inv-code')">
+        <div class="choice-ico" style="background:rgba(96,165,250,.08);">📨</div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text);">Έχω invitation code</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Δημιουργία νέου λογαριασμού</div></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px;">Δεν έχεις κωδικό πρόσκλησης;<br>Επικοινώνησε με τον admin.</div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: AUTH (existing user login) ══ -->
+  <div class="screen" id="screen-auth">
+    <div style="text-align:center;margin-bottom:8px;">
+      <div class="ow idle" id="ow-auth" role="img">
+        <div class="ring r1"><div class="planet"></div></div>
+        <div class="ring r2"><div class="planet"></div></div>
+        <div class="ring r3"><div class="planet"></div></div>
+        <div class="pupil"></div>
+      </div>
+      <div style="margin-top:8px;">
+        <div style="font-size:20px;font-weight:700;letter-spacing:3px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">GGWALL</div>
+      </div>
+    </div>
+    <div class="card" id="auth-card">
+      <div style="font-size:13px;font-weight:700;color:var(--cream);margin-bottom:12px;">🔐 Σύνδεση</div>
+      <form onsubmit="event.preventDefault();_doLogin();" autocomplete="on" style="display:flex;flex-direction:column;gap:10px;">
+        <div class="iw">
+          <input class="inp" id="login-email" type="email" name="email" placeholder="Email" autocomplete="email" style="padding-right:14px;"/>
+        </div>
+        <div class="iw">
+          <input class="inp" id="login-password" type="password" name="password" placeholder="Κωδικός" autocomplete="current-password"/>
+          <span class="ie" onclick="_tvPass('login-password',this)">👁</span>
+        </div>
+        <button type="submit" class="btn-gold">Σύνδεση →</button>
+        <div id="login-err" class="err"></div>
+      </form>
+      <button onclick="_showScreen('landing')" class="btn-ghost" style="margin-top:8px;">← Πίσω</button>
+    </div>
+  </div>
+
+  <!-- ══ INVITE: STEP 1 — CODE ══ -->
+  <div class="screen" id="screen-inv-code">
+    <div class="card">
+      <div class="pbar-wrap"><div class="pbar-fill" style="width:16%"></div></div>
+      <div style="text-align:center;padding:14px 0 10px;">
+        <div style="font-size:28px;margin-bottom:8px;">🔐</div>
+        <div style="font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px;">Invitation Code</div>
+        <div style="font-size:11px;color:var(--muted);">Βάλε τον κωδικό πρόσκλησής σου.</div>
+        <div class="pdots"><div class="pdot active"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div></div>
+      </div>
+      <input class="inp" id="inv-code-input" placeholder="GGWALL-XXXX" autocomplete="off"
+        style="font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:3px;text-align:center;text-transform:uppercase;margin-bottom:6px;"/>
+      <div id="inv-code-hint" class="err" style="margin-bottom:8px;"></div>
+      <div class="ibox">💡 Κάθε code χρησιμοποιείται μόνο <b>μία φορά</b> και απενεργοποιείται μετά.</div>
+      <button class="btn-gold" onclick="_validateInvCode()">Συνέχεια →</button>
+      <button class="btn-ghost" onclick="_showScreen('landing')" style="margin-top:8px;">← Πίσω</button>
+    </div>
+  </div>
+
+  <!-- ══ INVITE: STEP 2 — ACCOUNT ══ -->
+  <div class="screen" id="screen-inv-account">
+    <div class="card">
+      <div class="pbar-wrap"><div class="pbar-fill" style="width:32%"></div></div>
+      <div style="text-align:center;padding:14px 0 10px;">
+        <div style="font-size:28px;margin-bottom:8px;">👤</div>
+        <div style="font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px;">Δημιουργία λογαριασμού</div>
+        <div class="pdots"><div class="pdot done"></div><div class="pdot active"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div></div>
+      </div>
+      <form onsubmit="event.preventDefault();_submitInvAccount();" autocomplete="on" style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Username</div>
+          <input class="inp" id="inv-username" placeholder="Το όνομα σου" autocomplete="username"/>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Email</div>
+          <input class="inp" id="inv-email" type="email" placeholder="email@example.com" autocomplete="email"/>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Κωδικός</div>
+          <div class="iw">
+            <input class="inp" id="inv-pass" type="password" placeholder="Min 8 χαρακτήρες" autocomplete="new-password" oninput="_checkPassStrength(this.value)"/>
+            <span class="ie" onclick="_tvPass('inv-pass',this)">👁</span>
+          </div>
+          <div class="sbars" id="inv-sbars"><div class="sbar"></div><div class="sbar"></div><div class="sbar"></div><div class="sbar"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span id="inv-slabel" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);">—</span>
+          </div>
+          <div class="rules-box">
+            <div class="rule" id="r-len"><div class="rdot"></div>Τουλάχιστον 8 χαρακτήρες</div>
+            <div class="rule" id="r-upper"><div class="rdot"></div>Κεφαλαίο γράμμα (A-Z)</div>
+            <div class="rule" id="r-num"><div class="rdot"></div>Αριθμός (0-9)</div>
+            <div class="rule" id="r-sym"><div class="rdot"></div>Σύμβολο (!@#$%...)</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Επιβεβαίωση</div>
+          <div class="iw">
+            <input class="inp" id="inv-pass2" type="password" placeholder="Ξαναγράψε τον κωδικό" autocomplete="new-password"/>
+            <span class="ie" onclick="_tvPass('inv-pass2',this)">👁</span>
+          </div>
+        </div>
+        <div id="inv-account-err" class="err"></div>
+        <div class="ibox">🔒 Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά την πρώτη σύνδεση χρησιμοποιείς μόνο <b>4ψήφιο PIN</b>.</div>
+        <button type="submit" class="btn-gold">Δημιουργία →</button>
+      </form>
+      <button class="btn-ghost" onclick="_showScreen('inv-code')" style="margin-top:8px;">← Πίσω</button>
+    </div>
+  </div>
+
+  <!-- ══ INVITE: STEP 3 — PROFILE ══ -->
+  <div class="screen" id="screen-inv-profile">
+    <div class="card">
+      <div class="pbar-wrap"><div class="pbar-fill" style="width:48%"></div></div>
+      <div style="text-align:center;padding:14px 0 8px;">
+        <div style="font-size:28px;margin-bottom:8px;">✨</div>
+        <div style="font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px;">Προσαρμογή προφίλ</div>
+        <div style="font-size:11px;color:var(--muted);">Προαιρετικό — μπορείς να το αλλάξεις αργότερα.</div>
+        <div class="pdots"><div class="pdot done"></div><div class="pdot done"></div><div class="pdot active"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div></div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Avatar</div>
+      <div class="av-grid" id="av-grid">
+        <div class="av-opt sel" data-av="🧑‍💻" onclick="_selAv(this)">🧑‍💻</div>
+        <div class="av-opt" data-av="👤" onclick="_selAv(this)">👤</div>
+        <div class="av-opt" data-av="⚔️" onclick="_selAv(this)">⚔️</div>
+        <div class="av-opt" data-av="🦊" onclick="_selAv(this)">🦊</div>
+        <div class="av-opt" data-av="🌙" onclick="_selAv(this)">🌙</div>
+        <div class="av-opt" data-av="🔮" onclick="_selAv(this)">🔮</div>
+        <div class="av-opt" data-av="🐉" onclick="_selAv(this)">🐉</div>
+        <div class="av-opt" data-av="🦅" onclick="_selAv(this)">🦅</div>
+        <div class="av-opt upload" onclick="_uploadAvatar()" title="Ανέβασε δική σου φωτογραφία">📷</div>
+      </div>
+      <input type="file" id="av-upload" accept="image/*" style="display:none;" onchange="_handleAvatarUpload(this)"/>
+      <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Χρώμα</div>
+      <div class="c-row" id="c-row">
+        <div class="co sel" data-col="#a5b4fc" onclick="_selCol(this)" style="background:#a5b4fc;"></div>
+        <div class="co" data-col="#f5c24a" onclick="_selCol(this)" style="background:#f5c24a;"></div>
+        <div class="co" data-col="#7dd67d" onclick="_selCol(this)" style="background:#7dd67d;"></div>
+        <div class="co" data-col="#ff5f6d" onclick="_selCol(this)" style="background:#ff5f6d;"></div>
+        <div class="co" data-col="#60a5fa" onclick="_selCol(this)" style="background:#60a5fa;"></div>
+        <div class="co" data-col="#c084fc" onclick="_selCol(this)" style="background:#c084fc;"></div>
+        <div class="co" data-col="#fb923c" onclick="_selCol(this)" style="background:#fb923c;"></div>
+      </div>
+      <button class="btn-gold" onclick="_saveProfile()">Αποθήκευση →</button>
+      <button class="btn-ghost" style="margin-top:8px;" onclick="_showScreen('inv-wallet')">Παράλειψη</button>
+    </div>
+  </div>
+
+  <!-- ══ INVITE: STEP 4 — WALLET ══ -->
+  <div class="screen" id="screen-inv-wallet">
+    <div class="card">
+      <div class="pbar-wrap"><div class="pbar-fill" style="width:64%"></div></div>
+      <div style="text-align:center;padding:14px 0 8px;">
+        <div style="font-size:28px;margin-bottom:8px;">⚛️</div>
+        <div style="font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px;">Cosmos Wallet</div>
+        <div style="font-size:11px;color:var(--muted);">Βάλε την cosmos1 διεύθυνσή σου.</div>
+        <div class="pdots"><div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div><div class="pdot active"></div><div class="pdot"></div><div class="pdot"></div></div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Cosmos Address</div>
+      <input class="inp" id="inv-cosmos" placeholder="cosmos1..." autocomplete="off" style="font-family:'JetBrains Mono',monospace;font-size:11px;margin-bottom:6px;padding-right:14px;"/>
+      <button class="btn-ghost" id="inv-derive-btn" onclick="_invDeriveChains()" style="width:100%;margin-bottom:6px;border-color:rgba(245,194,74,.25);color:var(--gold);font-size:11px;">✨ Auto-derive IBC chains</button>
+      <div id="inv-derive-status" style="font-size:10px;color:var(--muted);min-height:12px;margin-bottom:4px;"></div>
+      <div id="inv-derive-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px;max-height:140px;overflow-y:auto;margin-bottom:8px;">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:5px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;">Derived διευθύνσεις</div>
+        <div id="inv-derive-list" style="font-size:10px;font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column;gap:2px;"></div>
+      </div>
+      <div class="ibox">🔄 Τα balances συγχρονίζονται <b>αυτόματα κάθε 5 λεπτά</b>.</div>
+      <button class="btn-gold" onclick="_saveWalletInvite()">Αποθήκευση →</button>
+      <button class="btn-ghost" style="margin-top:8px;" onclick="_showScreen('inv-pin')">Παράλειψη</button>
+    </div>
+  </div>
+
+  <!-- ══ INVITE: STEP 5 — PIN SETUP ══ -->
+  <div class="screen" id="screen-inv-pin">
+    <div class="card">
+      <div class="pbar-wrap"><div class="pbar-fill" style="width:80%"></div></div>
+      <div style="text-align:center;padding:14px 0 8px;">
+        <div style="font-size:28px;margin-bottom:8px;">🔑</div>
+        <div style="font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px;">Ορισμός PIN</div>
+        <div style="font-size:11px;color:var(--muted);">4ψήφιο PIN για γρήγορη είσοδο στη συσκευή σου.</div>
+        <div class="pdots"><div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div><div class="pdot active"></div><div class="pdot"></div></div>
+      </div>
+      <div id="inv-setup-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:16px;">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,68px);gap:12px;justify-content:center;">
+        <button class="pin-btn" onclick="invSetupPress('1')">1</button><button class="pin-btn" onclick="invSetupPress('2')">2</button><button class="pin-btn" onclick="invSetupPress('3')">3</button>
+        <button class="pin-btn" onclick="invSetupPress('4')">4</button><button class="pin-btn" onclick="invSetupPress('5')">5</button><button class="pin-btn" onclick="invSetupPress('6')">6</button>
+        <button class="pin-btn" onclick="invSetupPress('7')">7</button><button class="pin-btn" onclick="invSetupPress('8')">8</button><button class="pin-btn" onclick="invSetupPress('9')">9</button>
+        <button class="pin-btn sm" onclick="invSetupPress('C')">CLR</button><button class="pin-btn" onclick="invSetupPress('0')">0</button><button class="pin-btn sm" onclick="invSetupPress('D')">⌫</button>
+      </div>
+      <div id="inv-pin-err" class="err" style="margin-top:8px;"></div>
+      <div class="ibox" style="margin-top:10px;">🔒 Αποθηκεύεται <b>μόνο τοπικά</b>. Αν χαθεί, χρησιμοποιείς τον κύριο κωδικό.</div>
+    </div>
+  </div>
+
+  <!-- ══ INVITE: STEP 6 — WELCOME ══ -->
+  <div class="screen" id="screen-inv-welcome">
+    <div class="card">
+      <div class="pbar-wrap"><div class="pbar-fill" style="width:100%"></div></div>
+      <div style="text-align:center;padding:14px 0 10px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(125,214,125,.15),rgba(245,194,74,.15));border:2px solid rgba(125,214,125,.3);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 10px;">🚀</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green);margin-bottom:4px;">Welcome to GGWALL!</div>
+        <div style="font-size:11px;color:var(--muted);">Ο λογαριασμός σου είναι έτοιμος.</div>
+        <div class="pdots">
+          <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div><div class="pdot done" style="box-shadow:0 0 5px rgba(245,194,74,.5);"></div>
+        </div>
+      </div>
+      <div class="gitem"><div class="gico">📊</div><div><div style="font-size:12px;font-weight:600;">Portfolio</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Συνολικό balance σε EUR realtime</div></div></div>
+      <div class="gitem"><div class="gico">📈</div><div><div style="font-size:12px;font-weight:600;">Staking</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Rewards ανά chain παρακολούθηση</div></div></div>
+      <div class="gitem" style="background:rgba(255,95,109,.04);border-radius:8px;padding:7px 8px;border:1px solid rgba(255,95,109,.12);">
+        <div class="gico" style="background:rgba(255,95,109,.08);border-color:rgba(255,95,109,.2);">🔔</div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--red);">Unbonding Alert</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Άμεση ειδοποίηση για <b style="color:rgba(255,95,109,.6);">μη εξουσιοδοτημένο</b> unbonding</div></div>
+      </div>
+      <div class="gitem"><div class="gico">💬</div><div><div style="font-size:12px;font-weight:600;">Team Chat</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Public & private επικοινωνία</div></div></div>
+      <div class="gitem" style="opacity:.6;">
+        <div class="gico" style="background:rgba(245,194,74,.05);">📥</div>
+        <div><div style="font-size:12px;font-weight:600;">Incoming Alerts <span style="font-size:8px;background:rgba(245,194,74,.12);color:var(--gold);padding:1px 5px;border-radius:3px;font-family:monospace;">SOON</span></div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Ειδοποίηση για εισερχόμενα coins</div></div>
+      </div>
+      <button class="btn-gold" style="margin-top:12px;" onclick="_welcomeGo()">Πάμε στο Dashboard! →</button>
+    </div>
+  </div>
+
+  <!-- ══ RETURNING: AVATAR + PIN ══ -->
+  <div class="screen" id="screen-returning">
+    <!-- Orbit PIN logo -->
+    <div class="pin-top-slot">
+      <div class="orbit idle" id="topLogo">
+        <div class="ring r1"></div>
+        <div class="ring r2"></div>
+        <div class="ring r3"></div>
+        <span class="planet p1"></span>
+        <span class="planet p2"></span>
+        <span class="planet p3"></span>
+        <div class="core"></div>
+      </div>
+      <div class="pin-hint" id="pinHint" aria-live="polite">Η πρόσβαση στο πορτοφόλι</div>
+    </div>
+    <!-- Attempt dots: 3 -->
+    <div class="attempt-wrap" id="ret-attempts" style="margin-bottom:6px;">
+      <div class="att" id="att0"></div>
+      <div class="att" id="att1"></div>
+      <div class="att" id="att2"></div>
+    </div>
+    <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;" id="att-label">3 προσπάθειες πριν το κλείδωμα</div>
+    <div class="card" id="pin-card" style="">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;" onclick="_pinSwitchUser()" id="pin-user-row">
+        <div id="pin-avatar" style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(245,194,74,.5);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+          <div id="pin-username" style="font-size:14px;font-weight:600;color:var(--cream);"></div>
+          <div id="pin-role" style="font-size:9px;color:rgba(245,194,74,.5);letter-spacing:.08em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-top:1px;"></div>
+        </div>
+        <div id="pin-user-dots" style="display:flex;flex-direction:column;gap:4px;"></div>
+      </div>
+      <div id="pin-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:16px;">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,68px);gap:12px;justify-content:center;">
+        <button class="pin-btn" onclick="pinPress('1')">1</button><button class="pin-btn" onclick="pinPress('2')">2</button><button class="pin-btn" onclick="pinPress('3')">3</button>
+        <button class="pin-btn" onclick="pinPress('4')">4</button><button class="pin-btn" onclick="pinPress('5')">5</button><button class="pin-btn" onclick="pinPress('6')">6</button>
+        <button class="pin-btn" onclick="pinPress('7')">7</button><button class="pin-btn" onclick="pinPress('8')">8</button><button class="pin-btn" onclick="pinPress('9')">9</button>
+        <button class="pin-btn sm" onclick="pinPress('C')">CLR</button><button class="pin-btn" onclick="pinPress('0')">0</button><button class="pin-btn sm" onclick="pinPress('D')">⌫</button>
+      </div>
+      <div id="pin-err" class="err" style="margin-top:10px;"></div>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="_showScreen('landing')" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;">← Αλλαγή χρήστη</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LOCKOUT ══ -->
+  <!-- ── Reset Password Screen ── -->
+  <div class="screen" id="screen-reset-password">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(251,146,60,.12);border:2px solid rgba(251,146,60,.3);display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px;">🔑</div>
+      <div class="screen-title">Νέος Κωδικός</div>
+      <div class="screen-sub">Ορίσε τον νέο κωδικό πρόσβασης</div>
+    </div>
+    <div class="form-group">
+      <div class="iw">
+        <input type="password" id="reset-pass1" placeholder="Νέος κωδικός (min 8)" class="inp" autocomplete="new-password" oninput="_checkResetStrength(this.value)"/>
+        <span class="ie" onclick="_tvPass('reset-pass1',this)">👁</span>
+      </div>
+      <div class="sbars" id="reset-sbars"><div class="sbar"></div><div class="sbar"></div><div class="sbar"></div><div class="sbar"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span id="reset-slabel" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);">—</span>
+      </div>
+      <div class="rules-box">
+        <div class="rule" id="rr-len"><div class="rdot"></div>Τουλάχιστον 8 χαρακτήρες</div>
+        <div class="rule" id="rr-upper"><div class="rdot"></div>Κεφαλαίο γράμμα (A-Z)</div>
+        <div class="rule" id="rr-num"><div class="rdot"></div>Αριθμός (0-9)</div>
+        <div class="rule" id="rr-sym"><div class="rdot"></div>Σύμβολο (!@#$%...)</div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:10px;">
+      <div class="iw">
+        <input type="password" id="reset-pass2" placeholder="Επιβεβαίωση κωδικού" class="inp" autocomplete="new-password"/>
+        <span class="ie" onclick="_tvPass('reset-pass2',this)">👁</span>
+      </div>
+    </div>
+    <div class="ibox" style="margin-top:10px;">🔒 Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά την πρώτη σύνδεση χρησιμοποιείς μόνο <b>4ψήφιο PIN</b>.</div>
+    <div class="ibox">🛡️ Ο κωδικός <b>δεν αποθηκεύεται</b> σε plaintext — κανείς δεν μπορεί να τον δει.</div>
+    <div id="reset-msg" style="font-size:12px;color:var(--red);text-align:center;margin-top:8px;display:none;"></div>
+    <button onclick="_doResetPassword()" class="btn-primary" style="margin-top:12px;width:100%;">Αποθήκευση Κωδικού</button>
+  </div>
+
+  <div class="screen" id="screen-lockout">
+    <div class="card">
+      <div style="text-align:center;padding:16px 0 10px;">
+        <div style="font-size:48px;margin-bottom:8px;animation:lp 2s ease-in-out infinite;">🔒</div>
+        <div style="font-size:18px;font-weight:700;color:var(--red);margin-bottom:4px;">Λογαριασμός κλειδωμένος</div>
+        <div style="font-size:11px;color:var(--muted);">5 λανθασμένες προσπάθειες</div>
+      </div>
+      <div class="attempt-wrap" style="margin-bottom:14px;">
+        <div class="att used"></div><div class="att used"></div><div class="att used"></div><div class="att used"></div><div class="att used"></div>
+      </div>
+      <div class="lockout-box">
+        <div style="font-size:11px;color:var(--red);font-family:'JetBrains Mono',monospace;margin-bottom:4px;">⏱ Δοκίμασε ξανά σε</div>
+        <div class="lockout-timer" id="lockout-timer">30:00</div>
+        <div style="font-size:10px;color:var(--muted);">λεπτά</div>
+      </div>
+      <button class="btn-ghost" onclick="_showScreen('auth')" style="margin-bottom:8px;">🔑 Σύνδεση με κύριο κωδικό</button>
+      <div style="font-size:10px;color:var(--muted);text-align:center;">Ξέχασες τον κωδικό; Επικοινώνησε με τον admin.</div>
+    </div>
+  </div>
+
+  <!-- PIN SETUP CARD (for returning users after fresh login) -->
+  <div class="card" id="pin-card" style="display:none;">
+    <!-- User info -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;" onclick="_pinSwitchUser()" id="pin-user-row">
+      <div id="pin-avatar" style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(245,194,74,.5);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div id="pin-username" style="font-size:14px;font-weight:600;color:var(--cream);"></div>
+        <div id="pin-role" style="font-size:9px;color:rgba(245,194,74,.5);letter-spacing:.08em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-top:1px;"></div>
+      </div>
+      <div id="pin-user-dots" style="display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
+    <!-- Dots -->
+    <div id="pin-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:16px;">
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <!-- Pad -->
+    <div style="display:grid;grid-template-columns:repeat(3,64px);gap:10px;justify-content:center;">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn sm" onclick="pinPress('C')">CLR</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn sm" onclick="pinPress('D')">⌫</button>
+    </div>
+    <div id="pin-err" class="err" style="margin-top:10px;"></div>
+    <!-- Switch to email login -->
+    <div style="text-align:center;margin-top:12px;">
+      <button onclick="_showAuthCard()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;">← Σύνδεση με email</button>
+    </div>
+  </div>
+
+  <!-- PIN SETUP (for new registrations) -->
+  <div class="card" id="pin-setup-card" style="display:none;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:600;color:var(--cream);">Ορίστε PIN πρόσβασης</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">4 ψηφία — χρησιμοποιείται για γρήγορη είσοδο</div>
+    </div>
+    <div id="setup-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:16px;">
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,64px);gap:10px;justify-content:center;">
+      <button class="pin-btn" onclick="setupPress('1')">1</button>
+      <button class="pin-btn" onclick="setupPress('2')">2</button>
+      <button class="pin-btn" onclick="setupPress('3')">3</button>
+      <button class="pin-btn" onclick="setupPress('4')">4</button>
+      <button class="pin-btn" onclick="setupPress('5')">5</button>
+      <button class="pin-btn" onclick="setupPress('6')">6</button>
+      <button class="pin-btn" onclick="setupPress('7')">7</button>
+      <button class="pin-btn" onclick="setupPress('8')">8</button>
+      <button class="pin-btn" onclick="setupPress('9')">9</button>
+      <button class="pin-btn sm" onclick="setupPress('C')">CLR</button>
+      <button class="pin-btn" onclick="setupPress('0')">0</button>
+      <button class="pin-btn sm" onclick="setupPress('D')">⌫</button>
+    </div>
+    <div id="setup-err" class="err" style="margin-top:10px;"></div>
+    <button onclick="_skipPinSetup()" class="btn-ghost" style="margin-top:10px;">Παράλειψη (χρήση κωδικού)</button>
+  </div>
+
+</div>
+</div>
+
+<script>
+'use strict';
+// ── Constants ─────────────────────────────────────────────────────
+const APP_URL      = 'index.html';
+const USERS_KEY    = 'ggwall_users_v1';
+const DEFAULT_PIN  = '1234';
+const CRYPTO_SALT  = 'ggwall-einhasad-v1';
+const _SB_URL      = 'https://rzrxulubttnjtxziodib.supabase.co';
+const _SB_ANON     = 'sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A';
+const _SB_HDR      = {'apikey':_SB_ANON,'Authorization':'Bearer '+_SB_ANON,'Content-Type':'application/json'};
+
+// ── Supabase client ───────────────────────────────────────────────
+const _sb = supabase.createClient(_SB_URL, _SB_ANON);
+
+// ── User helpers ──────────────────────────────────────────────────
+function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]');}catch(e){return[];}}
+function getVerifiedUsers(){
+  // Only users who have successfully entered PIN on this device
+  return getUsers().filter(function(u){return u.device_verified&&!u.name?.startsWith('__');});
+}
+function _cleanUnverifiedUsers(){
+  // Remove users who were synced from cloud but never logged in here
+  var users=getUsers();
+  var clean=users.filter(function(u){return u.device_verified||u.name?.startsWith('__');});
+  if(clean.length!==users.length){saveUsers(clean);console.log('[auth] Cleaned',users.length-clean.length,'unverified users from localStorage');}
+}
+function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u));}
+function _deobfuscatePin(op){
+  if(!op||!/^[0-9]{4}$/.test(op))return op;
+  var k=[CRYPTO_SALT.charCodeAt(0),CRYPTO_SALT.charCodeAt(4),CRYPTO_SALT.charCodeAt(8),CRYPTO_SALT.charCodeAt(12)];
+  return op.split('').map(function(d,i){return(((parseInt(d)-k[i%4])%10+10)%10).toString();}).join('');
+}
+function _obfuscatePin(pin){
+  if(!pin||!/^[0-9]{4}$/.test(pin))return pin;
+  var k=[CRYPTO_SALT.charCodeAt(0),CRYPTO_SALT.charCodeAt(4),CRYPTO_SALT.charCodeAt(8),CRYPTO_SALT.charCodeAt(12)];
+  return pin.split('').map(function(d,i){return((parseInt(d)+k[i%4])%10).toString();}).join('');
+}
+
+// ── Screen navigation ─────────────────────────────────────────────
+var _SCREENS=['landing','auth','inv-code','inv-account','inv-profile','inv-wallet','inv-pin','inv-welcome','returning','lockout'];
+// ── Reset Password ───────────────────────────────────────────────
+async function _doResetPassword(){
+  var p1=document.getElementById('reset-pass1').value;
+  var p2=document.getElementById('reset-pass2').value;
+  var msg=document.getElementById('reset-msg');
+  msg.style.display='none';
+  var rules=_checkResetStrength(p1||'');
+  if(!p1||!Object.values(rules).every(Boolean)){msg.textContent='⚠ Ο κωδικός δεν πληροί τα κριτήρια ασφαλείας';msg.style.display='block';return;}
+  if(p1!==p2){msg.textContent='Οι κωδικοί δεν ταιριάζουν';msg.style.display='block';return;}
+  try{
+    var r=await _sb.auth.updateUser({password:p1});
+    if(r.error)throw r.error;
+    // Success — go to landing
+    showToast('✅ Ο κωδικός άλλαξε επιτυχώς!','gold');
+    setTimeout(function(){window.location.replace('login.html');},1500);
+  }catch(e){
+    msg.textContent=e.message||'Σφάλμα — δοκίμασε ξανά';
+    msg.style.display='block';
+  }
+}
+
+function _showScreen(id){
+  _SCREENS.forEach(function(s){
+    var el=document.getElementById('screen-'+s);
+    if(el)el.classList.toggle('active',s===id);
+  });
+  // Also hide legacy cards
+  var pc=document.getElementById('pin-setup-card');
+  if(pc)pc.style.display='none';
+  // Eye sync
+  var ow=document.getElementById('ow');
+  var owa=document.getElementById('ow-auth');
+  if(ow)ow.classList.toggle('hidden-eye',id!=='landing');
+  if(owa)owa.classList.toggle('hidden-eye',id!=='auth');
+  // Reset logo + attempts when showing returning screen
+  if(id==='returning'){
+    _failCount=0;
+    for(var _i=0;_i<3;_i++){var _a=document.getElementById('att'+_i);if(_a)_a.classList.remove('warn','used');}
+    var _lbl=document.getElementById('att-label');if(_lbl)_lbl.textContent='3 προσπάθειες πριν το κλείδωμα';
+    var _hint=document.getElementById('pinHint');if(_hint){_hint.textContent='Η πρόσβαση στο πορτοφόλι';_hint.style.color='';}
+    var _logo=document.getElementById('topLogo');if(_logo){_logo.classList.remove('success','fail');_logo.classList.add('idle');}
+  }
+}
+function _showAuthCard(){_showScreen('returning');}
+function _authSetMode(){}  // no-op legacy
+
+// ── Toggle password visibility ────────────────────────────────────
+function _tvPass(id,el){
+  var i=document.getElementById(id);if(!i)return;
+  i.type=i.type==='password'?'text':'password';
+  el.textContent=i.type==='password'?'👁':'🙈';
+}
+
+// ── Password strength ─────────────────────────────────────────────
+function _checkResetStrength(v){
+  var r={len:v.length>=8,upper:/[A-Z]/.test(v),num:/[0-9]/.test(v),sym:/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v)};
+  var score=Object.values(r).filter(Boolean).length;
+  var rMap={len:'rr-len',upper:'rr-upper',num:'rr-num',sym:'rr-sym'};
+  Object.keys(rMap).forEach(function(k){
+    var el=document.getElementById(rMap[k]);
+    if(el){el.classList.toggle('ok',r[k]);var d=el.querySelector('.rdot');if(d)d.style.background=r[k]?'var(--green)':'rgba(255,255,255,.12)';}
+  });
+  var bars=document.querySelectorAll('#reset-sbars .sbar');
+  var colors=['','var(--red)','var(--orange,#fb923c)','var(--gold)','var(--green)'];
+  var labels=['','WEAK','FAIR','GOOD','STRONG'];
+  bars.forEach(function(b,i){b.style.background=i<score?colors[score]:'rgba(255,255,255,.07)';});
+  var sl=document.getElementById('reset-slabel');
+  if(sl){sl.textContent=score>0?labels[score]:'—';sl.style.color=score>0?colors[score]:'var(--muted)';}
+  return r;
+}
+
+function _checkPassStrength(v){
+  var r={len:v.length>=8,upper:/[A-Z]/.test(v),num:/[0-9]/.test(v),sym:/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v)};
+  var score=Object.values(r).filter(Boolean).length;
+  // Update rules
+  var rMap={len:'r-len',upper:'r-upper',num:'r-num',sym:'r-sym'};
+  Object.keys(rMap).forEach(function(k){
+    var el=document.getElementById(rMap[k]);
+    if(el){el.classList.toggle('ok',r[k]);var d=el.querySelector('.rdot');if(d)d.style.background=r[k]?'var(--green)':'rgba(255,255,255,.12)';}
+  });
+  // Strength bars
+  var bars=document.querySelectorAll('#inv-sbars .sbar');
+  var colors=['','var(--red)','var(--orange,#fb923c)','var(--gold)','var(--green)'];
+  var labels=['','WEAK','FAIR','GOOD','STRONG'];
+  var labelColors=['','var(--red)','var(--orange,#fb923c)','var(--gold)','var(--green)'];
+  bars.forEach(function(b,i){b.style.background=i<score?colors[score]:'rgba(255,255,255,.07)';});
+  var sl=document.getElementById('inv-slabel');
+  if(sl){sl.textContent=score>0?labels[score]:'—';sl.style.color=score>0?labelColors[score]:'var(--muted)';}
+  return r;
+}
+
+// ── Invite code validation ────────────────────────────────────────
+async function _validateInvCode(){
+  var code=(document.getElementById('inv-code-input')?.value||'').trim().toUpperCase();
+  var hint=document.getElementById('inv-code-hint');
+  if(!code){if(hint)hint.textContent='⚠ Βάλε τον κωδικό';return;}
+  if(hint)hint.textContent='⏳ Έλεγχος...';
+  try{
+    var r=await fetch(_SB_URL+'/rest/v1/invitations?code=eq.'+encodeURIComponent(code)+'&active=eq.true&select=code,uses_count,uses_max,expires_at',{headers:_SB_HDR,signal:AbortSignal.timeout(6000)});
+    var d=await r.json();
+    if(!d||!d.length){if(hint)hint.textContent='⚠ Άκυρος κωδικός';return;}
+    var inv=d[0];
+    if(inv.uses_count>=inv.uses_max){if(hint)hint.textContent='⚠ Ο κωδικός έχει χρησιμοποιηθεί';return;}
+    if(inv.expires_at&&new Date(inv.expires_at)<new Date()){if(hint)hint.textContent='⚠ Ο κωδικός έχει λήξει';return;}
+    if(hint)hint.textContent='';
+    window._invCode=code;
+    _showScreen('inv-account');
+  }catch(e){
+    // For demo/dev: allow any code that starts with GGWALL-
+    if(code.startsWith('GGWALL-')){window._invCode=code;if(hint)hint.textContent='';_showScreen('inv-account');}
+    else{if(hint)hint.textContent='⚠ Σφάλμα σύνδεσης';}
+  }
+}
+
+// ── Invite account submission ─────────────────────────────────────
+async function _submitInvAccount(){
+  var username=(document.getElementById('inv-username')?.value||'').trim();
+  var email=(document.getElementById('inv-email')?.value||'').trim();
+  var pass=(document.getElementById('inv-pass')?.value||'').trim();
+  var pass2=(document.getElementById('inv-pass2')?.value||'').trim();
+  var errEl=document.getElementById('inv-account-err');
+  if(!username||!email||!pass){if(errEl)errEl.textContent='⚠ Συμπλήρωσε όλα τα πεδία';return;}
+  var rules=_checkPassStrength(pass);
+  if(!Object.values(rules).every(Boolean)){if(errEl)errEl.textContent='⚠ Ο κωδικός δεν πληροί τα κριτήρια ασφαλείας';return;}
+  if(pass!==pass2){if(errEl)errEl.textContent='⚠ Οι κωδικοί δεν ταιριάζουν';return;}
+  if(errEl)errEl.textContent='⏳ Δημιουργία λογαριασμού...';
+  try{
+    const {data,error}=await _sb.auth.signUp({email,password:pass,options:{data:{username}}});
+    if(error)throw error;
+    const userId=data.user.id;
+    // Create cloud_users record
+    await fetch(_SB_URL+'/rest/v1/cloud_users',{
+      method:'POST',
+      headers:Object.assign({},_SB_HDR,{'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({id:userId,name:username,email,role:'viewer',avatar:'🧑‍💻',color:'#a5b4fc',app_id:'ggwall',updated_at:new Date().toISOString()})
+    });
+    // Mark invitation as used
+    if(window._invCode){
+      await fetch(_SB_URL+'/rest/v1/invitations?code=eq.'+window._invCode,{
+        method:'PATCH',headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
+        body:JSON.stringify({uses_count:1})
+      }).catch(function(){});
+    }
+    // Seed dashboard
+    await fetch(_SB_URL+'/rest/v1/rpc/seed_user_dashboard',{method:'POST',headers:_SB_HDR,body:JSON.stringify({p_user_id:userId})}).catch(function(){});
+    window._invUserId=userId;window._invUsername=username;window._invEmail=email;
+    // Mark onboarding as incomplete in DB
+    await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+userId,{
+      method:'PATCH',
+      headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
+      body:JSON.stringify({onboarding_step:'profile',auth_id:data.user.id})
+    }).catch(function(){});
+    if(errEl)errEl.textContent='';
+    _showScreen('inv-profile');
+  }catch(e){
+    if(errEl)errEl.textContent='⚠ '+(e.message||'Σφάλμα');
+  }
+}
+
+// ── Avatar & color selection ──────────────────────────────────────
+var _selAvatar='🧑‍💻',_selColor='#a5b4fc',_uploadedPhoto=null;
+function _selAv(el){document.querySelectorAll('.av-opt').forEach(function(a){a.classList.remove('sel');});el.classList.add('sel');_selAvatar=el.dataset.av||'🧑‍💻';}
+function _selCol(el){document.querySelectorAll('.co').forEach(function(c){c.classList.remove('sel');});el.classList.add('sel');_selColor=el.dataset.col||'#a5b4fc';}
+function _uploadAvatar(){document.getElementById('av-upload')?.click();}
+function _handleAvatarUpload(inp){
+  if(!inp.files||!inp.files[0])return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    _uploadedPhoto=e.target.result;
+    // Show preview on upload button
+    var opt=document.querySelector('.av-opt.upload');
+    if(opt){opt.innerHTML='<img src="'+_uploadedPhoto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';opt.classList.add('sel');document.querySelectorAll('.av-opt:not(.upload)').forEach(function(a){a.classList.remove('sel');});}
+  };
+  reader.readAsDataURL(inp.files[0]);
+}
+async function _saveProfile(){
+  if(window._invUserId){
+    await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+window._invUserId,{
+      method:'PATCH',headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
+      body:JSON.stringify({avatar:_selAvatar,color:_selColor,updated_at:new Date().toISOString()})
+    }).catch(function(){});
+    _updatePendingStep('wallet');
+  }
+  _showScreen('inv-wallet');
+}
+
+// ── Invite wallet save ────────────────────────────────────────────
+// ── IBC Derive (invite flow) ──────────────────────────────────────
+var _INV_IBC_CHAINS=[
+  {prefix:'osmo',sym:'OSMO'},{prefix:'juno',sym:'JUNO'},
+  {prefix:'saga',sym:'SAGA'},{prefix:'celestia',sym:'TIA'},
+  {prefix:'stars',sym:'STARS'},{prefix:'akash',sym:'AKT'},
+  {prefix:'secret',sym:'SCRT'},{prefix:'kava',sym:'KAVA'},
+];
+var _invDerived=null;
+
+function _bech32Charset(){return 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';}
+function _bech32PolymodStep(pre){var b=pre>>25;return((pre&33554431)<<5)^(-((b>>0)&1)&996825010)^(-((b>>1)&1)&642813549)^(-((b>>2)&1)&513874426)^(-((b>>3)&1)&1027748829)^(-((b>>4)&1)&705979059);}
+function _bech32HrpExpand(hrp){var ret=[];for(var i=0;i<hrp.length;i++)ret.push(hrp.charCodeAt(i)>>5);ret.push(0);for(var i=0;i<hrp.length;i++)ret.push(hrp.charCodeAt(i)&31);return ret;}
+function _bech32VerifyChecksum(hrp,data){var pm=_bech32HrpExpand(hrp).concat(data);var c=1;for(var i=0;i<pm.length;i++)c=_bech32PolymodStep(c)^pm[i];return c===1;}
+function _invBech32Decode(addr){
+  var cs=_bech32Charset();
+  addr=addr.toLowerCase();
+  var sep=addr.lastIndexOf('1');if(sep<1||sep+7>addr.length)return null;
+  var hrp=addr.slice(0,sep),data=[];
+  for(var i=sep+1;i<addr.length;i++){var d=cs.indexOf(addr[i]);if(d<0)return null;data.push(d);}
+  if(!_bech32VerifyChecksum(hrp,data))return null;
+  return{hrp,data:data.slice(0,-6)};
+}
+function _invBech32Encode(hrp,data){
+  var cs=_bech32Charset();
+  var combined=data.concat([0,0,0,0,0,0]);
+  var pm=_bech32HrpExpand(hrp).concat(combined);
+  var c=1;for(var i=0;i<pm.length;i++)c=_bech32PolymodStep(c)^pm[i];
+  c^=1;
+  var result=hrp+'1';
+  for(var i=0;i<data.length;i++)result+=cs[data[i]];
+  for(var i=0;i<6;i++)result+=cs[(c>>(5*(5-i)))&31];
+  return result;
+}
+function _invDeriveAddr(cosmosAddr,prefix){
+  var dec=_invBech32Decode(cosmosAddr);if(!dec)return null;
+  return _invBech32Encode(prefix,dec.data);
+}
+
+function _invDeriveChains(){
+  var cosmos=(document.getElementById('inv-cosmos')?.value||'').trim();
+  var st=document.getElementById('inv-derive-status');
+  var prev=document.getElementById('inv-derive-preview');
+  var list=document.getElementById('inv-derive-list');
+  var btn=document.getElementById('inv-derive-btn');
+  if(!cosmos.startsWith('cosmos1')){
+    if(st){st.textContent='⚠ Βάλε πρώτα cosmos1 διεύθυνση';st.style.color='var(--red)';}return;
+  }
+  if(st){st.textContent='⏳ Παραγωγή...';st.style.color='var(--muted)';}
+  var derived={cosmos};
+  var lines=['<div style="color:var(--gold);padding:1px 0;">✓ '+cosmos+'</div>'];
+  _INV_IBC_CHAINS.forEach(function(ch){
+    var a=_invDeriveAddr(cosmos,ch.prefix);
+    if(a){
+      derived[ch.prefix]=a;
+      lines.push('<div style="display:flex;gap:6px;padding:1px 0;"><span style="color:var(--muted);min-width:50px;">'+ch.sym+'</span><span style="word-break:break-all;">'+a+'</span></div>');
+    }
+  });
+  _invDerived=derived;
+  if(list)list.innerHTML=lines.join('');
+  if(prev)prev.style.display='';
+  if(st){st.textContent='✓ '+Object.keys(derived).length+' διευθύνσεις παράχθηκαν';st.style.color='var(--green)';}
+  if(btn)btn.textContent='✓ Derived!';
+}
+
+async function _saveWalletInvite(){
+  var cosmos=(document.getElementById('inv-cosmos')?.value||'').trim();
+  if(cosmos&&window._invUserId){
+    // Include all derived IBC addresses
+    var allAddrs=cosmos;
+    if(_invDerived){
+      var extras=Object.values(_invDerived).filter(function(a){return a!==cosmos;});
+      if(extras.length)allAddrs=[cosmos].concat(extras).join('\n');
+    }
+    await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+window._invUserId,{
+      method:'PATCH',headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
+      body:JSON.stringify({cosmos_addrs:allAddrs,updated_at:new Date().toISOString()})
+    }).catch(function(){});
+  }
+  _invDerived=null;
+  _updatePendingStep('pin');
+  _showScreen('inv-pin');
+}
+
+// ── Invite PIN setup ──────────────────────────────────────────────
+var _invSetupPin='';
+function invSetupPress(n){
+  if(n==='C'){_invSetupPin='';_updInvDots();}
+  else if(n==='D'){_invSetupPin=_invSetupPin.slice(0,-1);_updInvDots();}
+  else{if(_invSetupPin.length>=4)return;_invSetupPin+=n;_updInvDots();if(_invSetupPin.length===4)_finishInvSetup();}
+}
+function _updInvDots(){
+  document.querySelectorAll('#inv-setup-dots .pin-dot').forEach(function(d,i){d.classList.toggle('filled',i<_invSetupPin.length);});
+}
+async function _finishInvSetup(){
+  if(!window._invUserId)return;
+  var obf=_obfuscatePin(_invSetupPin);
+  var u={id:window._invUserId,name:window._invUsername,email:window._invEmail,role:'viewer',avatar:_selAvatar,color:_selColor,photo:_uploadedPhoto,initials:(window._invUsername||'').slice(0,2).toUpperCase(),pin:obf,_fromCloud:true,device_verified:true};
+  var users=getUsers();
+  var idx=users.findIndex(function(x){return x.id===u.id||x.name===u.name;});
+  if(idx>=0)users[idx]=Object.assign(users[idx],u);else users.push(u);
+  saveUsers(users);
+  _invSetupPin='';
+  _showScreen('inv-welcome');
+}
+
+// ── Welcome go ────────────────────────────────────────────────────
+function _welcomeGo(){
+  // Mark onboarding complete in DB
+  if(window._invUserId){
+    fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+window._invUserId,{
+      method:'PATCH',
+      headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
+      body:JSON.stringify({onboarding_step:'complete'})
+    }).catch(function(){});
+  }
+  var users=getUsers();
+  var u=users.find(function(x){return x.id===window._invUserId;});
+  if(u)_loginSuccess(u);
+  else window.location.replace(APP_URL);
+}
+
+// ── Lockout system ────────────────────────────────────────────────
+var _failCount=0,_lockoutInt=null,_lockoutUntil=0,_MAX_ATTEMPTS=3;
+function _registerFailedAttempt(){
+  _failCount++;
+  // Update attempt dots
+  for(var i=0;i<_MAX_ATTEMPTS;i++){
+    var a=document.getElementById('att'+i);
+    if(!a)continue;
+    a.classList.remove('warn','used');
+    if(i<_failCount)a.classList.add(_failCount>=_MAX_ATTEMPTS?'used':'warn');
+  }
+  // Update label
+  var rem=_MAX_ATTEMPTS-_failCount;
+  var lbl=document.getElementById('att-label');
+  if(lbl)lbl.textContent=rem>0?(rem+' προσπάθει'+(rem===1?'α':'ες')+' πριν το κλείδωμα'):'Κλείδωμα...';
+  if(_failCount>=_MAX_ATTEMPTS){
+    _lockoutUntil=Date.now()+30*60*1000;
+    localStorage.setItem('ggwall_lockout',String(_lockoutUntil));
+    setTimeout(function(){_showScreen('lockout');_startLockoutTimer();},1400);
+  }
+}
+function _startLockoutTimer(){
+  if(_lockoutInt)clearInterval(_lockoutInt);
+  _lockoutInt=setInterval(function(){
+    var rem=Math.max(0,_lockoutUntil-Date.now());
+    var m=Math.floor(rem/60000);var s=Math.floor((rem%60000)/1000);
+    var el=document.getElementById('lockout-timer');
+    if(el)el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+    if(rem<=0){clearInterval(_lockoutInt);_failCount=0;localStorage.removeItem('ggwall_lockout');_showScreen('returning');}
+  },1000);
+}
+
+// ── Eye state machine ─────────────────────────────────────────────
+var _eyeLocked = false;
+function _eyeSetState(s){
+  // Work on whichever eye element exists and is in an active screen
+  var ow=document.getElementById('ow-active');
+  if(!ow)ow=document.getElementById('ow');
+  if(!ow)ow=document.getElementById('ow-auth');
+  if(!ow)return;
+  ow.classList.remove('idle','success','fail');void ow.offsetWidth;ow.classList.add(s);
+}
+function _playLogoState(state){
+  var logo=document.getElementById('topLogo');
+  var hint=document.getElementById('pinHint');
+  if(!logo)return;
+  logo.classList.remove('idle','success','fail');
+  void logo.offsetWidth;
+  logo.classList.add(state);
+  if(state==='success'&&hint){hint.textContent='✓ Καλώς ήρθες';hint.style.color='var(--green)';}
+  if(state==='fail'&&hint){hint.textContent='✕ Λάθος κωδικός';hint.style.color='var(--red)';}
+  if(state!=='idle'){
+    setTimeout(function(){
+      logo.classList.remove(state);logo.classList.add('idle');
+      if(hint&&state==='fail'){hint.textContent='Η πρόσβαση στο πορτοφόλι';hint.style.color='';}
+    },1300);
+  }
+}
+function _eyeSuccess(cb){
+  if(_eyeLocked)return;_eyeLocked=true;
+  _playLogoState('success');
+  setTimeout(function(){_eyeLocked=false;if(cb)cb();},1200);
+}
+function _eyeFail(){
+  if(_eyeLocked)return;_eyeLocked=true;
+  var pd=document.getElementById('pin-dots');
+  if(pd){pd.classList.remove('pin-dots-shake');void pd.offsetWidth;pd.classList.add('pin-dots-shake');}
+  try{if(navigator.vibrate)navigator.vibrate([80,40,80]);}catch(e){}
+  _registerFailedAttempt();
+  _playLogoState('fail');
+  setTimeout(function(){
+    _eyeLocked=false;
+    _pinInput='';_updatePinDots('pin-dots');
+    var pe=document.getElementById('pin-err');if(pe)pe.textContent='';
+  },1400);
+}
+function _orbitFeedback(){
+  var ow=document.getElementById('ow');
+  if(ow&&ow.classList.contains('idle')){
+    ow.classList.add('orbit-accelerate');
+    clearTimeout(window._ort);window._ort=setTimeout(function(){ow.classList.remove('orbit-accelerate');},800);
+  }
+}
+
+// ── Login success ─────────────────────────────────────────────────
+function _loginSuccess(user){
+  // Mark this user as device-verified (entered PIN successfully here)
+  var users=getUsers();
+  var idx=users.findIndex(function(u){return u.id===user.id;});
+  if(idx>=0){users[idx].device_verified=true;saveUsers(users);}
+  sessionStorage.setItem('pin_ok','1');
+  sessionStorage.setItem('active_user',JSON.stringify(user));
+  sessionStorage.setItem('login_pin', _pinInput||'0000');
+  sessionStorage.setItem('login_ts', String(Date.now()));
+  // Log visit (fire & forget)
+  fetch(_SB_URL+'/rest/v1/visits',{method:'POST',
+    headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
+    body:JSON.stringify({username:user.name,device:_getDevice(),app_id:'ggwall',created_at:new Date().toISOString()})
+  }).catch(function(){});
+  _eyeSuccess(function(){window.location.replace(APP_URL);});
+}
+function _getDevice(){var ua=navigator.userAgent||'';return /android/i.test(ua)?'Android':/iphone|ipad/i.test(ua)?'iOS':'Web';}
+
+// ── Supabase Auth: LOGIN ──────────────────────────────────────────
+async function _doLogin(){
+  var email=(document.getElementById('login-email')?.value||'').trim();
+  var password=(document.getElementById('login-password')?.value||'').trim();
+  var errEl=document.getElementById('login-err');
+  if(!email||!password){if(errEl)errEl.textContent='⚠ Συμπλήρωσε email και κωδικό';return;}
+  if(errEl)errEl.textContent='⏳ Σύνδεση...';
+  try{
+    const {data,error} = await _sb.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    // Load cloud_users record
+    var cu = await _loadCloudUser(data.user.id);
+    if(!cu){if(errEl)errEl.textContent='⚠ Ο λογαριασμός δεν βρέθηκε στη βάση';return;}
+    if(errEl)errEl.textContent='';
+    // Show PIN card
+    _showPinCard(cu);
+  }catch(e){
+    if(errEl)errEl.textContent='⚠ '+(e.message==='Invalid login credentials'?'Λάθος email ή κωδικός':e.message);
+  }
+}
+
+// ── Supabase Auth: REGISTER ──────────────────────────────────────
+async function _doRegister(){
+  var email=(document.getElementById('reg-email')?.value||'').trim();
+  var username=(document.getElementById('reg-username')?.value||'').trim();
+  var password=(document.getElementById('reg-password')?.value||'').trim();
+  var errEl=document.getElementById('reg-err');
+  if(!email||!username||!password){if(errEl)errEl.textContent='⚠ Συμπλήρωσε όλα τα πεδία';return;}
+  if(password.length<8){if(errEl)errEl.textContent='⚠ Κωδικός τουλάχιστον 8 χαρακτήρες';return;}
+  if(errEl)errEl.textContent='⏳ Δημιουργία λογαριασμού...';
+  try{
+    const {data,error} = await _sb.auth.signUp({email,password,options:{data:{username}}});
+    if(error)throw error;
+    const userId = data.user.id;
+    // Upsert cloud_users
+    await fetch(_SB_URL+'/rest/v1/cloud_users',{
+      method:'POST',
+      headers:Object.assign({},_SB_HDR,{'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({id:userId,name:username,email,role:'viewer',avatar:'🧑‍💻',color:'#a5b4fc',app_id:'ggwall',updated_at:new Date().toISOString()})
+    });
+    // Seed dashboard presets + custom slots
+    await fetch(_SB_URL+'/rest/v1/rpc/seed_user_dashboard',{
+      method:'POST',headers:_SB_HDR,
+      body:JSON.stringify({p_user_id:userId})
+    });
+    if(errEl)errEl.textContent='';
+    // Show PIN setup
+    _newUserId  = userId;
+    _newUserName= username;
+    _newUserEmail=email;
+    document.getElementById('auth-card').style.display='none';
+    document.getElementById('pin-setup-card').style.display='';
+  }catch(e){
+    if(errEl)errEl.textContent='⚠ '+e.message;
+  }
+}
+
+// ── Load cloud_users ──────────────────────────────────────────────
+async function _loadCloudUser(authId){
+  try{
+    var r=await fetch(_SB_URL+'/rest/v1/cloud_users?auth_id=eq.'+authId+'&app_id=eq.ggwall&limit=1',{headers:_SB_HDR});
+    var d=await r.json();
+    if(d&&d[0])return d[0];
+    // Fallback: match by id (legacy users without auth_id)
+    r=await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+authId+'&app_id=eq.ggwall&limit=1',{headers:_SB_HDR});
+    d=await r.json();
+    return d&&d[0]?d[0]:null;
+  }catch(e){return null;}
+}
+
+// ── Cloud sync ────────────────────────────────────────────────────
+async function syncUsersFromCloud(){
+  // Only update users already in localStorage — do NOT add new users from DB
+  // Each device only shows users who have logged in on that device
+  try{
+    var local=getUsers().filter(function(u){return !u.name?.startsWith('__');});
+    if(!local.length)return false;
+    // Fetch only the users we already have locally
+    var ids=local.map(function(u){return u.id;}).join(',');
+    var r=await fetch(_SB_URL+'/rest/v1/cloud_users?id=in.('+ids+')&app_id=eq.ggwall',{headers:_SB_HDR,signal:AbortSignal.timeout(6000)});
+    if(!r.ok)return false;
+    var cu=await r.json();if(!cu||!cu.length)return false;
+    var updated=local.map(function(ex){
+      var cloud=cu.find(function(c){return c.id===ex.id;});
+      if(!cloud)return ex; // keep local if not found
+      var av=cloud.avatar||ex.avatar||'🧑‍💻',ph=null;
+      if(av.startsWith('img:')){ph=av.slice(4);av='🧑‍💻';}
+      if(cloud.photo_url)ph=cloud.photo_url;
+      if(!ph&&ex.photo)ph=ex.photo;
+      return Object.assign({},ex,{name:cloud.name,role:cloud.role||ex.role,color:cloud.color||ex.color,avatar:av,photo:ph,photo_url:cloud.photo_url||null,email:cloud.email||ex.email,initials:(cloud.name||'').slice(0,2).toUpperCase()});
+    });
+    saveUsers(updated);return true;
+  }catch(e){return false;}
+}
+
+// ── PIN card ──────────────────────────────────────────────────────
+var _selectedUserId=null,_lockUserIndex=0;
+function _showPinCard(cloudUser){
+  // Merge cloud user into local storage
+  var users=getUsers();
+  var idx=users.findIndex(function(u){return u.id===cloudUser.id||u.name===cloudUser.name;});
+  var av=cloudUser.avatar||'🧑‍💻',ph=null;
+  if(av.startsWith('img:')){ph=av.slice(4);av='🧑‍💻';}
+  if(cloudUser.photo_url)ph=cloudUser.photo_url;
+  var merged={id:cloudUser.id,name:cloudUser.name,role:cloudUser.role||'viewer',color:cloudUser.color||'#a5b4fc',avatar:av,photo:ph,email:cloudUser.email||'',initials:cloudUser.name.slice(0,2).toUpperCase(),pin:idx>=0?users[idx].pin:DEFAULT_PIN,_fromCloud:true,device_verified:true};
+  if(idx>=0)users[idx]=merged; else users.push(merged);
+  saveUsers(users);
+  _selectedUserId=merged.id;
+  _lockUserIndex=users.indexOf(merged);
+  // Show returning screen with PIN card
+  _showScreen('returning');
+  document.getElementById('pin-card').style.display='';
+  _renderPinUser(merged);
+  // Only update THIS user's data from cloud (not all users)
+  _renderPinUserList();
+}
+function _renderPinUser(u){
+  if(!u)return;
+  var av=document.getElementById('pin-avatar');
+  if(av){
+    var ph=u.photo||(u.avatar&&u.avatar.startsWith('img:')?u.avatar.slice(4):null);
+    if(ph)av.innerHTML='<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+    else if(u.avatar&&!u.avatar.startsWith('img:'))av.innerHTML='<span style="font-size:20px;">'+u.avatar+'</span>';
+    else av.innerHTML='<span style="font-size:14px;font-weight:700;color:'+(u.color||'#f5c24a')+';">'+u.initials+'</span>';
+    av.style.borderColor=(u.color||'#d4af5a')+'80';
+  }
+  var nm=document.getElementById('pin-username');if(nm)nm.textContent=u.name;
+  var rl=document.getElementById('pin-role');if(rl)rl.textContent=u.role==='admin'?'⚡ Admin':'👁 Viewer';
+}
+function _renderPinUserList(){
+  var users=getVerifiedUsers();
+  var d=document.getElementById('pin-user-dots');
+  if(!d||users.length<=1){if(d)d.innerHTML='';return;}
+  d.innerHTML=users.map(function(u){
+    var a=u.id===_selectedUserId;
+    return '<div onclick="_pinSelectUser(\''+u.id+'\')" title="'+u.name+'" style="width:'+(a?'9px':'6px')+';height:'+(a?'9px':'6px')+';border-radius:50%;background:'+(a?(u.color||'#f5c24a'):'rgba(245,194,74,.2)')+';cursor:pointer;transition:all .2s;"></div>';
+  }).join('');
+}
+function _pinSelectUser(id){
+  _selectedUserId=id;var users=getUsers();var u=users.find(function(x){return x.id===id;});
+  if(!u)return;_lockUserIndex=users.indexOf(u);_renderPinUser(u);_renderPinUserList();
+  _pinInput='';_updatePinDots('pin-dots');
+  var pe=document.getElementById('pin-err');if(pe)pe.textContent='';
+}
+function _pinSwitchUser(){
+  var users=getUsers().filter(function(u){return!u.name?.startsWith('__');});
+  if(users.length<=1)return;
+  _lockUserIndex=(_lockUserIndex+1+users.length)%users.length;
+  _pinSelectUser(users[_lockUserIndex].id);
+}
+
+// ── PIN logic ─────────────────────────────────────────────────────
+var _pinInput='';
+function _updatePinDots(containerId){
+  var dots=document.querySelectorAll('#'+containerId+' .pin-dot');
+  dots.forEach(function(d,i){d.classList.toggle('filled',i<_pinInput.length);d.classList.remove('error');});
+}
+function _checkPin(){
+  var users=getUsers();
+  var u=_selectedUserId?users.find(function(x){return x.id===_selectedUserId;}):users[0];
+  if(!u)return;
+  var sp=_deobfuscatePin(u.pin)||u.pin||DEFAULT_PIN;
+  if(_pinInput===sp||_pinInput===u.pin){
+    _loginSuccess(u);
+  }else{
+    document.querySelectorAll('#pin-dots .pin-dot').forEach(function(d){d.classList.add('error');});
+    _eyeFail();
+  }
+}
+function pinPress(n){
+  if(_eyeLocked)return;
+  if(n==='C'){_pinInput='';_updatePinDots('pin-dots');var e=document.getElementById('pin-err');if(e)e.textContent='';}
+  else if(n==='D'){_pinInput=_pinInput.slice(0,-1);_updatePinDots('pin-dots');}
+  else{if(_pinInput.length>=4)return;_pinInput+=n;_updatePinDots('pin-dots');_orbitFeedback();if(_pinInput.length===4)setTimeout(_checkPin,150);}
+}
+
+// ── PIN setup (for new registrations) ────────────────────────────
+var _newUserId='',_newUserName='',_newUserEmail='',_setupPin='';
+function _updateSetupDots(){
+  var dots=document.querySelectorAll('#setup-dots .pin-dot');
+  dots.forEach(function(d,i){d.classList.toggle('filled',i<_setupPin.length);});
+}
+function setupPress(n){
+  if(n==='C'){_setupPin='';_updateSetupDots();}
+  else if(n==='D'){_setupPin=_setupPin.slice(0,-1);_updateSetupDots();}
+  else{if(_setupPin.length>=4)return;_setupPin+=n;_updateSetupDots();if(_setupPin.length===4)_finishSetup();}
+}
+async function _finishSetup(){
+  var obf=_obfuscatePin(_setupPin);
+  // Save to local users
+  var users=getUsers();
+  var u={id:_newUserId,name:_newUserName,email:_newUserEmail,role:'viewer',avatar:'🧑‍💻',color:'#a5b4fc',initials:_newUserName.slice(0,2).toUpperCase(),pin:obf,_fromCloud:true};
+  var idx=users.findIndex(function(x){return x.id===_newUserId||x.name===_newUserName;});
+  if(idx>=0)users[idx]=Object.assign(users[idx],u); else users.push(u);
+  saveUsers(users);
+  // Seed and go to app
+  _setupPin='';
+  _loginSuccess(u);
+}
+function _skipPinSetup(){
+  var users=getUsers();
+  var u={id:_newUserId,name:_newUserName,email:_newUserEmail,role:'viewer',avatar:'🧑‍💻',color:'#a5b4fc',initials:_newUserName.slice(0,2).toUpperCase(),pin:DEFAULT_PIN,_fromCloud:true};
+  var idx=users.findIndex(function(x){return x.id===_newUserId||x.name===_newUserName;});
+  if(idx>=0)users[idx]=Object.assign(users[idx],u); else users.push(u);
+  saveUsers(users);_loginSuccess(u);
+}
+
+// ── App settings / custom logo ────────────────────────────────────
+async function fetchAppSettings(){
+  var s={};
+  try{
+    var r=await fetch(_SB_URL+'/rest/v1/app_settings?app_id=eq.ggwall&select=key,value',{headers:_SB_HDR,signal:AbortSignal.timeout(4000)});
+    if(r.ok){var rows=await r.json();(rows||[]).forEach(function(row){s[row.key]=row.value;});}
+  }catch(e){}
+  if(!Object.keys(s).length){
+    try{
+      var r2=await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.__app_settings__&app_id=eq.ggwall&select=avatar',{headers:_SB_HDR,signal:AbortSignal.timeout(4000)});
+      if(r2.ok){var rows2=await r2.json();if(rows2&&rows2[0]&&rows2[0].avatar){try{Object.assign(s,JSON.parse(rows2[0].avatar));}catch(e){}}}
+    }catch(e){}
+  }
+  if(s['login_logo_url']){
+    var lc=document.getElementById('ow');
+    if(lc)lc.outerHTML='<div style="width:200px;height:200px;margin:0 auto;display:flex;align-items:center;justify-content:center;"><img src="'+s['login_logo_url']+'" style="width:180px;height:180px;object-fit:contain;border-radius:50%;box-shadow:0 0 24px rgba(245,194,74,.3);" onerror="this.parentElement.remove()"/></div>';
+  }
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────
+document.addEventListener('keydown',function(e){
+  if(document.getElementById('screen-returning')?.classList.contains('active')){
+    if(e.key>='0'&&e.key<='9')pinPress(e.key);
+    else if(e.key==='Backspace')pinPress('D');
+    else if(e.key==='Escape')pinPress('C');
+  }
+  if(document.getElementById('screen-inv-pin')?.classList.contains('active')){
+    if(e.key>='0'&&e.key<='9')invSetupPress(e.key);
+    else if(e.key==='Backspace')invSetupPress('D');
+  }
+  if(document.getElementById('pin-setup-card')?.style.display!=='none'){
+    if(e.key>='0'&&e.key<='9')setupPress(e.key);
+    else if(e.key==='Backspace')setupPress('D');
+  }
+});
+
+// ── Pending registration helpers (DB-based) ──────────────────────
+async function _updatePendingStep(step){
+  if(!window._invUserId)return;
+  await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+window._invUserId,{
+    method:'PATCH',
+    headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
+    body:JSON.stringify({onboarding_step:step})
+  }).catch(function(){});
+}
+
+async function _checkPendingRegistration(){
+  // Check if current Supabase session has incomplete onboarding
+  try{
+    const {data:{session}}=await _sb.auth.getSession();
+    if(!session)return false;
+    var r=await fetch(_SB_URL+'/rest/v1/cloud_users?auth_id=eq.'+session.user.id+'&app_id=eq.ggwall&select=id,name,email,onboarding_step&limit=1',{headers:_SB_HDR,signal:AbortSignal.timeout(5000)});
+    if(!r.ok)return false;
+    var d=await r.json();
+    if(!d||!d[0])return false;
+    var u=d[0];
+    if(!u.onboarding_step||u.onboarding_step==='complete')return false;
+    // Has incomplete onboarding!
+    window._invUserId=u.id;
+    window._invUsername=u.name;
+    window._invEmail=u.email||session.user.email;
+    var stepMap={profile:'inv-profile',wallet:'inv-wallet',pin:'inv-pin'};
+    var screen=stepMap[u.onboarding_step]||'inv-profile';
+    _showResumePrompt(u.name,screen);
+    return true;
+  }catch(e){return false;}
+}
+
+function _showResumePrompt(name,screen){
+  // Add resume banner to landing screen
+  var card=document.querySelector('#screen-landing .card');
+  if(!card)return;
+  var existing=document.getElementById('resume-banner');
+  if(existing)existing.remove();
+  var banner=document.createElement('div');
+  banner.id='resume-banner';
+  banner.style.cssText='background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;';
+  window._pendingScreen=screen;
+  var btnStyle1='flex:1;padding:7px;border-radius:8px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;font-size:11px;font-weight:600;cursor:pointer;font-family:Space Grotesk,sans-serif;';
+  var btnStyle2='padding:7px 10px;border-radius:8px;background:transparent;border:1px solid rgba(245,194,74,.15);color:rgba(231,228,216,.5);font-size:11px;cursor:pointer;font-family:Space Grotesk,sans-serif;';
+  banner.innerHTML='<div style="font-size:11px;color:#60a5fa;font-weight:600;margin-bottom:4px;">⏸ Ανολοκλήρωτη εγγραφή</div>'
+    +'<div style="font-size:10px;color:rgba(231,228,216,.5);margin-bottom:8px;">Ο λογαριασμός για <b style="color:#e7e4d8;">'+name+'</b> δεν ολοκληρώθηκε.</div>'
+    +'<div style="display:flex;gap:7px;">'
+    +'<button onclick="_resumeReg()" style="'+btnStyle1+'">▶ Συνέχεια</button>'
+    +'<button onclick="_cancelPendingReg()" style="'+btnStyle2+'">✕</button>'
+    +'</div>';
+  card.insertBefore(banner,card.firstChild);
+  _showScreen('landing');
+}
+
+function _resumeReg(){
+  var screen=window._pendingScreen||'inv-profile';
+  var banner=document.getElementById('resume-banner');
+  if(banner)banner.remove();
+  _showScreen(screen);
+}
+
+function _cancelPendingReg(){
+  // Clear DB onboarding step
+  if(window._invUserId){
+    fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+window._invUserId,{
+      method:'PATCH',
+      headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
+      body:JSON.stringify({onboarding_step:'complete'})
+    }).catch(function(){});
+  }
+  var banner=document.getElementById('resume-banner');
+  if(banner)banner.remove();
+  window._invUserId=null;window._invUsername=null;window._invEmail=null;
+}
+
+// ── Existing session check ────────────────────────────────────────
+async function _checkExistingSession(){
+  // Called only when no cached users exist
+  // Check Supabase Auth session (e.g. after email verification)
+  try{
+    const {data:{session}} = await _sb.auth.getSession();
+    if(session){
+      var cu=await _loadCloudUser(session.user.id);
+      if(cu){_showPinCard(cu);return;}
+      // Check incomplete onboarding
+      if(await _checkPendingRegistration())return;
+    }
+  }catch(e){}
+  // Try sync from cloud
+  var synced=await syncUsersFromCloud();
+  if(synced){
+    var users=getUsers().filter(function(u){return !u.name?.startsWith('__');});
+    if(users.length){_showScreen('returning');_showPinCard(users[0]);return;}
+  }
+  // Nothing found — stay on landing
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+(function(){
+  document.body.style.visibility='visible';
+
+  // ── FAST PATH: cached users → show PIN immediately, no network ──
+  if(sessionStorage.getItem('pin_ok')==='1'){
+    window.location.replace(APP_URL);return;
+  }
+  var lo=localStorage.getItem('ggwall_lockout');
+
+  // ── Check for email confirmation or password recovery token ──────
+  // Supabase can send token in hash OR query params
+  var _hash=window.location.hash;
+  var _search=window.location.search;
+  var _rawParams=(_hash?_hash.replace('#',''):'')+(_search?'&'+_search.replace('?',''):'');
+  var _params=new URLSearchParams(_rawParams);
+  var _type=_params.get('type');
+  var _token=_params.get('access_token');
+  var _refresh=_params.get('refresh_token')||'';
+
+  // Also check Supabase new PKCE flow (token_hash)
+  var _tokenHash=_params.get('token_hash');
+  if(!_type&&_tokenHash){
+    // New Supabase flow — use verifyOtp
+    _type=_params.get('type')||'recovery';
+  }
+
+  if(_type==='signup'){
+    if(_token){
+      _sb.auth.setSession({access_token:_token,refresh_token:_refresh}).then(async function(){
+        var sess=await _sb.auth.getSession();
+        if(sess.data&&sess.data.session){
+          var cu=await _loadCloudUser(sess.data.session.user.id);
+          if(cu){showToast('✅ Email επιβεβαιώθηκε!','gold');_showPinCard(cu);return;}
+        }
+        _showScreen('landing');
+      });
+    } else if(_tokenHash){
+      _sb.auth.verifyOtp({token_hash:_tokenHash,type:'email'}).then(async function(res){
+        if(res.data&&res.data.session){
+          var cu=await _loadCloudUser(res.data.session.user.id);
+          if(cu){showToast('✅ Email επιβεβαιώθηκε!','gold');_showPinCard(cu);return;}
+        }
+        _showScreen('landing');
+      });
+    }
+    return;
+  }
+
+  if(_type==='recovery'){
+    if(_token){
+      _sb.auth.setSession({access_token:_token,refresh_token:_refresh}).then(function(){
+        _showScreen('reset-password');
+      });
+    } else if(_tokenHash){
+      _sb.auth.verifyOtp({token_hash:_tokenHash,type:'recovery'}).then(function(res){
+        if(res.data&&res.data.session) _showScreen('reset-password');
+      });
+    } else {
+      _sb.auth.getSession().then(function(res){
+        if(res.data&&res.data.session) _showScreen('reset-password');
+      });
+    }
+    return;
+  }
+
+  if(lo&&parseInt(lo)>Date.now()){
+    _lockoutUntil=parseInt(lo);_showScreen('lockout');_startLockoutTimer();return;
+  }
+  // Clean up unverified users on every load
+  _cleanUnverifiedUsers();
+  var cached=getVerifiedUsers();
+  if(cached.length){
+    // Show PIN screen instantly from cache — no network needed
+    _showScreen('returning');
+    _showPinCard(cached[0]);
+    // Fetch app settings in background only
+    setTimeout(function(){fetchAppSettings();},1500);
+    return;
+  }
+
+  // ── SLOW PATH: no cache → need network ──
+  _showScreen('landing'); // show landing immediately while checking
+  fetchAppSettings();
+  _checkExistingSession();
+})();
+</script>
+</body>
+</html>

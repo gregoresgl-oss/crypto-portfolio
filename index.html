@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GGWALL">
+<title>GGWALL</title>
+<link rel="icon" href="icon192.png" type="image/svg+xml">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════
+   GGWALL v2.0 — Design System
+   ═══════════════════════════════════════════════════════ */
+:root {
+  --gold:      #f5c24a;
+  --gold-deep: #d4af5a;
+  --cream:     #f7e7b8;
+  --red:       #ff5f6d;
+  --green:     #7dd67d;
+  --bg:        #0b0d12;
+  --surface:   #12151d;
+  --surface2:  #1a1f2b;
+  --text:      #e7e4d8;
+  --muted:     rgba(231,228,216,.5);
+  --border:    rgba(245,194,74,.12);
+  --border2:   rgba(255,255,255,.06);
+  --sidebar-w: 220px;
+  --topbar-h:  52px;
+  --right-w:   340px;
+  --radius:    12px;
+  --radius-sm: 8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:"Space Grotesk",sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
+body{visibility:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(245,194,74,.18);border-radius:99px;}
+.mono{font-family:"JetBrains Mono",monospace;}
+.text-gold{color:var(--gold);}
+.text-muted{color:var(--muted);}
+.text-green{color:var(--green);}
+.text-red{color:var(--red);}
+
+/* ── Card ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;animation:card-in .3s ease both;}
+@keyframes card-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.08s}.card:nth-child(3){animation-delay:.12s}
+.card:nth-child(4){animation-delay:.16s}.card:nth-child(5){animation-delay:.20s}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.card-title{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-family:"JetBrains Mono",monospace;}
+
+/* ── Pill ── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+.pill-green{background:rgba(125,214,125,.12);color:var(--green);}
+.pill-red{background:rgba(255,95,109,.12);color:var(--red);}
+.pill-gold{background:rgba(245,194,74,.12);color:var(--gold);}
+.pill-live{background:rgba(125,214,125,.1);color:var(--green);animation:blink 2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ── Button ── */
+.btn{padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:none;font-family:"Space Grotesk",sans-serif;}
+.btn-gold{background:linear-gradient(135deg,#d4af5a,#f7e7b8 55%,#d4af5a);color:#0b0d12;}
+.btn-gold:hover{opacity:.9;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:rgba(245,194,74,.35);color:var(--text);}
+
+/* ── Input ── */
+.inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-size:13px;font-family:"Space Grotesk",sans-serif;outline:none;transition:border-color .2s;}
+.inp:focus{border-color:rgba(245,194,74,.5);}
+.inp::placeholder{color:var(--muted);}
+
+/* ═══════════════════════════════════════════════════════
+   TOP BAR
+   ═══════════════════════════════════════════════════════ */
+#topbar{
+  position:fixed;top:0;left:0;right:0;
+  padding-top:env(safe-area-inset-top,0px);
+  height:calc(var(--topbar-h) + env(safe-area-inset-top,0px));
+  background:rgba(11,13,18,.93);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;padding:0 14px;z-index:300;
+}
+.topbar-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex-shrink:0;}
+.orbit-mark{width:30px;height:30px;position:relative;flex-shrink:0;}
+.orbit-mark svg{width:100%;height:100%;overflow:visible;}
+.topbar-title{font-size:14px;font-weight:700;letter-spacing:2.5px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-spacer{flex:1;}
+.topbar-actions{display:flex;align-items:center;gap:7px;}
+.topbar-btn{width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid var(--border2);color:var(--muted);font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+.topbar-btn:hover{background:rgba(245,194,74,.1);color:var(--gold);border-color:rgba(245,194,74,.3);}
+.currency-pill{padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(255,255,255,.05);border:1px solid var(--border2);color:var(--muted);cursor:pointer;font-family:"JetBrains Mono",monospace;transition:all .2s;}
+.currency-pill:hover{border-color:rgba(245,194,74,.3);color:var(--gold);}
+
+/* ═══════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════
+   Desktop >=1024px : 3-col (sidebar | main | right)
+   768-1023px       : 2-col (sidebar icons | main) — right hidden
+   <768px           : 1-col (main) + bottom nav
+   ═══════════════════════════════════════════════════════ */
+#app-layout{
+  display:grid;
+  grid-template-columns:var(--sidebar-w) 1fr var(--right-w);
+  height:100vh;
+  padding-top:calc(var(--topbar-h) + env(safe-area-inset-top,0px));
+}
+
+/* ── Sidebar ── */
+#sidebar{
+  background:rgba(9,11,17,.7);
+  border-right:1px solid var(--border);
+  overflow-y:auto;display:flex;flex-direction:column;padding:14px 0;
+}
+.nav-section{padding:0 10px;margin-bottom:18px;}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,194,74,.3);padding:0 6px;margin-bottom:5px;font-family:"JetBrains Mono",monospace;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 8px;border-radius:7px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .15s;text-decoration:none;margin-bottom:1px;}
+.nav-item:hover{background:rgba(245,194,74,.07);color:var(--text);}
+.nav-item.active{background:rgba(245,194,74,.12);color:var(--gold);}
+.nav-icon{width:18px;text-align:center;font-size:14px;flex-shrink:0;}
+.nav-badge{margin-left:auto;padding:1px 6px;border-radius:99px;background:rgba(125,214,125,.15);color:var(--green);font-size:9px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+
+/* ── Main col ── */
+#main-col{overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:10px;}
+
+/* ── Right col ── */
+#right-col{border-left:1px solid var(--border);overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:10px;}
+
+/* ═══ TABLET: 2-col ═══ */
+@media(max-width:1023px) and (min-width:768px){
+  #app-layout{grid-template-columns:52px 1fr;}
+  #right-col{display:none;}
+  .nav-item span:not(.nav-icon){display:none;}
+  .nav-label{display:none;}
+  .nav-badge{display:none;}
+  .nav-item{justify-content:center;padding:10px;}
+  #sidebar{padding:10px 4px;}
+}
+
+/* ═══ MOBILE: 1-col ═══ */
+@media(max-width:767px){
+  #app-layout{grid-template-columns:1fr;}
+  #sidebar{display:none;}
+  #right-col{display:none;}
+  #main-col{padding:10px 10px calc(80px + env(safe-area-inset-bottom,0px) + 16px);}
+}
+
+/* ── Bottom nav (mobile only) ── */
+#bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  height:calc(56px + env(safe-area-inset-bottom,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  background:rgba(11,13,18,.97);backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);z-index:300;
+}
+#bottom-nav::after{
+  content:'';
+  position:absolute;
+  bottom:calc(-1 * env(safe-area-inset-bottom,0px));
+  left:0;right:0;
+  height:env(safe-area-inset-bottom,0px);
+  background:rgba(11,13,18,.97);
+}
+.bnav-inner{display:flex;height:56px;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--muted);transition:color .15s;font-size:9px;font-weight:600;letter-spacing:.03em;border:none;background:transparent;font-family:"Space Grotesk",sans-serif;}
+.bnav-item.active{color:var(--gold);}
+.bnav-icon{font-size:18px;}
+@media(max-width:767px){#bottom-nav{display:flex;flex-direction:column;}}
+
+/* ═══════════════════════════════════════════════════════
+   WIDGETS
+   ═══════════════════════════════════════════════════════ */
+
+/* Hero */
+#hero-card{
+  background:linear-gradient(135deg,#060d1f 0%,#0e1930 60%,#180928 100%);
+  border:1px solid rgba(245,194,74,.15);border-radius:var(--radius);padding:18px;
+  position:relative;overflow:hidden;
+}
+#hero-card::before{content:"";position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(245,194,74,.1),transparent 70%);pointer-events:none;}
+.hero-label{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,194,74,.45);font-family:"JetBrains Mono",monospace;margin-bottom:6px;}
+.hero-value{font-size:36px;font-weight:700;letter-spacing:-1px;color:#fff;font-family:"JetBrains Mono",monospace;line-height:1;}
+.hero-delta{display:flex;align-items:center;gap:7px;margin-top:7px;}
+
+/* Period tabs */
+.period-tabs{display:flex;gap:2px;}
+.ptab{padding:3px 7px;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;font-family:"JetBrains Mono",monospace;border:none;background:transparent;}
+.ptab.active{background:rgba(245,194,74,.15);color:var(--gold);}
+.ptab:hover:not(.active){color:var(--text);}
+
+/* Allocation bars */
+.alloc-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.alloc-bar-wrap{flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;}
+.alloc-bar{height:100%;border-radius:99px;transition:width .6s ease;}
+.alloc-pct{font-size:10px;font-weight:600;color:var(--muted);font-family:"JetBrains Mono",monospace;min-width:32px;text-align:right;}
+
+/* Asset rows */
+.asset-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.asset-row:last-child{border-bottom:none;}
+.asset-logo{width:26px;height:26px;border-radius:50%;overflow:hidden;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.asset-logo img{width:100%;height:100%;object-fit:cover;}
+.asset-name{font-size:12px;font-weight:600;flex:1;min-width:0;}
+.asset-sym{font-size:9px;color:var(--muted);font-family:"JetBrains Mono",monospace;}
+.asset-val{text-align:right;}
+.asset-eur{font-size:12px;font-weight:600;font-family:"JetBrains Mono",monospace;}
+.asset-chg{font-size:9px;font-family:"JetBrains Mono",monospace;}
+
+/* Summary rows */
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.sum-row:last-child{border-bottom:none;}
+.sum-label{font-size:11px;color:var(--muted);}
+.sum-val{font-size:12px;font-weight:600;font-family:"JetBrains Mono",monospace;}
+
+/* Staking rows */
+.stake-row{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.stake-row:last-child{border-bottom:none;}
+.stake-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.stake-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.stake-cell{font-size:10px;font-family:"JetBrains Mono",monospace;color:var(--text);}
+.stake-cell small{color:var(--muted);display:block;font-size:8px;text-transform:uppercase;letter-spacing:.05em;}
+
+/* Fear & Greed */
+.fg-bar{height:5px;border-radius:99px;margin:8px 0 2px;background:linear-gradient(90deg,#ff5f6d,#ff9f40,#ffd700,#a0d468,#7dd67d);position:relative;}
+.fg-needle{position:absolute;top:-4px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #0b0d12;transform:translateX(-50%);transition:left .6s ease;box-shadow:0 0 6px rgba(0,0,0,.5);}
+
+/* Unbonding banner */
+#unbonding-banner{display:none;padding:7px 11px;background:rgba(245,194,74,.07);border:1px solid rgba(245,194,74,.18);border-radius:var(--radius-sm);font-size:11px;color:var(--gold);cursor:pointer;transition:background .2s;}
+#unbonding-banner:hover{background:rgba(245,194,74,.12);}
+
+/* ═══════════════════════════════════════════════════════
+   USER OVERLAY
+   ═══════════════════════════════════════════════════════ */
+#user-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(5px);
+  align-items:flex-end;justify-content:center;
+}
+#user-overlay.open{display:flex;}
+#user-panel{
+  width:min(420px,100%);max-height:82vh;
+  background:var(--surface);border-radius:16px 16px 0 0;
+  border:1px solid var(--border);border-bottom:none;
+  overflow:hidden;display:flex;flex-direction:column;
+  animation:slide-up .22s ease;
+}
+@keyframes slide-up{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.up-head{padding:13px 15px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.up-tabs{display:flex;gap:2px;padding:7px 10px;border-bottom:1px solid var(--border2);overflow-x:auto;flex-shrink:0;}
+.up-tab{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:"Space Grotesk",sans-serif;white-space:nowrap;transition:all .15s;}
+.up-tab.active{background:rgba(245,194,74,.14);color:var(--gold);}
+.up-body{overflow-y:auto;flex:1;}
+.up-content{padding:13px 15px;display:none;}
+.up-content.active{display:block;}
+
+/* ═══════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════ */
+#toast-wrap{position:fixed;top:calc(var(--topbar-h) + 8px);right:12px;display:flex;flex-direction:column;gap:5px;z-index:999;pointer-events:none;}
+.toast{padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;max-width:270px;animation:t-in .2s ease;font-family:"Space Grotesk",sans-serif;}
+.toast-green{background:rgba(125,214,125,.16);border:1px solid rgba(125,214,125,.28);color:var(--green);}
+.toast-red{background:rgba(255,95,109,.16);border:1px solid rgba(255,95,109,.28);color:var(--red);}
+.toast-gold{background:rgba(245,194,74,.16);border:1px solid rgba(245,194,74,.28);color:var(--gold);}
+.toast-muted{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--text);}
+@keyframes t-in{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
+
+/* ════════════════════════════════════════════════════════════════
+   GGWALL Loading Screen — Modal Style with Blur Backdrop
+   ════════════════════════════════════════════════════════════════ */
+.gg-modal-loader{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(11,13,18,.55);
+  backdrop-filter:blur(8px) saturate(140%);
+  -webkit-backdrop-filter:blur(8px) saturate(140%);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .4s ease,visibility .4s ease;
+}
+.gg-modal-loader.done{opacity:0;visibility:hidden;pointer-events:none;}
+
+.gg-modal-card{
+  background:rgba(18,21,29,.85);
+  border:1px solid rgba(245,194,74,.15);
+  border-radius:18px;
+  padding:36px 44px;
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+  box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 60px rgba(245,194,74,.08);
+  min-width:240px;
+  max-width:90vw;
+  animation:ggPopIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes ggPopIn{
+  from{opacity:0;transform:scale(.85);}
+  to{opacity:1;transform:scale(1);}
+}
+@media(max-width:480px){
+  .gg-modal-card{padding:28px 32px;border-radius:14px;}
+  .gg-modal-orbit svg{width:100px;height:100px;}
+  .gg-modal-steps,.gg-modal-bar{width:180px !important;}
+}
+
+.gg-modal-orbit svg{display:block;}
+
+.gg-modal-status{text-align:center;}
+.gg-modal-steps{position:relative;height:14px;overflow:hidden;width:200px;}
+.gg-modal-steps span{
+  position:absolute;left:0;right:0;
+  font-family:"JetBrains Mono",monospace;
+  font-size:11px;letter-spacing:1.5px;
+  color:#e7e4d8;opacity:0;
+  animation:ggStepFade 4.8s infinite;
+}
+.gg-modal-steps span:nth-child(1){animation-delay:0s}
+.gg-modal-steps span:nth-child(2){animation-delay:1.2s}
+.gg-modal-steps span:nth-child(3){animation-delay:2.4s}
+.gg-modal-steps span:nth-child(4){animation-delay:3.6s}
+@keyframes ggStepFade{
+  0%,2%{opacity:0;transform:translateY(6px)}
+  5%,22%{opacity:1;transform:translateY(0)}
+  25%,100%{opacity:0;transform:translateY(-6px)}
+}
+
+.gg-modal-bar{
+  height:2px;background:rgba(255,255,255,.08);
+  border-radius:2px;overflow:hidden;
+  width:200px;position:relative;
+}
+.gg-modal-bar::after{
+  content:"";position:absolute;left:0;top:0;bottom:0;
+  width:30%;
+  background:linear-gradient(90deg,transparent,#f5c24a,transparent);
+  animation:ggBarSlide 1.6s infinite linear;
+}
+@keyframes ggBarSlide{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(400%)}
+}
+@keyframes ggSpinCW{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes ggSpinCCW{from{transform:rotate(0)}to{transform:rotate(-360deg)}}
+@keyframes ggPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.18);opacity:.3}}
+</style>
+</head>
+<body>
+<!-- ═══ GGWALL LOADING SCREEN ═══ -->
+<div class="gg-modal-loader" id="gg-loader">
+  <div class="gg-modal-card">
+    <div class="gg-modal-orbit">
+      <svg viewBox="0 0 200 200" width="120" height="120">
+        <defs>
+          <radialGradient id="ggHaloModal" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#f5c24a" stop-opacity="0.22"/>
+            <stop offset="70%" stop-color="#f5c24a" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <circle cx="100" cy="100" r="90" fill="url(#ggHaloModal)"/>
+        <circle cx="100" cy="100" r="74" fill="none" stroke="#8a6a20" stroke-width="1" opacity="0.5"/>
+        <circle cx="100" cy="100" r="50" fill="none" stroke="#8a6a20" stroke-width="1" opacity="0.35"/>
+        <g style="transform-origin:100px 100px;animation:ggSpinCW 24s linear infinite">
+          <circle cx="174" cy="100" r="4.5" fill="#f5c24a"/>
+          <circle cx="174" cy="100" r="10" fill="#f5c24a" opacity="0.2"/>
+        </g>
+        <g style="transform-origin:100px 100px;animation:ggSpinCCW 16s linear infinite">
+          <circle cx="100" cy="50" r="3.5" fill="#6ee7f2"/>
+          <circle cx="100" cy="50" r="8" fill="#6ee7f2" opacity="0.2"/>
+        </g>
+        <g style="transform-origin:100px 100px;animation:ggSpinCW 10s linear infinite">
+          <circle cx="150" cy="100" r="2.5" fill="#e7e4d8"/>
+        </g>
+        <circle cx="100" cy="100" r="7" fill="#f5c24a"/>
+        <circle cx="100" cy="100" r="14" fill="none" stroke="#f5c24a" stroke-width="1" opacity="0.7" style="transform-origin:100px 100px;animation:ggPulse 3s ease-in-out infinite"/>
+      </svg>
+    </div>
+    <div class="gg-modal-status">
+      <div class="gg-modal-steps">
+        <span>// Σύνδεση με RPC</span>
+        <span>// Ανάκτηση πορτοφολιών</span>
+        <span>// Φόρτωση staking</span>
+        <span>// Συγχρονισμός τιμών</span>
+      </div>
+    </div>
+    <div class="gg-modal-bar"></div>
+  </div>
+</div>
+<!-- ═══ END LOADING SCREEN ═══ -->
+
+
+<!-- Auth guard -->
+<script>(function(){if(sessionStorage.getItem("pin_ok")!=="1"){window.location.replace("login.html");}})();</script>
+
+<!-- ══ TOP BAR ══ -->
+<div id="topbar">
+  <a class="topbar-brand" href="#">
+    <div class="orbit-mark">
+      <svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+        <defs><radialGradient id="pg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f7e7b8"/><stop offset="55%" stop-color="#d4af5a"/><stop offset="100%" stop-color="#8a6a2a"/></radialGradient></defs>
+        <g style="transform-origin:15px 15px;animation:spin-cw 22s linear infinite"><circle cx="15" cy="15" r="13" fill="none" stroke="rgba(212,175,90,.5)" stroke-width=".8"/><circle cx="28" cy="15" r="1.4" fill="#f3e3b5"/></g>
+        <g style="transform-origin:15px 15px;animation:spin-ccw 14s linear infinite"><circle cx="15" cy="15" r="8" fill="none" stroke="rgba(212,175,90,.75)" stroke-width=".9"/><circle cx="7" cy="15" r="1.1" fill="#f3e3b5"/></g>
+        <circle cx="15" cy="15" r="3.5" fill="url(#pg)" filter="drop-shadow(0 0 3px rgba(212,175,90,.4))"/>
+      </svg>
+    </div>
+    <span class="topbar-title">GGWALL</span>
+  </a>
+  <span id="tb-ver" style="font-size:9px;color:rgba(245,194,74,.35);font-family:'JetBrains Mono',monospace;margin-left:2px;"></span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-actions">
+    <span class="pill pill-live" id="live-pill">&#9679; LIVE <span id="live-time" style="font-size:9px;opacity:.6;margin-left:2px;"></span></span>
+    <span class="currency-pill">EUR</span>
+    <button class="topbar-btn" onclick="openUserOverlay()" id="user-btn" title="Ρυθμίσεις">
+      <span id="tb-avatar" style="font-size:15px;">&#128100;</span>
+    </button>
+    <a id="admin-link" href="settings.html" class="topbar-btn" title="Admin" style="display:none;">&#9881;</a>
+  </div>
+</div>
+
+<!-- ══ APP LAYOUT ══ -->
+<div id="app-layout">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Dashboard</div>
+      <a class="nav-item active" id="nav-portfolio" onclick="navTo('portfolio');return false;" href="#">
+        <span class="nav-icon">&#127968;</span><span>Portfolio</span>
+      </a>
+      <a class="nav-item" id="nav-markets" onclick="navTo('markets');return false;" href="#">
+        <span class="nav-icon">&#128202;</span><span>Markets</span>
+      </a>
+      <a class="nav-item" id="nav-staking" onclick="navTo('staking');return false;" href="#">
+        <span class="nav-icon">&#11088;</span><span>Staking</span>
+        <span class="nav-badge" id="stake-badge" style="display:none"></span>
+      </a>
+      <a class="nav-item" id="nav-allocations" onclick="navTo('allocations');return false;" href="#">
+        <span class="nav-icon">&#127849;</span><span>Allocations</span>
+      </a>
+      <a class="nav-item" id="nav-history" href="history.html">
+        <span class="nav-icon">&#128197;</span><span>History</span>
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Wallet</div>
+      <a class="nav-item" id="nav-cosmos" onclick="navTo('cosmos');return false;" href="#">
+        <span class="nav-icon">&#127756;</span><span>Cosmos</span>
+      </a>
+      <a class="nav-item" id="nav-cardano" onclick="navTo('cardano');return false;" href="#">
+        <span class="nav-icon">&#128309;</span><span>Cardano</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- MAIN COLUMN -->
+  <main id="main-col">
+    <div id="unbonding-banner" onclick="_showUnbondDetail()">&#9203; Εκκρεμείς Unbonding</div>
+    <div id="wgt-main"></div>
+  </main>
+
+  <!-- RIGHT COLUMN -->
+  <aside id="right-col">
+    <div id="wgt-right"></div>
+  </aside>
+
+</div><!-- /app-layout -->
+
+<!-- BOTTOM NAV (mobile) -->
+<div id="bottom-nav">
+  <div class="bnav-inner">
+    <button class="bnav-item active" id="bn-portfolio" onclick="navTo('portfolio')"><span class="bnav-icon">&#127968;</span>Portfolio</button>
+    <button class="bnav-item" id="bn-markets" onclick="navTo('markets')"><span class="bnav-icon">&#128202;</span>Markets</button>
+    <button class="bnav-item" id="bn-staking" onclick="navTo('staking')"><span class="bnav-icon">&#11088;</span>Staking</button>
+    <a class="bnav-item" id="bn-history" href="history.html"><span class="bnav-icon">&#128197;</span>History</a>
+    <button class="bnav-item" id="bn-me" onclick="openUserOverlay()"><span class="bnav-icon">&#128100;</span>Εγώ</button>
+  </div>
+</div>
+
+
+<!-- USER OVERLAY -->
+<div id="user-overlay">
+  <div id="user-panel">
+    <div class="up-head">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <div id="ov-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:17px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;"></div>
+        <div>
+          <div id="ov-name" style="font-size:13px;font-weight:600;"></div>
+          <div id="ov-role" style="font-size:9px;color:rgba(245,194,74,.45);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;"></div>
+        </div>
+      </div>
+      <button onclick="closeUserOverlay()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;">&#10005;</button>
+    </div>
+    <div class="up-tabs">
+      <button class="up-tab active" onclick="switchUpTab('profile')">&#128100; Προφίλ</button>
+      <button class="up-tab" onclick="switchUpTab('wallet')">&#127974; Wallet</button>
+      <button class="up-tab" onclick="switchUpTab('notifications')">&#128276; Notif</button>
+      <button class="up-tab" onclick="switchUpTab('feedback')">&#128172; Feedback</button>
+    </div>
+    <div class="up-body">
+
+      <!-- Profile -->
+      <div class="up-content active" id="ut-profile">
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;align-items:center;gap:11px;padding:6px 0;">
+            <div id="pr-avatar-big" style="width:50px;height:50px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;cursor:pointer;flex-shrink:0;" onclick="document.getElementById('pr-photo-inp').click()"></div>
+            <div><div id="pr-name-disp" style="font-size:13px;font-weight:600;"></div><div id="pr-email-disp" style="font-size:10px;color:var(--muted);margin-top:1px;"></div></div>
+          </div>
+          <input type="file" id="pr-photo-inp" accept="image/*" style="display:none;" onchange="_onPhotoChange(this)"/>
+          <input class="inp" id="pr-name-inp" placeholder="Όνομα χρήστη"/>
+          <input class="inp" id="pr-pin-inp" type="text" inputmode="numeric" maxlength="4" placeholder="Νέο PIN (4 ψηφία, κενό = αμετάβλητο)" autocomplete="off"/>
+          <button class="btn btn-gold" onclick="_saveProfile()" style="width:100%;">&#128190; Αποθήκευση</button>
+          <hr style="border:none;border-top:1px solid var(--border2);"/>
+          <button class="btn btn-ghost" onclick="_doLogout()" style="width:100%;color:var(--red);border-color:rgba(255,95,109,.2);">&#128682; Αποσύνδεση</button>
+        </div>
+      </div>
+
+      <!-- Wallet -->
+      <div class="up-content" id="ut-wallet">
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div>
+            <div style="font-size:9px;color:var(--muted);margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;">
+              Cosmos διευθύνσεις (μία ανά γραμμή)
+            </div>
+            <textarea class="inp" id="wl-cosmos" rows="4" style="resize:vertical;min-height:78px;font-family:'JetBrains Mono',monospace;font-size:11px;" placeholder="cosmos1...&#10;cosmos1... (2ο πορτοφόλι)"></textarea>
+            <!-- Auto-derive button -->
+            <button class="btn btn-ghost" onclick="_autoDeriveChains()" id="derive-btn"
+              style="width:100%;margin-top:5px;font-size:11px;border-color:rgba(245,194,74,.25);color:var(--gold);">
+              &#10024; Auto-derive IBC chains από cosmos1 διευθύνσεις
+            </button>
+            <div id="derive-status" style="font-size:10px;color:var(--muted);min-height:13px;margin-top:3px;"></div>
+            <!-- Preview of derived addresses -->
+            <div id="derive-preview" style="display:none;margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px;max-height:160px;overflow-y:auto;">
+              <div style="font-size:9px;color:var(--muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;">Derived διευθύνσεις (preview)</div>
+              <div id="derive-preview-list" style="font-size:10px;font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column;gap:3px;"></div>
+              <div style="display:flex;gap:6px;margin-top:8px;">
+                <button class="btn btn-gold" onclick="_applyDerived()" style="flex:1;font-size:11px;">&#10003; Εφαρμογή</button>
+                <button class="btn btn-ghost" onclick="_cancelDerived()" style="flex:1;font-size:11px;">&#10005; Ακύρωση</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--muted);margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;">Cardano</div>
+            <textarea class="inp" id="wl-cardano" rows="2" style="resize:vertical;min-height:48px;font-size:11px;" placeholder="addr1..."></textarea>
+          </div>
+          <button class="btn btn-gold" onclick="_saveWallet()" style="width:100%;">&#128190; Αποθήκευση</button>
+          <div style="height:1px;background:var(--border2);margin:4px 0;"></div>
+          <div>
+            <div style="font-size:9px;color:var(--muted);margin-bottom:5px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;">Min εμφάνιση coin (€)</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input type="range" min="0" max="100" step="5" id="min-display-slider"
+                style="flex:1;accent-color:var(--gold);"
+                oninput="_onMinDisplayChange(this.value)"/>
+              <span id="min-display-val" style="font-size:12px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace;min-width:36px;">10€</span>
+            </div>
+            <div style="font-size:9px;color:var(--muted2);margin-top:3px;">0€ = δείξε όλα · Coins κάτω από αυτή την αξία κρύβονται</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="up-content" id="ut-notifications">
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border2);">
+            <div><div style="font-size:12px;font-weight:600;">Push Notifications</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Alerts &amp; τιμές</div></div>
+            <button id="push-btn" onclick="_togglePush()" class="btn btn-ghost" style="font-size:10px;">Ενεργοποίηση</button>
+          </div>
+          <div style="margin-bottom:4px;">
+            <div style="font-size:10px;color:var(--muted);" id="notif-unread-badge"></div>
+          </div>
+          <div id="notif-hist"></div>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="up-content" id="ut-feedback">
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;gap:5px;">
+            <button class="btn btn-ghost fb-typ active" data-t="idea" onclick="_fbSetType(this)" style="flex:1;font-size:10px;">&#128161; Ιδέα</button>
+            <button class="btn btn-ghost fb-typ" data-t="bug" onclick="_fbSetType(this)" style="flex:1;font-size:10px;">&#128027; Bug</button>
+            <button class="btn btn-ghost fb-typ" data-t="general" onclick="_fbSetType(this)" style="flex:1;font-size:10px;">&#11088; Γενικό</button>
+          </div>
+          <textarea class="inp" id="fb-msg" rows="4" style="resize:none;" placeholder="Γράψε εδώ..."></textarea>
+          <div id="fb-img-prev" style="display:none;"></div>
+          <div style="display:flex;gap:5px;">
+            <button class="btn btn-ghost" onclick="document.getElementById('fb-img-inp').click()" style="flex:1;font-size:10px;">&#128247; Εικόνα</button>
+            <button class="btn btn-gold" onclick="_submitFeedback()" style="flex:1;font-size:10px;">&#128228; Αποστολή</button>
+          </div>
+          <input type="file" id="fb-img-inp" accept="image/*" style="display:none;" onchange="_fbImgPreview(this)"/>
+          <div id="fb-status" style="font-size:10px;min-height:14px;text-align:center;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-wrap"></div>
+
+<!-- ══ MAIN SCRIPT ══ -->
+<script>
+"use strict";
+// ─── Constants ────────────────────────────────────────────────────
+const _VER     = "v2.0";
+
+// ─── Loading Screen Helpers ───
+function _showLoader(){
+  var l=document.getElementById("gg-loader");
+  if(!l)return;
+  l.classList.remove("done");
+  l.style.display="block";
+  // Sync version
+  var v=document.getElementById("gg-loader-ver");
+  if(v)v.textContent=_VER;
+}
+function _hideLoader(){
+  var l=document.getElementById("gg-loader");
+  if(!l)return;
+  l.classList.add("done");
+  // Remove from DOM after fade
+  setTimeout(function(){if(l)l.style.display="none";},500);
+}
+const USERS_KEY= "ggwall_users_v1";
+const PIN_KEY  = "cp_pin_v1";
+const DEF_PIN  = "1234";
+const C_SALT   = "ggwall-einhasad-v1";
+const BTC_ID   = "bitcoin", ETH_ID = "ethereum";
+const _SB_URL  = "https://rzrxulubttnjtxziodib.supabase.co";
+const _SB_ANON = "sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A";
+const _SB_H    = {"apikey":_SB_ANON,"Authorization":"Bearer "+_SB_ANON,"Content-Type":"application/json"};
+const _VAPID   = "BE4W6HzwVX4WXVoL-gRo7XULnlajvew5zctuMgHQRkNuURrDUMiA0iy8bg2xdGa6IXllmEpg_gGuHUvUonKYPJA";
+const _sb      = supabase.createClient(_SB_URL, _SB_ANON);
+
+// ─── Coin Data ────────────────────────────────────────────────────
+const PAL=["#2ecc8f","#ff7f50","#a78bfa","#22d3ee","#ec4899","#84cc16","#ff5f6d","#94a3b8","#60a5fa","#34d399","#fb923c","#c084fc","#fbbf24","#f472b6","#4ade80","#f87171","#a1a1aa","#38bdf8","#5b7fff","#e879f9"];
+const COIN_BRAND={"bitcoin":"#f7931a","ethereum":"#627eea","cosmos":"#818cf8","osmosis":"#ff6fd8","juno-network":"#e89444","dymension":"https://s2.coinmarketcap.com/static/img/coins/64x64/28932.png","saga-2":"#e84393","celestia":"#7b2bf9","stargaze":"#e4207c","akash-network":"#ff414b","secret":"#bf8f6f","injective-protocol":"#00b4d8","kava":"#e84142","evmos":"#ed4e33","cardano":"#0d9de8","gameswift":"#a0e040"};
+const DEFAULT_GOLD=[{id:"cosmos",sym:"ATOM",name:"Cosmos"},{id:"osmosis",sym:"OSMO",name:"Osmosis"},{id:"juno-network",sym:"JUNO",name:"Juno"},{id:"saga-2",sym:"SAGA",name:"Saga"},{id:"dymension",sym:"DYM",name:"Dymension"},{id:"cardano",sym:"ADA",name:"Cardano"},{id:"gameswift",sym:"GSWIFT",name:"GameSwift"}];
+let GOLD_WATCH=JSON.parse(localStorage.getItem("gold_watch_v1")||"null")||DEFAULT_GOLD.map(c=>({...c}));
+function saveGoldWatch(){localStorage.setItem("gold_watch_v1",JSON.stringify(GOLD_WATCH));}
+function getWatch(){return[BTC_ID,ETH_ID,...GOLD_WATCH.map(c=>c.id)];}
+const LOGO_CACHE={};
+const KNOWN_LOGOS={"bitcoin":"https://assets.coingecko.com/coins/images/1/small/bitcoin.png","ethereum":"https://assets.coingecko.com/coins/images/279/small/ethereum.png","cosmos":"https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png","osmosis":"https://assets.coingecko.com/coins/images/16724/small/osmo.png","juno-network":"https://assets.coingecko.com/coins/images/19249/small/juno.png","cardano":"https://assets.coingecko.com/coins/images/975/small/cardano.png","gameswift":"https://assets.coingecko.com/coins/images/26216/small/GameSwift.png","celestia":"https://assets.coingecko.com/coins/images/31967/small/tia.jpg","stargaze":"https://assets.coingecko.com/coins/images/22363/small/stargaze.png","akash-network":"https://assets.coingecko.com/coins/images/12785/small/akash-logo.png","secret":"https://assets.coingecko.com/coins/images/11871/small/Secret.png","injective-protocol":"https://assets.coingecko.com/coins/images/12882/small/Secondary_Symbol.png","kava":"https://assets.coingecko.com/coins/images/9761/small/kava.png","evmos":"https://assets.coingecko.com/coins/images/24023/small/evmos.png","saga-2":"https://raw.githubusercontent.com/cosmos/chain-registry/master/saga/images/saga.png","dymension":"https://s2.coinmarketcap.com/static/img/coins/64x64/28932.png"};
+Object.assign(LOGO_CACHE,KNOWN_LOGOS);
+function logoUrl(id){
+  // Check discovered tokens first
+  var disc=_discoveredTokens.find(function(t){return t.cg_id===id;});
+  if(disc&&disc.logo_url)return disc.logo_url;
+  // Check prices_cache logo (set by fetch-all-balances)
+  if(window._priceLogos&&window._priceLogos[id])return window._priceLogos[id];
+return LOGO_CACHE[id]||null;}
+async function fetchLogo(id){
+  if(LOGO_CACHE[id])return LOGO_CACHE[id];
+  try{const r=await fetch("https://api.coingecko.com/api/v3/search?query="+encodeURIComponent(id),{signal:AbortSignal.timeout(5000)});if(r.ok){const d=await r.json();const c=(d.coins||[]).find(x=>x.id===id);if(c?.large){LOGO_CACHE[id]=c.large;return c.large;}}}catch(e){}
+  return null;
+}
+const CHAIN_APR={"cosmos":14.5,"osmosis":12.0,"juno-network":35.0,"dymension":40.0,"saga-2":25.0,"celestia":12.0,"stargaze":30.0,"akash-network":20.0,"secret":22.0,"injective-protocol":8.0,"kava":18.0,"evmos":50.0};
+const COSMOS_CHAINS=[
+  {id:"cosmos",name:"Cosmos",sym:"ATOM",prefix:"cosmos",denom:"uatom",dec:6,ep:["https://rest.cosmos.directory/cosmoshub","https://cosmos-rest.publicnode.com"]},
+  {id:"osmosis",name:"Osmosis",sym:"OSMO",prefix:"osmo",denom:"uosmo",dec:6,ep:["https://rest.cosmos.directory/osmosis"]},
+  {id:"juno-network",name:"Juno",sym:"JUNO",prefix:"juno",denom:"ujuno",dec:6,ep:["https://rest.cosmos.directory/juno"]},
+  {id:"dymension",name:"Dymension",sym:"DYM",prefix:"dym",denom:"adym",dec:18,ep:["https://rest.cosmos.directory/dymension","https://dymension-rest.publicnode.com","https://rest.dymension.xyz"],evm_chain:true},
+  {id:"saga-2",name:"Saga",sym:"SAGA",prefix:"saga",denom:"uusaga",dec:6,ep:["https://rest.cosmos.directory/saga"]},
+  {id:"celestia",name:"Celestia",sym:"TIA",prefix:"celestia",denom:"utia",dec:6,ep:["https://rest.cosmos.directory/celestia"]},
+  {id:"stargaze",name:"Stargaze",sym:"STARS",prefix:"stars",denom:"ustars",dec:6,ep:["https://rest.cosmos.directory/stargaze"]},
+  {id:"akash-network",name:"Akash",sym:"AKT",prefix:"akash",denom:"uakt",dec:6,ep:["https://rest.cosmos.directory/akash"]},
+  {id:"secret",name:"Secret",sym:"SCRT",prefix:"secret",denom:"uscrt",dec:6,ep:["https://secretnetwork-api.lavenderfive.com"],cors_risk:true},
+  {id:"injective-protocol",name:"Injective",sym:"INJ",prefix:"inj",denom:"inj",dec:18,ep:["https://injective-api.polkachu.com"],evm_chain:true},
+  {id:"kava",name:"Kava",sym:"KAVA",prefix:"kava",denom:"ukava",dec:6,ep:["https://rest.cosmos.directory/kava"]},
+  {id:"evmos",name:"Evmos",sym:"EVMOS",prefix:"evmos",denom:"aevmos",dec:18,ep:["https://rest.cosmos.directory/evmos"]},
+];
+const coinReg={};
+COSMOS_CHAINS.forEach(c=>{coinReg[c.id]=Object.assign({},c,{chain:"cosmos"});});
+coinReg["cardano"]={id:"cardano",name:"Cardano",sym:"ADA",chain:"cardano"};
+coinReg[BTC_ID]={id:BTC_ID,name:"Bitcoin",sym:"BTC",watchOnly:true};
+coinReg[ETH_ID]={id:ETH_ID,name:"Ethereum",sym:"ETH",watchOnly:true};
+
+// ─── App State ────────────────────────────────────────────────────
+var _user=null, _nav="portfolio";
+var activeCoinIds=[], prices={}, changes={}, userdata={};
+var _addrsReady=false;
+var _rawAddrs=null;
+var _phDays=parseInt(localStorage.getItem("ggwall_ph_range")||"1");if(![1,7,30,60,90,365].includes(_phDays))_phDays=1;
+var _cmpRange=parseInt(localStorage.getItem("ggwall_cmp_range")||"7");
+var _phChart=null, _cmpChart=null;
+var _balancesReady=false; // true όταν τα balances έχουν φορτωθεί από cache + prices
+var _minDisplayEur=parseFloat(localStorage.getItem("ggwall_min_display")||"10");
+var _widgetLayout=null;
+var _customSlots=[]; // loaded from dashboard_presets
+// Default widget layout: { main: [...], right: [...] }
+const DEFAULT_LAYOUT={
+  main:["hero","chart"],
+  right:["summary","allocation","top-assets","fear-greed"]
+};
+
+// ─── User System ──────────────────────────────────────────────────
+function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||"[]");}catch(e){return[];}}
+function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u));}
+function getActiveUser(){try{return JSON.parse(sessionStorage.getItem("active_user")||"null");}catch(e){return null;}}
+function _deobPin(op){if(!op||!/^[0-9]{4}$/.test(op))return op;var k=[C_SALT.charCodeAt(0),C_SALT.charCodeAt(4),C_SALT.charCodeAt(8),C_SALT.charCodeAt(12)];return op.split("").map((d,i)=>(((parseInt(d)-k[i%4])%10+10)%10).toString()).join("");}
+function _obfPin(pin){if(!pin||!/^[0-9]{4}$/.test(pin))return pin;var k=[C_SALT.charCodeAt(0),C_SALT.charCodeAt(4),C_SALT.charCodeAt(8),C_SALT.charCodeAt(12)];return pin.split("").map((d,i)=>((parseInt(d)+k[i%4])%10).toString()).join("");}
+function _b64ToUint8(b64){var pad=b64+(b64.length%4?"=".repeat(4-(b64.length%4)):"");var raw=atob(pad.replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));}
+
+function initUsers(){
+  var users=getUsers();
+  var legacyPin=localStorage.getItem(PIN_KEY)||DEF_PIN;
+  if(!users.length){saveUsers([{id:"u1",name:"Askaar",pin:legacyPin,role:"admin",color:"#a5b4fc",initials:"AS",avatar:"🧑‍💻"}]);}
+  else{var dirty=false;users.forEach((u,i)=>{if(!u.pin||!/^[0-9]{4}$/.test(u.pin)){u.pin=i===0?legacyPin:DEF_PIN;dirty=true;}if(u.photo&&u.photo.startsWith("data:")&&u.avatar&&u.avatar.startsWith("img:")){delete u.photo;dirty=true;}});if(dirty)saveUsers(users);}
+  syncUsersFromCloud().catch(()=>{});
+}
+
+async function syncUsersFromCloud(){
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/cloud_users?app_id=eq.ggwall&order=created_at.asc",{headers:_SB_H,signal:AbortSignal.timeout(7000)});
+    if(!r.ok)return false;var cu=await r.json();if(!cu||!cu.length)return false;
+    var local=getUsers();
+    var merged=cu.filter(c=>c.name&&!c.name.startsWith("__")).map(c=>{
+      var ex=local.find(u=>u.id===c.id||u.name===c.name);
+      var av=c.avatar||ex?.avatar||"🧑‍💻",ph=null;
+      if(av.startsWith("img:")){ph=av.slice(4);av="🧑‍💻";}
+      if(c.photo_url)ph=c.photo_url;if(!ph&&ex?.photo)ph=ex.photo;
+      return{id:c.id,name:c.name,role:c.role||"viewer",color:c.color||"#a5b4fc",avatar:av,photo:ph,photo_url:c.photo_url||null,email:c.email||ex?.email||"",initials:(c.name||"").slice(0,2).toUpperCase(),pin:ex?.pin||DEF_PIN,_fromCloud:true};
+    });
+    if(!merged.length)return false;saveUsers(merged);return true;
+  }catch(e){return false;}
+}
+
+// ─── Toast ────────────────────────────────────────────────────────
+function showToast(msg,type,dur){
+  type=type||"muted";dur=dur||2500;
+  var el=document.createElement("div");el.className="toast toast-"+(type==="green"?"green":type==="red"?"red":type==="gold"||type==="accent"?"gold":"muted");el.textContent=msg;
+  var c=document.getElementById("toast-wrap");if(c){c.appendChild(el);setTimeout(()=>el.remove(),dur);}
+}
+
+// ─── Formatters ───────────────────────────────────────────────────
+// Filter coins below min display value
+function _shouldShow(coinId){
+  var p=prices[coinId]||0;
+  var ud=userdata[coinId]||{};
+  var val=((ud.staked||0)+(ud.liquid||0))*p;
+  return val>=_minDisplayEur||_minDisplayEur===0;
+}
+function _fmt(v){if(isNaN(v)||v===null||v===undefined)return"—";v=Number(v);if(Math.abs(v)>=1000)return(v/1000).toFixed(1)+"k€";if(Math.abs(v)>=100)return v.toFixed(0)+"€";if(Math.abs(v)>=1)return v.toFixed(2)+"€";return v.toFixed(4)+"€";}
+function _fmtExact(v){if(isNaN(v)||v===null||v===undefined)return"—";v=Number(v);return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",")+"€";}
+function _fmtP(v){if(!v)return"—";if(v>=1000)return v.toFixed(0)+"€";if(v>=1)return v.toFixed(2)+"€";if(v>=0.01)return v.toFixed(4)+"€";return v.toFixed(6)+"€";}
+function _fmtC(v,s){if(!v)return"—";return v.toFixed(v<0.01?4:2)+" "+(s||"");}
+function _esc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+// ─── applyActiveUser ──────────────────────────────────────────────
+function applyActiveUser(user){
+  if(!user)return;_user=user;
+  // Topbar avatar
+  var tb=document.getElementById("tb-avatar");
+  if(tb){var ph=user.photo||(user.avatar?.startsWith("img:")?user.avatar.slice(4):null);if(ph)tb.innerHTML='<img src="'+ph+'" style="width:22px;height:22px;object-fit:cover;border-radius:50%;"/>';else tb.textContent=user.avatar&&!user.avatar.startsWith("img:")?user.avatar:user.initials||"👤";}
+  // Admin link
+  var al=document.getElementById("admin-link");if(al)al.style.display=user.role==="admin"?"flex":"none";
+  // Version
+  var vEl=document.getElementById("tb-ver");if(vEl)vEl.textContent=_VER;
+  // Populate overlay
+  _populateOverlay(user);
+  // Staking badge
+  _refreshStakeBadge();
+}
+
+function _populateOverlay(user){
+  if(!user)return;
+  var ph=user.photo||(user.avatar?.startsWith("img:")?user.avatar.slice(4):null);
+  var avSmHtml=ph?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>':user.avatar&&!user.avatar.startsWith("img:")?'<span style="font-size:17px;">'+user.avatar+"</span>":'<span style="font-size:12px;font-weight:700;color:'+(user.color||"#f5c24a")+';">'+user.initials+"</span>";
+  var avBigHtml=ph?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>':user.avatar&&!user.avatar.startsWith("img:")?'<span style="font-size:22px;">'+user.avatar+"</span>":'<span style="font-size:16px;font-weight:700;color:'+(user.color||"#f5c24a")+';">'+user.initials+"</span>";
+  var f=id=>document.getElementById(id);
+  if(f("ov-avatar"))f("ov-avatar").innerHTML=avSmHtml;
+  if(f("ov-name"))f("ov-name").textContent=user.name;
+  if(f("ov-role"))f("ov-role").textContent=user.role==="admin"?"⚡ Admin":"👁 Viewer";
+  if(f("pr-avatar-big"))f("pr-avatar-big").innerHTML=avBigHtml;
+  if(f("pr-name-disp"))f("pr-name-disp").textContent=user.name;
+  if(f("pr-email-disp"))f("pr-email-disp").textContent=user.email||"—";
+  if(f("pr-name-inp"))f("pr-name-inp").value=user.name;
+  // Pre-fill wallet — μόνο από DB
+  if(f("wl-cosmos"))f("wl-cosmos").value=user.cosmos_addrs||"";
+  if(f("wl-cardano"))f("wl-cardano").value=user.cardano_addrs||"";
+  // Init min display slider
+  var sl=document.getElementById("min-display-slider");
+  var sv=document.getElementById("min-display-val");
+  if(sl){sl.value=_minDisplayEur;}
+  if(sv){sv.textContent=(_minDisplayEur===0?"Όλα":_minDisplayEur+"€");}
+}
+
+// ─── Navigation ───────────────────────────────────────────────────
+function navTo(sec){
+  _nav=sec;
+  document.querySelectorAll(".nav-item").forEach(el=>el.classList.toggle("active",el.id==="nav-"+sec));
+  document.querySelectorAll(".bnav-item").forEach(el=>el.classList.toggle("active",el.id==="bn-"+sec));
+  _renderSection(sec);
+}
+
+function _renderSection(sec){
+  var main=document.getElementById("wgt-main");
+  var right=document.getElementById("wgt-right");
+  if(!main)return;
+  ({portfolio:_renderPortfolio,markets:_renderMarkets,staking:_renderStaking,allocations:_renderAllocations,cosmos:_renderCosmos,cardano:_renderCardano}[sec]||_renderPortfolio)(main,right);
+}
+
+// ─── Widget Layout ────────────────────────────────────────────────
+// Load from Supabase dashboard_presets, fallback to DEFAULT_LAYOUT
+async function loadWidgetLayout(){
+  if(!_user){_widgetLayout=DEFAULT_LAYOUT;return DEFAULT_LAYOUT;}
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/dashboard_presets?user_id=eq.__app_settings__&is_active=eq.true&limit=1",{headers:_SB_H,signal:AbortSignal.timeout(5000)});
+    if(r.ok){
+      var d=await r.json();
+      if(d&&d[0]&&d[0].widgets){
+        var w=d[0].widgets;
+        // If flat array (old format), convert to {main, right}
+        if(Array.isArray(w)){
+          _widgetLayout={main:w,right:[]};
+        } else {
+          _widgetLayout={main:w.main||[],right:w.right||[]};
+        }
+        return _widgetLayout;
+      }
+    }
+  }catch(e){console.warn("[layout]",e.message);}
+  _widgetLayout=DEFAULT_LAYOUT;return DEFAULT_LAYOUT;
+}
+
+// ─── PORTFOLIO VIEW ───────────────────────────────────────────────
+function _renderPortfolio(main,right){
+  if(!main)return;
+  // Destroy existing charts before rebuilding DOM
+  if(_phChart&&typeof _phChart.destroy==="function"){_phChart.destroy();_phChart=null;}
+  if(_cmpChart&&typeof _cmpChart.destroy==="function"){_cmpChart.destroy();_cmpChart=null;}
+
+  // Calculate totals
+  var liquid=0,staked=0,delta24h=0;
+  activeCoinIds.forEach(function(id){var p=prices[id]||0,ud=userdata[id]||{};var liq=(ud.liquid||0)*p,stk=(ud.staked||0)*p;liquid+=liq;staked+=stk;delta24h+=(liq+stk)*((changes[id]||0)/100);});
+  var total=liquid+staked,pct24h=total>0?delta24h/total*100:0;
+
+  // Determine widgets from layout
+  var layout=_widgetLayout||DEFAULT_LAYOUT;
+  var mainWidgets=Array.isArray(layout)?layout:(layout.main||DEFAULT_LAYOUT.main);
+  var rightWidgets=Array.isArray(layout)?DEFAULT_LAYOUT.right:(layout.right||DEFAULT_LAYOUT.right);
+
+  // ── MAIN widgets ──
+  main.innerHTML="";
+  mainWidgets.forEach(function(wid){
+    var el=_buildWidget(wid,{total,liquid,staked,delta24h,pct24h});
+    if(el)main.appendChild(el);
+  });
+  // ── RIGHT widgets ──
+  if(right){
+    right.innerHTML="";
+    rightWidgets.forEach(function(wid){
+      var el=_buildWidget(wid,{total,liquid,staked,delta24h,pct24h});
+      if(el)right.appendChild(el);
+    });
+  }
+
+
+  // Load chart only if balances are ready, otherwise show spinner and wait
+  if(_balancesReady){
+    loadPortfolioHistory(_phDays);
+  } else {
+    var sp=document.getElementById("ph-spin");
+    if(sp)sp.style.display="flex";
+  }
+  fetchFearGreed();
+}
+
+// ─── Widget Factory ───────────────────────────────────────────────
+function _buildWidget(id,ctx){
+  var {total,liquid,staked,delta24h,pct24h}=ctx||{};
+  if(id==="hero")return _wgtHero(total,delta24h,pct24h);
+  if(id==="chart")return _wgtChart();
+  if(id==="summary")return _wgtSummary(total,liquid,staked,delta24h);
+  if(id==="allocation")return _wgtAllocation();
+  if(id==="top-assets")return _wgtTopAssets();
+  if(id==="fear-greed")return _wgtFearGreed();
+  if(id==="staking")return _wgtStaking();
+  // Custom slots
+  if(id&&id.startsWith('custom')){
+    var slotIdx=parseInt(id.replace('custom',''));
+    var slot=_customSlots.find(function(s){return s.slot_index===slotIdx&&s.enabled&&s.content;});
+    if(!slot)return null;
+    var wrap=document.createElement('div');wrap.className='card';
+    var title='<div class="card-head"><span class="card-title">'+(slot.name||'Custom')+'</span></div>';
+    if(slot.mode==='iframe'){
+      var ifr=document.createElement('iframe');
+      ifr.sandbox='allow-scripts allow-same-origin';
+      var sc=slot.content.replace('__USER_ID__',(_user&&_user.id)||'')
+        +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
+      ifr.srcdoc=sc;
+      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:800px;";
+      ifr.id='slot-iframe-'+slotIdx;
+      wrap.innerHTML=title;wrap.appendChild(ifr);
+    } else {
+      var div=document.createElement('div');
+      div.innerHTML=slot.content;
+      div.querySelectorAll('script').forEach(function(el){el.remove();});
+      wrap.innerHTML=title;wrap.appendChild(div);
+    }
+    return wrap;
+  }
+  return null;
+}
+
+function _wgtHero(total,delta24h,pct24h){
+  var el=document.createElement("div");el.id="hero-card";
+  el.innerHTML='<div class="hero-label">ΣΥΝΟΛΙΚΗ ΑΞΙΑ · EUR</div>'
+    +'<div class="hero-value mono" id="hero-total">'+_fmtExact(total)+'</div>'
+    +'<div class="hero-delta"><span class="mono '+(delta24h>=0?"text-green":"text-red")+'" style="font-size:13px;font-weight:700;">'+(delta24h>=0?"+":"")+_fmt(delta24h)+"</span>"
+    +'<span class="pill '+(pct24h>=0?"pill-green":"pill-red")+' mono">'+(pct24h>=0?"+":"")+pct24h.toFixed(2)+"%</span>"
+    +'<span class="text-muted mono" style="font-size:10px;">24h</span></div>';
+  return el;
+}
+
+function _wgtChart(){
+  var el=document.createElement("div");el.className="card";
+  el.innerHTML='<div class="card-head"><span class="card-title">P&amp;L ΙΣΤΟΡΙΚΟ</span>'
+    +'<div class="period-tabs" id="ph-tabs">'
+    +[1,7,30,60,90,365].map(d=>'<button class="ptab'+(d===_phDays?" active":"")+'" onclick="_setPhDays('+(d)+')">'+(d===1?"1D":d===7?"7D":d===30?"30D":d===60?"2M":d===90?"3M":"1Y")+'</button>').join("")
+    +'</div></div>'
+    +'<div style="height:240px;position:relative;"><canvas id="ph-chart" style="width:100%;height:100%;"></canvas>'
+    +'<div id="ph-spin" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);">Φόρτωση...</div></div>'
+    +'<div style="display:flex;justify-content:space-between;margin-top:7px;"><span class="mono text-muted" style="font-size:9px;" id="ph-lbl">—</span><span class="mono" style="font-size:9px;" id="ph-chg"></span></div>';
+  return el;
+}
+
+function _wgtSummary(total,liquid,staked,delta24h){
+  var el=document.createElement("div");el.className="card";
+  var rows=[["Liquid",_fmt(liquid)],["Staked",_fmt(staked)],["P&L 24h",(delta24h>=0?"+":"")+_fmt(delta24h),delta24h>=0?"text-green":"text-red"],["Coins",activeCoinIds.length,"text-muted"]];
+  el.innerHTML='<div class="card-head"><span class="card-title">ΣΥΝΟΨΗ</span></div>'
+    +rows.map(([l,v,cls])=>'<div class="sum-row"><span class="sum-label">'+l+'</span><span class="sum-val mono '+(cls||"")+'">'+v+'</span></div>').join("");
+  return el;
+}
+
+function _wgtAllocation(){
+  var el=document.createElement("div");el.className="card";el.id="alloc-card";
+  el.innerHTML='<div class="card-head"><span class="card-title">ΚΑΤΑΝΟΜΗ</span></div><div id="alloc-rows">'+_buildAllocRows()+'</div>';
+  return el;
+}
+
+function _buildAllocRows(){
+  if(!activeCoinIds.length)return '<div style="font-size:10px;color:var(--muted);text-align:center;padding:8px;">—</div>';
+  var vals=activeCoinIds.filter(_shouldShow).map((id,i)=>{var ud=userdata[id]||{};return{id,sym:coinReg[id]?.sym||id.toUpperCase(),val:((ud.staked||0)+(ud.liquid||0))*(prices[id]||0),col:COIN_BRAND[id]||PAL[i%PAL.length]};});
+  var tot=vals.reduce((s,v)=>s+v.val,0);if(!tot)return '<div style="font-size:10px;color:var(--muted);text-align:center;padding:8px;">Δεν βρέθηκαν δεδομένα</div>';
+  return vals.sort((a,b)=>b.val-a.val).slice(0,8).map(v=>{var pct=tot?v.val/tot*100:0;return '<div class="alloc-row"><span style="font-size:10px;font-weight:700;width:36px;font-family:JetBrains Mono,monospace;">'+v.sym+'</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:'+pct.toFixed(1)+'%;background:'+v.col+'33;border-right:2px solid '+v.col+'"></div></div><span class="alloc-pct">'+pct.toFixed(1)+'%</span></div>';}).join("");
+}
+
+function _wgtTopAssets(){
+  var el=document.createElement("div");el.className="card";
+  var rows=activeCoinIds.filter(_shouldShow).map(function(id){
+    var p=prices[id]||0,ud=userdata[id]||{},ch=changes[id]||0;
+    var logo=logoUrl(id);
+    var avHtml=logo?('<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;">'):('<span>'+((coinReg[id]&&coinReg[id].sym||"?").slice(0,2))+'</span>');
+    return{id:id,sym:(coinReg[id]&&coinReg[id].sym)||id.toUpperCase(),name:(coinReg[id]&&coinReg[id].name)||id,val:((ud.staked||0)+(ud.liquid||0))*p,ch:ch,avHtml:avHtml};
+  }).sort(function(a,b){return b.val-a.val;}).slice(0,6);
+  var inner='<div class="card-head"><span class="card-title">TOP ASSETS</span></div>';
+  rows.forEach(function(a){
+    inner+='<div class="asset-row"><div class="asset-logo">'+a.avHtml+'</div>'
+      +'<div style="flex:1;min-width:0;"><div class="asset-name">'+_esc(a.sym)+'</div><div class="asset-sym">'+_esc(a.name)+'</div></div>'
+      +'<div class="asset-val"><div class="asset-eur mono">'+_fmt(a.val)+'</div>'
+      +'<div class="asset-chg mono '+(a.ch>=0?"text-green":"text-red")+'">'+(a.ch>=0?"+":"")+a.ch.toFixed(2)+'%</div></div></div>';
+  });
+  el.innerHTML=inner;
+  return el;
+}
+function _wgtFearGreed(){
+  var el=document.createElement("div");el.className="card";el.id="fg-card";
+  el.innerHTML='<div class="card-head"><span class="card-title">FEAR &amp; GREED</span><span id="fg-lbl" class="card-title text-muted">—</span></div>'
+    +'<div class="fg-bar"><div class="fg-needle" id="fg-needle" style="left:50%;"></div></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:8px;color:var(--muted);font-family:JetBrains Mono,monospace;margin-top:2px;"><span>Fear</span><span>Neutral</span><span>Greed</span></div>';
+  return el;
+}
+
+function _wgtStaking(){
+  var el=document.createElement("div");el.className="card";
+  el.innerHTML='<div class="card-head"><span class="card-title">STAKING</span></div><div id="staking-content">'+_buildStakingRows()+'</div>';
+  return el;
+}
+
+function _buildStakingRows(){
+  var chains=activeCoinIds.filter(function(id){return CHAIN_APR[id]&&(userdata[id]&&userdata[id].staked||0)>0&&_shouldShow(id);});
+  if(!chains.length)return '<div style="color:var(--muted);font-size:11px;text-align:center;padding:14px 0;">Δεν βρέθηκαν staked tokens</div>';
+  return chains.map(function(id){
+    var ud=userdata[id]||{},p=prices[id]||0,apr=CHAIN_APR[id]||0;
+    var sym=(coinReg[id]&&coinReg[id].sym)||id.toUpperCase();
+    var dy=ud.staked*apr/100/365,wk=dy*7,mo=dy*30;
+    var logo=logoUrl(id);
+    var logHtml=logo?('<img src="'+logo+'" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">'):('<span style="font-size:12px;">'+sym.slice(0,2)+'</span>');
+    return '<div class="stake-row">'
+      +'<div class="stake-head">'
+        +'<div style="display:flex;align-items:center;gap:6px;">'+logHtml
+          +'<span style="font-size:12px;font-weight:700;">'+sym+'</span>'
+          +'<span class="mono text-muted" style="font-size:9px;">'+_fmtC(ud.staked,sym)+' staked</span>'
+        +'</div>'
+        +'<span style="font-size:10px;color:var(--green);font-family:JetBrains Mono,monospace;">APR '+apr+'%</span>'
+      +'</div>'
+      +'<div class="stake-grid">'
+        +'<div class="stake-cell"><small>Ημέρα</small>+'+_fmtC(dy,sym)+'</div>'
+        +'<div class="stake-cell"><small>Εβδομάδα</small>+'+_fmtC(wk,sym)+'</div>'
+        +'<div class="stake-cell"><small>Μήνας</small>+'+_fmtC(mo,sym)+'</div>'
+        +'<div class="stake-cell"><small>Χρόνος</small>+'+_fmtC(dy*365,sym)+' <span class="text-muted" style="font-size:9px;">('+_fmt(dy*365*p)+')</span></div>'
+      +'</div>'
+      +'</div>';
+  }).join("");
+}
+
+
+// ─── Other sections ───────────────────────────────────────────────
+function _renderMarkets(main,right){
+  if(!main)return;main.innerHTML="";
+  var card=document.createElement("div");card.className="card";
+  var rows="";
+  activeCoinIds.filter(_shouldShow).forEach(function(id){
+    var p=prices[id]||0,ch=changes[id]||0;
+    var logo=logoUrl(id);
+    var avHtml=logo?('<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;">'):('<span>'+((coinReg[id]&&coinReg[id].sym||"?").slice(0,2))+'</span>');
+    rows+='<div class="asset-row">'
+      +'<div class="asset-logo">'+avHtml+'</div>'
+      +'<div style="flex:1;min-width:0;"><div class="asset-name">'+((coinReg[id]&&coinReg[id].sym)||id.toUpperCase())+'</div><div class="asset-sym">'+((coinReg[id]&&coinReg[id].name)||id)+'</div></div>'
+      +'<div class="asset-val"><div class="asset-eur mono">'+_fmtP(p)+'</div><div class="asset-chg mono '+(ch>=0?"text-green":"text-red")+'">'+(ch>=0?"+":"")+ch.toFixed(2)+'%</div></div>'
+      +'</div>';
+  });
+  // ── Discovered tokens — grouped by denom ──────────────────────
+  var discRows="";
+  if(_discoveredTokens.length){
+    var grouped={};
+    _discoveredTokens.forEach(function(t){
+      var key=t.denom;
+      if(!grouped[key]){grouped[key]={denom:t.denom,symbol:t.symbol||t.denom.slice(0,8).toUpperCase(),name:t.name||"Unknown",cg_id:t.cg_id,logo_url:t.logo_url,totalAmount:0,wallets:[]};}
+      grouped[key].totalAmount+=parseFloat(t.amount||0);
+      grouped[key].wallets.push({addr:t.address,amount:parseFloat(t.amount||0),chain:t.chain_id});
+    });
+    var groupedArr=Object.values(grouped);
+    var known=groupedArr.filter(function(g){return g.cg_id||(g.symbol&&!g.symbol.match(/^IBC\//i)&&!g.denom.startsWith("ibc/"));});
+    var unknown=groupedArr.filter(function(g){return !known.includes(g);});
+    var discTime=_discoveredTokens[0]&&_discoveredTokens[0].first_seen?new Date(_discoveredTokens[0].first_seen).toLocaleTimeString("el-GR",{hour:"2-digit",minute:"2-digit"}):"";
+    discRows+='<div style="padding:7px 14px;background:rgba(245,194,74,.03);border-top:1px solid rgba(245,194,74,.08);border-bottom:1px solid rgba(245,194,74,.08);display:flex;align-items:center;justify-content:space-between;">'
+      +'<span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,194,74,.7);font-family:JetBrains Mono,monospace;">✨ Ανακαλύφθηκαν αυτόματα</span>'
+      +'<span style="font-size:9px;color:var(--muted);font-family:JetBrains Mono,monospace;">'+discTime+'</span></div>';
+    known.forEach(function(g,gi){
+      var sym=_esc(g.symbol);
+      var logo=g.logo_url?('<div style="width:100%;height:100%;border-radius:50%;background:url('+g.logo_url+') center/cover;"></div>'):('<span style="font-size:12px;">🔵</span>');
+      var p=prices[g.cg_id||""]||0,ch=changes[g.cg_id||""]||0,wc=g.wallets.length,uid="disc-"+gi;
+      var wRows=g.wallets.map(function(w){return '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:10px;font-family:JetBrains Mono,monospace;"><span style="color:var(--muted);">'+w.addr.slice(0,12)+'...</span><span>'+w.amount.toFixed(2)+' '+sym+'</span></div>';}).join("");
+      var noPrice='<span style="font-size:8px;background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-family:monospace;">no price</span>';
+      discRows+='<div class="asset-row" style="background:rgba(245,194,74,.02);cursor:pointer;" onclick="_togDisc(\''+uid+'\')">'
+        +'<div class="asset-logo">'+logo+'</div>'
+        +'<div style="flex:1;min-width:0;">'
+          +'<div class="asset-name" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+sym
+          +'<span style="font-size:8px;background:rgba(245,194,74,.12);color:var(--gold);border:1px solid rgba(245,194,74,.2);padding:1px 5px;border-radius:4px;font-family:monospace;">NEW</span>'
+          +'<span style="font-size:8px;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2);padding:1px 5px;border-radius:4px;font-family:monospace;">💼 '+wc+(wc===1?" πορτοφόλι":" πορτοφόλια")+'</span>'
+          +'</div>'
+          +'<div class="asset-sym">'+(g.name||"")+'</div></div>'
+        +'<div class="asset-val"><div class="asset-eur mono">'+(p>0?_fmtP(p):"—")+'</div>'
+        +'<div class="asset-chg mono '+(p>0?(ch>=0?"text-green":"text-red"):"")+'">'+( p>0?(ch>=0?"+":"")+ch.toFixed(2)+"%":noPrice)+'</div></div>'
+        +'</div>'
+        +'<div id="'+uid+'" style="display:none;padding:6px 14px 10px 58px;background:rgba(96,165,250,.03);border-top:1px solid rgba(96,165,250,.08);">'+wRows+'</div>';
+    });
+    if(unknown.length){
+      discRows+='<div style="padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-top:1px solid var(--border2);" onclick="_togUnk();">'
+        +'<span style="font-size:11px;color:var(--muted);">+ '+unknown.length+' tokens χωρίς αναγνώριση</span>'
+        +'<span id="unk-arr" style="font-size:10px;color:var(--muted);">▼</span></div>'
+        +'<div id="unk-list" style="display:none;padding:8px 14px;background:rgba(255,255,255,.01);border-top:1px solid var(--border2);">'
+        +'<div style="font-size:10px;color:var(--muted);font-family:JetBrains Mono,monospace;line-height:2;">'
+        +unknown.map(function(g){return g.denom.slice(0,22)+'...';}).join(' · ')
+        +'</div></div>';
+    }
+  }
+  card.innerHTML='<div class="card-head"><span class="card-title">MARKETS</span></div>'+rows+discRows;
+  main.appendChild(card);
+  var cc=document.createElement("div");cc.className="card";
+  cc.innerHTML='<div class="card-head"><span class="card-title">ΣΥΓΚΡΙΣΗ</span>'
+    +'<div class="period-tabs" id="cmp-tabs">'
+    +[1,7,30,365].map(function(d){return '<button class="ptab'+(d===_cmpRange?" active":"")+'" onclick="_setCmpRange('+(d)+')">'+(d===1?"1D":d===7?"7D":d===30?"30D":"1Y")+'</button>';}).join("")
+    +'</div></div><div style="height:130px;"><canvas id="cmp-chart" style="width:100%;height:100%;"></canvas></div>';
+  main.appendChild(cc);
+  if(right)right.innerHTML="";
+  if(!_cmpChart)loadHistoricalData(_cmpRange);
+}
+
+function _renderStaking(main,right){
+  if(!main)return;main.innerHTML="";
+  var el=document.createElement("div");el.className="card";
+  el.innerHTML='<div class="card-head"><span class="card-title">STAKING REWARDS</span></div><div id="staking-content">'+_buildStakingRows()+'</div>';
+  main.appendChild(el);if(right)right.innerHTML="";
+}
+
+function _renderAllocations(main,right){
+  if(!main)return;main.innerHTML="";
+  var el=document.createElement("div");el.className="card";
+  el.innerHTML='<div class="card-head"><span class="card-title">ΑΝΑΛΥΣΗ ΚΑΤΑΝΟΜΗΣ</span></div><div>'+_buildAllocRows()+'</div>';
+  main.appendChild(el);if(right)right.innerHTML="";
+}
+
+function _renderCosmos(main,right){
+  if(!main)return;main.innerHTML="";
+  var el=document.createElement("div");el.className="card";
+  el.innerHTML='<div class="card-head"><span class="card-title">&#127756; COSMOS WALLET</span></div><div id="cosmos-detail" style="font-size:11px;color:var(--muted);padding:8px 0;">Φόρτωση...</div>';
+  main.appendChild(el);if(right)right.innerHTML="";fetchUnclaimedRewards();
+}
+
+function _renderCardano(main,right){
+  if(!main)return;main.innerHTML='<div class="card"><div class="card-head"><span class="card-title">&#128309; CARDANO WALLET</span></div><div style="font-size:11px;color:var(--muted);padding:8px 0;">Coming soon...</div></div>';
+  if(right)right.innerHTML="";
+}
+
+// ─── Fear & Greed ─────────────────────────────────────────────────
+async function fetchFearGreed(){
+  try{var r=await fetch("https://api.alternative.me/fng/?limit=1",{signal:AbortSignal.timeout(6000)});if(!r.ok)return;var d=await r.json();var val=parseInt(d?.data?.[0]?.value||50),cls=d?.data?.[0]?.value_classification||"Neutral";var n=document.getElementById("fg-needle"),l=document.getElementById("fg-lbl");if(n)n.style.left=val+"%";if(l){l.textContent=cls+" ("+val+")";l.className="card-title "+(val<30?"text-red":val>70?"text-green":"text-gold");}}catch(e){}
+}
+
+// ─── Unclaimed Rewards ────────────────────────────────────────────
+async function fetchUnclaimedRewards(){
+  var el=document.getElementById("cosmos-detail");if(!el)return;
+  var cosmosStr=(_user?.cosmos_addrs||"").trim();
+  if(!cosmosStr){el.innerHTML='Δεν έχεις ορίσει Cosmos διευθύνσεις. <button onclick="openUserOverlay()" class="btn btn-ghost" style="margin-top:6px;font-size:10px;">Πρόσθεσε</button>';return;}
+  var cosmosAddrs=cosmosStr.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s.startsWith("cosmos1"));
+  if(!cosmosAddrs.length){el.innerHTML="Δεν βρέθηκαν cosmos1... διευθύνσεις.";return;}
+  el.innerHTML="Φόρτωση αμοιβών...";
+  try{
+    var total=0,rows=[];
+    for(var addr of cosmosAddrs.slice(0,3)){
+      var r=await fetch("https://rest.cosmos.directory/cosmoshub/cosmos/distribution/v1beta1/delegators/"+addr+"/rewards",{signal:AbortSignal.timeout(8000)});
+      if(!r.ok)continue;var d=await r.json();
+      (d.rewards||[]).forEach(vr=>{(vr.reward||[]).forEach(rw=>{if(rw.denom==="uatom"){var amt=parseInt(rw.amount)/1e6;total+=amt;rows.push({addr:addr.slice(0,10)+"...",amt,eur:amt*(prices["cosmos"]||0)});}});});
+    }
+    if(!rows.length){el.innerHTML="Δεν βρέθηκαν pending rewards.";return;}
+    el.innerHTML='<div style="font-size:12px;margin-bottom:7px;color:var(--gold);">📦 Pending: <b>'+total.toFixed(4)+" ATOM</b> ("+_fmt(total*(prices["cosmos"]||0))+')</div>'+rows.map(r=>'<div style="font-size:9px;color:var(--muted);padding:2px 0;">'+r.addr+": "+r.amt.toFixed(4)+" ATOM ("+_fmt(r.eur)+")</div>").join("");
+  }catch(e){el.innerHTML='<span style="color:var(--red);">⚠ '+e.message+"</span>";}
+}
+
+// ─── Prices ───────────────────────────────────────────────────────
+async function loadPrices(rebuild){
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/prices_cache?select=coin_id,price_eur,change_24h,updated_at&order=updated_at.desc",{headers:_SB_H,signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    var data=await r.json();if(!data||!data.length)return;
+    data.forEach(row=>{prices[row.coin_id]=row.price_eur;changes[row.coin_id]=row.change_24h||0;});
+    if(data[0]?.updated_at){
+      var lp=document.getElementById("live-pill");if(lp)lp.title="Τελευταία ενημέρωση: "+new Date(data[0].updated_at).toLocaleTimeString("el-GR");
+      var lt=document.getElementById("live-time");if(lt)lt.textContent=new Date(data[0].updated_at).toLocaleTimeString("el-GR",{hour:"2-digit",minute:"2-digit",hour12:false});
+    }
+    if(_addrsReady||rebuild)_refreshUI();
+  }catch(e){console.warn("[loadPrices]",e.message);}
+}
+
+function _refreshUI(){
+  _refreshStakeBadge();
+  _renderSection(_nav);
+  // Update hero total if visible
+  var heroEl=document.getElementById("hero-total");
+  if(heroEl){
+    var total=0;
+    activeCoinIds.forEach(function(id){var p=prices[id]||0,ud=userdata[id]||{};total+=((ud.staked||0)+(ud.liquid||0))*p;});
+    if(total>0)heroEl.textContent=_fmtExact(total);
+  }
+}
+
+function _refreshStakeBadge(){
+  var b=document.getElementById("stake-badge");if(!b)return;
+  var tot=0;activeCoinIds.forEach(id=>{if(CHAIN_APR[id]&&(userdata[id]?.staked||0)>0){tot+=(userdata[id].staked*CHAIN_APR[id]/100/365)*(prices[id]||0);}});
+  if(tot>0){b.textContent="+"+tot.toFixed(2)+"€/d";b.style.display="";}else b.style.display="none";
+}
+
+// ─── Addresses ────────────────────────────────────────────────────
+function decryptAndLoadAddrs(pin,userId){
+  // cosmos_addrs contains ALL derived addresses — filter only cosmos1 for cosmos chain
+  var _allAddrs=(_user?.cosmos_addrs||'').split(/[\n,]+/).map(function(s){return s.trim();}).filter(Boolean);
+  var _cosmosOnly=_allAddrs.filter(function(s){return s.startsWith('cosmos1');}).join('\n');
+  _rawAddrs={cosmos:_cosmosOnly,cardano:_user?.cardano_addrs||''};
+  activeCoinIds=[];userdata={};
+  var cosmosStr=_cosmosOnly;
+  var cAddrs=cosmosStr?cosmosStr.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean):[];
+
+  // Register ALL addresses (cosmos1, osmo1, juno1 κτλ) από το πρώτο parse
+  cAddrs.forEach(function(addr){
+    COSMOS_CHAINS.forEach(function(chain){
+      if(addr.startsWith(chain.prefix+"1")){
+        if(!activeCoinIds.includes(chain.id))activeCoinIds.push(chain.id);
+        if(!userdata[chain.id])userdata[chain.id]={liquid:0,staked:0,addrs:[]};
+        userdata[chain.id].addrs.push(addr);
+      }
+    });
+  });
+  getWatch().forEach(function(id){if(!activeCoinIds.includes(id))activeCoinIds.push(id);});
+  _addrsReady=true;
+
+  // Πρώτα φόρτωσε από balances_cache (instant, χωρίς flash)
+  // Μετά κάνε chain sync στο background
+  // Load discovered tokens (IBC airdrops etc)
+  _loadDiscoveredTokens(userId||(_user&&_user.id));
+  _loadFromCache(userId||(_user&&_user.id)).then(function(){
+    loadPrices(true).then(function(){
+      // Όλα έτοιμα → φόρτωσε το chart για το active timeframe (μία φορά)
+      _balancesReady=true;
+      if(_nav==='portfolio'){
+        _phChart=null;
+        loadPortfolioHistory(_phDays);
+      }
+      // Hide loading screen
+      _hideLoader();
+    });
+    // Chain sync γίνεται από cron jobs (fetch-balances κάθε 5 λεπτά)
+    console.log("[sync] Using Supabase cache only (cron jobs handle sync)");
+  });
+}
+
+// Φόρτωσε balances από Supabase cache → instant display
+async function _loadFromCache(userId){
+  if(!userId)return false;
+  // Pre-load custom slots if not loaded yet
+  if(_customSlots.length===0){
+    try{
+      var slotRes=await fetch(_SB_URL+'/rest/v1/custom_slots?user_id=eq.'+userId+'&enabled=eq.true&order=slot_index.asc',{headers:_SB_H,signal:AbortSignal.timeout(3000)});
+      var slots=await slotRes.json();
+      if(slots&&slots.length)_customSlots=slots;
+    }catch(e){}
+  }
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/balances_cache?user_id=eq."+userId+"&select=chain_id,address,liquid,staked,rewards",{
+      headers:_SB_H, signal:AbortSignal.timeout(5000)
+    });
+    if(!r.ok)return false;
+    var rows=await r.json();
+    if(!rows||!rows.length)return false;
+
+    // Reset userdata chains που υπάρχουν στη βάση πριν φορτώσουμε
+    var chainIds=[...new Set(rows.map(function(r){return r.chain_id;}))];
+    chainIds.forEach(function(id){userdata[id]={liquid:0,staked:0,addrs:[],rewards:0};});
+    // Merge cache data into userdata
+    rows.forEach(function(row){
+      if(!userdata[row.chain_id])userdata[row.chain_id]={liquid:0,staked:0,addrs:[],rewards:0};
+      userdata[row.chain_id].liquid=(userdata[row.chain_id].liquid||0)+parseFloat(row.liquid||0);
+      userdata[row.chain_id].staked=(userdata[row.chain_id].staked||0)+parseFloat(row.staked||0);
+      userdata[row.chain_id].rewards=(userdata[row.chain_id].rewards||0)+parseFloat(row.rewards||0);
+      // Add to activeCoinIds if not already there
+      if(!activeCoinIds.includes(row.chain_id))activeCoinIds.push(row.chain_id);
+    });
+    console.log("[cache] Loaded "+rows.length+" rows from balances_cache");
+    // Check how fresh the cache is (compare UTC timestamps)
+    var freshest=rows.reduce(function(max,r){return r.updated_at>max?r.updated_at:max;},"");
+    var isFresh=false;
+    if(freshest){
+      // Parse the UTC timestamp correctly
+      var cacheTime=new Date(freshest).getTime();
+      var nowTime=Date.now();
+      var ageMs=nowTime-cacheTime;
+      // If age is negative or very large, something is wrong - treat as fresh if data exists
+      isFresh=(ageMs>=0&&ageMs<10*60*1000)||ageMs<0;
+      console.log("[cache] updated_at:",freshest,"ageMs:",ageMs,"fresh:",isFresh);
+    }
+    return isFresh;
+  }catch(e){
+    console.warn("[cache] Failed:",e.message);
+    return false;
+  }
+}
+
+// ─── Discovered Tokens (IBC airdrops) ────────────────────────────
+var _discoveredTokens = []; // [{symbol,name,amount,cg_id,logo_url,chain_id,denom}]
+
+async function _loadDiscoveredTokens(userId){
+  if(!userId)return;
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/discovered_tokens?user_id=eq."+userId+"&amount=gt.0&order=first_seen.desc",{
+      headers:_SB_H, signal:AbortSignal.timeout(5000)
+    });
+    if(!r.ok)return;
+    var rows=await r.json();
+    if(!rows||!rows.length)return;
+    _discoveredTokens=rows;
+    // Group by cg_id for userdata (sum amounts)
+    var cgTotals={};
+    rows.forEach(function(t){
+      if(!t.cg_id)return;
+      if(!cgTotals[t.cg_id])cgTotals[t.cg_id]=0;
+      cgTotals[t.cg_id]+=parseFloat(t.amount||0);
+    });
+    Object.keys(cgTotals).forEach(function(cgId){
+      if(!activeCoinIds.includes(cgId))activeCoinIds.push(cgId);
+      if(!userdata[cgId])userdata[cgId]={liquid:cgTotals[cgId],staked:0,rewards:0};
+      else userdata[cgId].liquid=(userdata[cgId].liquid||0)+cgTotals[cgId];
+    });
+    console.log("[discovered] Loaded "+rows.length+" discovered tokens");
+  }catch(e){console.warn("[discovered] Failed:",e.message);}
+}
+
+async function _autoSyncStaking(addrs){
+  // Reset chain balances before syncing to avoid double-counting with cache
+  for(var chain of COSMOS_CHAINS){
+    if(userdata[chain.id]){
+      userdata[chain.id].staked=0;
+      userdata[chain.id].liquid=0;
+      userdata[chain.id].rewards=0;
+    }
+  }
+  for(var chain of COSMOS_CHAINS){
+    var ca=addrs.filter(a=>a.startsWith(chain.prefix+"1"));if(!ca.length)continue;
+    for(var addr of ca){
+      try{
+        var ep=chain.ep[0];
+        var r=await fetch(ep+"/cosmos/staking/v1beta1/delegations/"+addr,{signal:AbortSignal.timeout(7000)});
+        if(r.ok){var d=await r.json();var st=0;(d.delegation_responses||[]).forEach(dr=>st+=parseInt(dr.balance?.amount||0)/Math.pow(10,chain.dec));if(!userdata[chain.id])userdata[chain.id]={liquid:0,staked:0,addrs:[]};userdata[chain.id].staked=(userdata[chain.id].staked||0)+st;}
+        var r2=await fetch(ep+"/cosmos/bank/v1beta1/balances/"+addr,{signal:AbortSignal.timeout(7000)});
+        if(r2.ok){var d2=await r2.json();var lq=0;(d2.balances||[]).forEach(b=>{if(b.denom===chain.denom)lq+=parseInt(b.amount||0)/Math.pow(10,chain.dec);});if(!userdata[chain.id])userdata[chain.id]={liquid:0,staked:0,addrs:[]};userdata[chain.id].liquid=(userdata[chain.id].liquid||0)+lq;}
+      }catch(e){}
+    }
+  }
+  _refreshUI();_refreshStakeBadge();
+}
+
+// ─── Portfolio History Chart ──────────────────────────────────────
+var _phLoading=false;
+async function loadPortfolioHistory(days){
+  if(_phLoading)return;var canv=document.getElementById("ph-chart");if(!canv)return;
+  _phLoading=true;var sp=document.getElementById("ph-spin");if(sp)sp.style.display="flex";
+  try{
+    var labels=[],vals=[];
+    // Όλα τα timeframes φορτώνουν από price_history_hourly (χρησιμοποιεί created_at field)
+    var cutoff=new Date(Date.now()-days*24*60*60*1000).toISOString();
+    // Add Range header to bypass default 1000 row limit
+    var phHeaders=Object.assign({},_SB_H,{"Range":"0-100000","Range-Unit":"items"});
+    var r=await fetch(_SB_URL+"/rest/v1/price_history_hourly?select=coin_id,created_at,price_eur&created_at=gte."+cutoff+"&order=created_at.asc&limit=100000",{headers:phHeaders,signal:AbortSignal.timeout(15000)});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    var rows=await r.json();
+    if(!rows.length){if(sp)sp.style.display="none";_phLoading=false;return;}
+
+    // Group by timestamp
+    var byTs={};rows.forEach(row=>{if(!byTs[row.created_at])byTs[row.created_at]={};byTs[row.created_at][row.coin_id]=row.price_eur;});
+    var timestamps=Object.keys(byTs).sort();
+
+    var coinIds=activeCoinIds.length>0?activeCoinIds:Object.keys(byTs[timestamps[0]]||{});
+
+    // For 30D+, downsample to 1 point per day to avoid label crowding
+    var sampleTimestamps = timestamps;
+    if(days>=30){
+      var seenDays={};
+      sampleTimestamps = timestamps.filter(function(ts){
+        var dayKey=ts.slice(0,10); // YYYY-MM-DD
+        if(seenDays[dayKey])return false;
+        seenDays[dayKey]=true;
+        return true;
+      });
+    }
+
+    // Build chart data
+    sampleTimestamps.forEach(function(ts){
+      var tot=0;
+      coinIds.forEach(function(id){
+        var p=byTs[ts][id]||prices[id]||0;
+        var ud=userdata[id]||{};
+        tot+=((ud.staked||0)+(ud.liquid||0))*p;
+      });
+      var dt=new Date(ts);
+      // Format label per timeframe
+      if(days===1){
+        // 1D: HH:MM
+        labels.push(dt.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'}));
+      } else if(days<=7){
+        // 7D: weekday short
+        labels.push(dt.toLocaleDateString('el-GR',{weekday:'short',day:'numeric'}));
+      } else if(days<=30){
+        // 30D: day month
+        labels.push(dt.toLocaleDateString('el-GR',{day:'numeric',month:'short'}));
+      } else if(days<=90){
+        // 2M-3M: day month
+        labels.push(dt.toLocaleDateString('el-GR',{day:'numeric',month:'short'}));
+      } else {
+        // 1Y: month year
+        labels.push(dt.toLocaleDateString('el-GR',{month:'short',year:'2-digit'}));
+      }
+      vals.push(tot);
+    });
+
+    if(sp)sp.style.display="none";
+    if(_phChart&&typeof _phChart.destroy==="function"){_phChart.destroy();_phChart=null;}
+
+    _phChart=new Chart(canv,{type:"line",data:{labels,datasets:[{data:vals,borderColor:"#f5c24a",borderWidth:2.5,tension:.4,fill:"origin",backgroundColor:ctx=>{var chart=ctx.chart;var{ctx:cx,chartArea}=chart;if(!chartArea)return null;var g=cx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);g.addColorStop(0,"rgba(245,194,74,.55)");g.addColorStop(0.5,"rgba(245,194,74,.25)");g.addColorStop(1,"rgba(245,194,74,.02)");return g;},pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:"#f5c24a"}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600,easing:"easeOutQuart"},interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:"rgba(11,13,18,.95)",titleColor:"#f5c24a",bodyColor:"#e7e4d8",borderColor:"rgba(245,194,74,.3)",borderWidth:1,padding:10,titleFont:{family:"JetBrains Mono",size:10,weight:"600"},bodyFont:{family:"JetBrains Mono",size:11},callbacks:{label:ctx=>{var v=ctx.parsed.y;return Math.round(v).toLocaleString('el-GR')+'€';}}}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:9,family:"JetBrains Mono"},maxTicksLimit:_phDays===1?6:_phDays<=7?7:_phDays<=30?8:_phDays<=60?6:_phDays<=90?6:6,maxRotation:0}},y:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:9,family:"JetBrains Mono"},callback:function(v){return Math.round(v).toLocaleString('el-GR')+'€';},maxTicksLimit:5},position:"right"}}}});
+
+    if(vals.length>=2){var first=vals[0],last=vals[vals.length-1],chg=first?(last-first)/first*100:0;var vl=document.getElementById("ph-lbl"),cl=document.getElementById("ph-chg");if(vl)vl.textContent="Τρέχον: "+_fmt(last);if(cl){cl.textContent=(chg>=0?"+":"")+chg.toFixed(2)+"%";cl.className="mono "+(chg>=0?"text-green":"text-red");}}
+  }catch(e){if(sp)sp.style.display="none";console.warn("[ph]",e.message);}
+  _phLoading=false;
+}
+function _setPhDays(d){_phDays=d;localStorage.setItem("ggwall_ph_range",String(d));if(_phChart&&typeof _phChart.destroy==="function"){_phChart.destroy();}_phChart=null;document.querySelectorAll("#ph-tabs .ptab").forEach((b,i)=>b.classList.toggle("active",[1,7,30,60,90,365][i]===d));loadPortfolioHistory(d);}
+
+// ─── Compare Chart ────────────────────────────────────────────────
+async function loadHistoricalData(days){
+  var canv=document.getElementById("cmp-chart");if(!canv)return;
+  try{
+    var cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);
+    var cmpHeaders=Object.assign({},_SB_H,{"Range":"0-100000","Range-Unit":"items"});
+    var r=await fetch(_SB_URL+"/rest/v1/price_history_hourly?select=coin_id,created_at,price_eur&coin_id=in.(bitcoin,cosmos,osmosis)&created_at=gte."+cutoff.toISOString()+"&order=created_at.asc&limit=100000",{headers:cmpHeaders,signal:AbortSignal.timeout(10000)});
+    if(!r.ok)return;var rows=await r.json();
+    // Use ALL hourly points
+    var byTs={};rows.forEach(row=>{if(!byTs[row.created_at])byTs[row.created_at]={};byTs[row.created_at][row.coin_id]=row.price_eur;});
+    var allTs=Object.keys(byTs).sort();if(!allTs.length)return;
+    if(_cmpChart&&typeof _cmpChart.destroy==="function"){_cmpChart.destroy();_cmpChart=null;}
+    var coinIds=[...new Set(rows.map(r=>r.coin_id))];
+    var datasets=coinIds.map(id=>{var firstTs=allTs.find(t=>byTs[t][id]),first=firstTs?byTs[firstTs][id]:1;return{label:(coinReg[id]?.sym||id).toUpperCase(),data:allTs.map(t=>{var p=byTs[t][id];return p?((p/first-1)*100):null;}),borderColor:COIN_BRAND[id]||"#f5c24a",borderWidth:2,tension:.4,fill:false,pointRadius:0,spanGaps:true};});
+    var cmpLabels=allTs.map(function(t){var dt=new Date(t);return _cmpRange===1?dt.toLocaleTimeString("el-GR",{hour:"2-digit",minute:"2-digit"}):dt.toLocaleDateString("el-GR",{day:"numeric",month:"short"});});
+    _cmpChart=new Chart(canv,{type:"line",data:{labels:cmpLabels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:"rgba(231,228,216,.5)",font:{size:9,family:"JetBrains Mono"},boxWidth:10,padding:6}}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:9,family:"JetBrains Mono"}}},y:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:9,family:"JetBrains Mono"},callback:v=>v.toFixed(1)+"%"}}}}});
+  }catch(e){console.warn("[cmp]",e.message);}
+}
+function _setCmpRange(d){_cmpRange=d;localStorage.setItem("ggwall_cmp_range",String(d));if(_cmpChart&&typeof _cmpChart.destroy==="function"){_cmpChart.destroy();}_cmpChart=null;document.querySelectorAll("#cmp-tabs .ptab").forEach((b,i)=>b.classList.toggle("active",[1,7,30,365][i]===d));loadHistoricalData(d);}
+
+// ─── User Overlay ─────────────────────────────────────────────────
+function openUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.add("open");_updatePushBtn();_loadNotifHist();}
+function closeUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.remove("open");}
+document.getElementById("user-overlay")?.addEventListener("click",e=>{if(e.target===document.getElementById("user-overlay"))closeUserOverlay();});
+function switchUpTab(tab){document.querySelectorAll(".up-tab").forEach((b,i)=>b.classList.toggle("active",["profile","wallet","notifications","feedback"][i]===tab));document.querySelectorAll(".up-content").forEach(el=>el.classList.toggle("active",el.id==="ut-"+tab));}
+
+var _newPhoto=null;
+function _onPhotoChange(inp){var file=inp.files[0];if(!file)return;var rd=new FileReader();rd.onload=e=>{_newPhoto=e.target.result;var av=document.getElementById("pr-avatar-big");if(av)av.innerHTML='<img src="'+_newPhoto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';};rd.readAsDataURL(file);}
+
+async function _saveProfile(){
+  var u=getActiveUser();if(!u)return;
+  var nm=(document.getElementById("pr-name-inp")?.value||"").trim();
+  var np=(document.getElementById("pr-pin-inp")?.value||"").trim();
+  if(nm)u.name=nm;
+  if(np&&/^[0-9]{4}$/.test(np))u.pin=_obfPin(np);
+  if(_newPhoto)u.photo=_newPhoto;
+  var users=getUsers();var idx=users.findIndex(x=>x.id===u.id);
+  if(idx>=0)Object.assign(users[idx],{name:u.name,pin:u.pin,photo:u.photo});
+  saveUsers(users);sessionStorage.setItem("active_user",JSON.stringify(u));applyActiveUser(u);
+  _syncUserToCloud(u,!!_newPhoto).catch(()=>{});_newPhoto=null;showToast("✓ Αποθηκεύτηκε","green");
+}
+
+function _onMinDisplayChange(val){
+  _minDisplayEur=parseFloat(val)||0;
+  localStorage.setItem("ggwall_min_display",String(_minDisplayEur));
+  var el=document.getElementById("min-display-val");
+  if(el)el.textContent=(val==="0"?"Όλα":val+"€");
+  _refreshUI();
+}
+
+async function _saveWallet(){
+  var cosmos=(document.getElementById("wl-cosmos")?.value||"").trim();
+  var cardano=(document.getElementById("wl-cardano")?.value||"").trim();
+  // Only save to DB — no localStorage
+  // Save to Supabase cloud_users directly (bypass _syncUserToCloud for addresses)
+  if(_user){
+    _user.cosmos_addrs=cosmos;
+    _user.cardano_addrs=cardano;
+    // Update users locally too
+    var users=getUsers();
+    var idx=users.findIndex(function(x){return x.id===_user.id;});
+    if(idx>=0){users[idx].cosmos_addrs=cosmos;users[idx].cardano_addrs=cardano;saveUsers(users);}
+    // Direct PATCH to cloud_users - try by id first, then by name
+    var patchUrl=_SB_URL+"/rest/v1/cloud_users?id=eq."+encodeURIComponent(_user.id);
+    fetch(patchUrl,{
+      method:"PATCH",
+      headers:Object.assign({},_SB_H,{"Prefer":"return=representation"}),
+      body:JSON.stringify({cosmos_addrs:cosmos,cardano_addrs:cardano,updated_at:new Date().toISOString()})
+    }).then(function(r){
+      if(r.ok){
+        return r.json().then(function(d){
+          if(d&&d.length>0){
+            console.log("[saveWallet] ✓ Saved by id, rows updated:",d.length);
+          } else {
+            // No rows updated by id - try by name
+            console.warn("[saveWallet] No rows by id, trying by name...");
+            return fetch(_SB_URL+"/rest/v1/cloud_users?name=eq."+encodeURIComponent(_user.name)+"&app_id=eq.ggwall",{
+              method:"PATCH",
+              headers:Object.assign({},_SB_H,{"Prefer":"return=representation"}),
+              body:JSON.stringify({cosmos_addrs:cosmos,cardano_addrs:cardano,updated_at:new Date().toISOString()})
+            }).then(function(r2){
+              if(r2.ok)r2.json().then(function(d2){console.log("[saveWallet] ✓ Saved by name, rows:",d2&&d2.length);});
+              else r2.text().then(function(t){console.warn("[saveWallet] PATCH by name failed:",r2.status,t);});
+            });
+          }
+        });
+      } else {
+        r.text().then(function(t){console.warn("[saveWallet] PATCH failed:",r.status,t);});
+      }
+    }).catch(function(e){console.warn("[saveWallet] exception:",e.message);});
+  }
+  showToast("✓ Αποθηκεύτηκαν","green");
+  _addrsReady=false;_balancesReady=false;activeCoinIds=[];userdata={};_phChart=null;_cmpChart=null;_showLoader();
+  decryptAndLoadAddrs(null,_user?.id);
+  closeUserOverlay();
+}
+
+// ── Discovered tokens toggle ─────────────────────────────────────
+function _togDisc(uid){
+  var el=document.getElementById(uid);
+  if(el)el.style.display=el.style.display==='block'?'none':'block';
+}
+function _togUnk(){
+  var el=document.getElementById('unk-list');
+  var arr=document.getElementById('unk-arr');
+  if(!el)return;
+  var open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(arr)arr.textContent=open?'▼':'▲';
+}
+
+// ── Auto-derive IBC chain addresses from cosmos1 ──────────────────
+// Cosmos chains all share the same pubkey, just different bech32 prefix.
+// We fetch the pubkey from the chain REST after the user has made ≥1 tx.
+
+// bech32 encode/decode (no external lib needed — pure JS)
+var _BECH32_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
+function _bech32Polymod(values){
+  var GEN=[0x3b6a57b2,0x26508e6d,0x1ea119fa,0x3d4233dd,0x2a1462b3];
+  var chk=1;
+  for(var i=0;i<values.length;i++){
+    var top=chk>>25;chk=((chk&0x1ffffff)<<5)^values[i];
+    for(var j=0;j<5;j++){if((top>>j)&1)chk^=GEN[j];}
+  }
+  return chk;
+}
+function _bech32HrpExpand(hrp){
+  var ret=[];
+  for(var i=0;i<hrp.length;i++)ret.push(hrp.charCodeAt(i)>>5);
+  ret.push(0);
+  for(var i=0;i<hrp.length;i++)ret.push(hrp.charCodeAt(i)&31);
+  return ret;
+}
+function _bech32Decode(bechStr){
+  bechStr=bechStr.toLowerCase();
+  var p=bechStr.lastIndexOf("1");
+  if(p<1||p+7>bechStr.length)return null;
+  var hrp=bechStr.slice(0,p);
+  var data=[];
+  for(var i=p+1;i<bechStr.length;i++){
+    var d=_BECH32_CHARSET.indexOf(bechStr[i]);
+    if(d<0)return null;
+    data.push(d);
+  }
+  if(_bech32Polymod(_bech32HrpExpand(hrp).concat(data))!==1)return null;
+  return{hrp,data:data.slice(0,-6)};
+}
+function _bech32Encode(hrp,data){
+  var combined=data.concat([0,0,0,0,0,0]);
+  var exp=_bech32HrpExpand(hrp);
+  var mod=_bech32Polymod(exp.concat(combined))^1;
+  var chk=[];
+  for(var i=0;i<6;i++)chk.push((mod>>(5*(5-i)))&31);
+  return hrp+"1"+data.concat(chk).map(function(d){return _BECH32_CHARSET[d];}).join("");
+}
+function _deriveAddressForChain(cosmosAddr, newPrefix){
+  var dec=_bech32Decode(cosmosAddr);
+  if(!dec)return null;
+  return _bech32Encode(newPrefix,dec.data);
+}
+
+// IBC chains we auto-derive (non-EVM only)
+var _IBC_DERIVE_CHAINS=[
+  {id:"osmosis",         prefix:"osmo",     sym:"OSMO"},
+  {id:"juno-network",    prefix:"juno",     sym:"JUNO"},
+  {id:"saga-2",          prefix:"saga",     sym:"SAGA"},
+  {id:"celestia",        prefix:"celestia", sym:"TIA"},
+  {id:"stargaze",        prefix:"stars",    sym:"STARS"},
+  {id:"akash-network",   prefix:"akash",    sym:"AKT"},
+  {id:"secret",          prefix:"secret",   sym:"SCRT"},
+  {id:"kava",            prefix:"kava",     sym:"KAVA"},
+];
+// EVM chains need manual entry (different key derivation)
+var _EVM_CHAINS_NOTE=["dymension (dym1...)","injective-protocol (inj1...)","evmos (evmos1...)"];
+
+var _derivedAddrs=null; // preview buffer
+
+async function _autoDeriveChains(){
+  var btn=document.getElementById("derive-btn");
+  var st=document.getElementById("derive-status");
+  var prev=document.getElementById("derive-preview");
+  var list=document.getElementById("derive-preview-list");
+
+  // Get cosmos1 addresses from textarea
+  var cosmosRaw=(document.getElementById("wl-cosmos")?.value||"").trim();
+  var cosmosAddrs=cosmosRaw.split(/[\n,]+/).map(function(s){return s.trim();})
+    .filter(function(s){return s.startsWith("cosmos1")&&s.length>10;});
+
+  if(!cosmosAddrs.length){
+    if(st)st.innerHTML='<span style="color:var(--red);">⚠ Βάλε τουλάχιστον μία cosmos1... διεύθυνση πρώτα</span>';
+    return;
+  }
+
+  if(btn){btn.disabled=true;btn.textContent="⏳ Παραγωγή διευθύνσεων...";}
+  if(st)st.textContent="";
+  if(prev)prev.style.display="none";
+
+  // For each cosmos1 address, derive all IBC chains
+  var allDerived={}; // {chainId: [addr1, addr2, ...]}
+
+  cosmosAddrs.forEach(function(cAddr){
+    _IBC_DERIVE_CHAINS.forEach(function(chain){
+      var derived=_deriveAddressForChain(cAddr, chain.prefix);
+      if(derived){
+        if(!allDerived[chain.id])allDerived[chain.id]=[];
+        allDerived[chain.id].push(derived);
+      }
+    });
+  });
+
+  // Build preview HTML
+  var previewLines=[];
+  // Show original cosmos addresses
+  cosmosAddrs.forEach(function(a){
+    previewLines.push('<div style="color:var(--gold);padding:2px 0;">✓ '+_esc(a)+'</div>');
+  });
+  previewLines.push('<div style="height:4px;"></div>');
+
+  // Show derived
+  _IBC_DERIVE_CHAINS.forEach(function(chain){
+    var addrs=allDerived[chain.id]||[];
+    addrs.forEach(function(a){
+      previewLines.push(
+        '<div style="display:flex;gap:6px;align-items:center;padding:1px 0;">'
+        +'<span style="color:var(--muted);min-width:46px;">'+chain.sym+'</span>'
+        +'<span style="color:var(--text);word-break:break-all;">'+_esc(a)+'</span>'
+        +'</div>'
+      );
+    });
+  });
+
+  // Note about EVM chains
+  previewLines.push(
+    '<div style="margin-top:6px;padding:5px 7px;background:rgba(245,194,74,.07);border-radius:5px;font-size:9px;color:rgba(245,194,74,.6);">'
+    +'⚠ EVM chains ('+_EVM_CHAINS_NOTE.join(", ")+') χρειάζονται χειροκίνητη εισαγωγή'
+    +'</div>'
+  );
+
+  if(list)list.innerHTML=previewLines.join("");
+  if(prev)prev.style.display="";
+  if(st)st.innerHTML='<span style="color:var(--green);">✓ '+Object.keys(allDerived).length+' chains παρήχθησαν από '+cosmosAddrs.length+' πορτοφόλι'+( cosmosAddrs.length>1?"α":"")+'</span>';
+
+  // Store for apply
+  _derivedAddrs={cosmos:cosmosAddrs, derived:allDerived};
+
+  if(btn){btn.disabled=false;btn.textContent="✨ Auto-derive IBC chains από cosmos1 διευθύνσεις";}
+}
+
+function _applyDerived(){
+  if(!_derivedAddrs)return;
+  var inp=document.getElementById("wl-cosmos");
+  if(!inp)return;
+
+  // Build complete list: original cosmos1 + all derived
+  var allLines=_derivedAddrs.cosmos.slice(); // cosmos1... addresses
+  _IBC_DERIVE_CHAINS.forEach(function(chain){
+    var addrs=_derivedAddrs.derived[chain.id]||[];
+    addrs.forEach(function(a){allLines.push(a);});
+  });
+
+  inp.value=allLines.join("\n");
+  _cancelDerived();
+  var st=document.getElementById("derive-status");
+  if(st)st.innerHTML='<span style="color:var(--green);">✓ '+allLines.length+' διευθύνσεις εφαρμόστηκαν — πάτα Αποθήκευση</span>';
+}
+
+function _cancelDerived(){
+  var prev=document.getElementById("derive-preview");
+  if(prev)prev.style.display="none";
+  _derivedAddrs=null;
+}
+
+async function _syncWalletNow(){
+  var btn=document.getElementById("sync-wallet-btn");
+  var st=document.getElementById("sync-status");
+  if(btn){btn.disabled=true;btn.textContent="⏳ Συγχρονισμός...";}
+  if(st)st.textContent="Φόρτωση τιμών...";
+  try{
+    await loadPrices(true);
+    var cosmosStr=(_user?.cosmos_addrs||"").trim();
+    var cAddrs=cosmosStr?cosmosStr.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean):[];
+    if(cAddrs.length){
+      if(st)st.textContent="Φόρτωση υπολοίπων από chains...";
+      await _autoSyncStaking(cAddrs);
+    }
+    if(st)st.textContent="✓ Τελευταίος συγχρονισμός: "+new Date().toLocaleTimeString("el-GR");
+    showToast("✓ Συγχρονισμός ολοκληρώθηκε","green");
+  }catch(e){if(st)st.textContent="⚠ "+e.message;}
+  if(btn){btn.disabled=false;btn.textContent="↻ Συγχρονισμός";}
+}
+async function _loadNotifHist(){
+  var el=document.getElementById("notif-hist");if(!el)return;
+  try{
+    var readIds=JSON.parse(localStorage.getItem("ggwall_read_notifs")||"[]");
+    var r=await fetch(_SB_URL+"/rest/v1/notifications?order=created_at.desc",{headers:_SB_H,signal:AbortSignal.timeout(5000)});
+    if(!r.ok){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:10px;">—</div>';return;}
+    var d=await r.json();
+    if(!d||!d.length){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:10px;">Δεν υπάρχουν ειδοποιήσεις</div>';return;}
+    var unread=d.filter(function(n){return !readIds.includes(n.id);}).length;
+    var badge=document.getElementById("notif-unread-badge");
+    if(badge)badge.innerHTML=unread>0?('<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:9px;padding:2px 8px;border-radius:99px;">'+unread+' νέα</span>'):'';
+    el.innerHTML=d.map(function(n){
+      var isRead=readIds.includes(n.id);
+      var ico=n.type==='new_token'?'📥':n.type==='broadcast'?'📢':n.type==='staking'?'🔔':'⚡';
+      var dt=new Date(n.created_at).toLocaleString('el-GR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      var uid='nh-'+n.id;
+      return '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border2);cursor:pointer;" onclick="_toggleNotif('+JSON.stringify(n.id)+',\''+uid+'\')"">'        +(!isRead?'<div id="dot-'+n.id+'" style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px;"></div>':'<div style="width:6px;flex-shrink:0;"></div>')        +'<div style="width:28px;height:28px;border-radius:7px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">'+ico+'</div>'        +'<div style="flex:1;min-width:0;">'          +'<div style="font-size:11px;font-weight:600;color:'+(isRead?'var(--muted)':'var(--cream)')+';">'+_esc(n.title||'—')+'</div>'          +'<div style="font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_esc(n.body||'')+'</div>'          +(n.detail?'<div id="'+uid+'" style="display:none;font-size:10px;color:var(--muted);background:var(--surface2);border-radius:6px;padding:6px 8px;margin-top:5px;line-height:1.5;">'+_esc(n.detail||'')+'</div>':'')          +'<div style="font-size:9px;color:var(--muted);margin-top:2px;font-family:JetBrains Mono,monospace;">'+dt+(n.detail?' · <span id="arr-'+uid+'" style="font-size:9px;">▼</span>':'')+'</div>'        +'</div>'        +'</div>';
+    }).join("");
+  }catch(e){}
+}
+function _toggleNotif(id,uid){
+  var readIds=JSON.parse(localStorage.getItem("ggwall_read_notifs")||"[]");
+  if(!readIds.includes(id)){readIds.push(id);localStorage.setItem("ggwall_read_notifs",JSON.stringify(readIds));}
+  // Toggle expand
+  var el=document.getElementById(uid);
+  if(el)el.style.display=el.style.display==='block'?'none':'block';
+  // Update arrow
+  var arr=document.getElementById('arr-'+uid);
+  if(arr)arr.textContent=el&&el.style.display==='block'?'▲':'▼';
+  // Update unread dot without reloading
+  var dot=document.getElementById('dot-'+id);
+  if(dot)dot.style.display='none';
+  // Update badge count
+  var badge=document.getElementById('notif-unread-badge');
+  var current=parseInt((badge?.textContent||'0').replace(/[^0-9]/g,''))||0;
+  if(badge&&current>0)badge.innerHTML='<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:9px;padding:2px 8px;border-radius:99px;">'+(current-1)+' νέα</span>';
+}
+async function _deleteUserNotif(id){
+  try{await fetch(_SB_URL+'/rest/v1/notifications?id=eq.'+id,{method:'DELETE',headers:_SB_H});_loadNotifHist();}catch(e){}
+}
+async function _deleteAllUserNotifs(){
+  try{await fetch(_SB_URL+'/rest/v1/notifications',{method:'DELETE',headers:_SB_H});localStorage.removeItem("ggwall_read_notifs");_loadNotifHist();}catch(e){}
+}
+function _updatePushBtn(){var btn=document.getElementById("push-btn");if(!btn)return;var on=localStorage.getItem("ggwall_push_enabled")==="1";btn.textContent=on?"Απενεργοποίηση":"Ενεργοποίηση";btn.style.color=on?"var(--green)":"var(--muted)";}
+async function _togglePush(){if(localStorage.getItem("ggwall_push_enabled")==="1")await _unsubscribePush();else await _subscribePush();}
+async function _subscribePush(){try{if(!("serviceWorker"in navigator)||!("PushManager"in window))return showToast("⚠ Push δεν υποστηρίζεται","red");var perm=await Notification.requestPermission();if(perm!=="granted")return showToast("⚠ Δεν δόθηκε άδεια","red");var reg=await navigator.serviceWorker.ready;var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_b64ToUint8(_VAPID)});var p256=btoa(String.fromCharCode(...new Uint8Array(sub.getKey("p256dh"))));var auth=btoa(String.fromCharCode(...new Uint8Array(sub.getKey("auth"))));await fetch(_SB_URL+"/rest/v1/push_subscriptions",{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify({endpoint:sub.endpoint,p256dh:p256,auth,username:_user?.name||"unknown",app_id:"ggwall"})});localStorage.setItem("ggwall_push_enabled","1");showToast("✓ Push ενεργό","green");_updatePushBtn();}catch(e){showToast("⚠ "+e.message,"red");}}
+async function _unsubscribePush(){try{var reg=await navigator.serviceWorker.ready;var sub=await reg.pushManager.getSubscription();if(sub){await sub.unsubscribe();await fetch(_SB_URL+"/rest/v1/push_subscriptions?endpoint=eq."+encodeURIComponent(sub.endpoint),{method:"DELETE",headers:_SB_H});}localStorage.removeItem("ggwall_push_enabled");showToast("✓ Push απενεργοποιήθηκε","gold");_updatePushBtn();}catch(e){showToast("⚠ "+e.message,"red");}}
+
+// ─── Feedback ─────────────────────────────────────────────────────
+var _fbType="idea",_fbImg=null;
+function _fbSetType(btn){document.querySelectorAll(".fb-typ").forEach(b=>{b.classList.remove("active");b.style.color="";b.style.borderColor="";});btn.classList.add("active");btn.style.color="var(--gold)";btn.style.borderColor="rgba(245,194,74,.4)";_fbType=btn.dataset.t;}
+function _fbImgPreview(inp){var f=inp.files[0];if(!f)return;var rd=new FileReader();rd.onload=e=>{_fbImg=e.target.result;var p=document.getElementById("fb-img-prev");if(p){p.style.display="";p.innerHTML='<img src="'+_fbImg+'" style="width:100%;max-height:90px;object-fit:cover;border-radius:7px;"/>';}}; rd.readAsDataURL(f);}
+async function _submitFeedback(){
+  var msg=(document.getElementById("fb-msg")?.value||"").trim();var st=document.getElementById("fb-status");
+  if(!msg){if(st)st.textContent="⚠ Γράψε κάτι πρώτα";return;}if(st)st.textContent="⏳ Αποστολή...";
+  var imageUrl=null;
+  if(_fbImg&&_fbImg.startsWith("data:")){try{var res=await fetch(_fbImg);var blob=await res.blob();var ext=blob.type.includes("png")?"png":"jpg";var path="feedback/"+Date.now()+"_"+(_user?.name||"anon").replace(/[^a-z0-9]/gi,"_")+"."+ext;var ur=await fetch(_SB_URL+"/storage/v1/object/"+path,{method:"POST",headers:{"Authorization":"Bearer "+_SB_ANON,"Content-Type":blob.type,"x-upsert":"true"},body:blob});if(ur.ok)imageUrl=_SB_URL+"/storage/v1/object/public/"+path;else if(_fbImg.length<70000)imageUrl=_fbImg;}catch(e){if(_fbImg&&_fbImg.length<70000)imageUrl=_fbImg;}}
+  try{await fetch(_SB_URL+"/rest/v1/feedback",{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),body:JSON.stringify({username:_user?.name||"—",type:_fbType,message:msg,app_version:_VER,status:"new",image_url:imageUrl||null})});if(st)st.innerHTML='<span style="color:var(--green);">✓ Στάλθηκε! Ευχαριστούμε 🙏</span>';_fbImg=null;var p=document.getElementById("fb-img-prev");if(p)p.style.display="none";var me=document.getElementById("fb-msg");if(me)me.value="";setTimeout(()=>{if(st)st.textContent="";},3000);}catch(e){if(st)st.innerHTML='<span style="color:var(--red);">⚠ '+e.message+"</span>";}
+}
+
+// ─── Cloud Sync ───────────────────────────────────────────────────
+async function _syncUserToCloud(user,forcePhoto){
+  if(!user||!user.id)return;
+  try{
+    var av=user.avatar||"🧑‍💻",pUrl=user.photo_url||null;
+
+    // Handle photo upload
+    if(forcePhoto&&user.photo&&user.photo.startsWith("data:")){
+      var comp=await _compressAvatar(user.photo,64,.7);
+      if(comp){av="img:"+comp;user.avatar=av;}
+      if(!user.photo_url){
+        var up=await _uploadAvatarToStorage(user.id,user.photo);
+        if(up){user.photo_url=up;pUrl=up;
+          // Persist to localStorage immediately
+          var users=getUsers();var idx=users.findIndex(function(x){return x.id===user.id;});
+          if(idx>=0){users[idx].photo_url=up;saveUsers(users);}
+        }
+      }
+    } else if(user.avatar&&user.avatar.startsWith("img:")){
+      av=user.avatar;
+    }
+
+    // Try full payload first
+    var payload={id:user.id,name:user.name,role:user.role||"viewer",avatar:av,color:user.color||"#a5b4fc",app_id:"ggwall"};
+    if(pUrl)payload.photo_url=pUrl;
+    if(user.email)payload.email=user.email;
+    // ΣΗΜΑΝΤΙΚΟ: μη στέλνεις cosmos_addrs εδώ — αποθηκεύονται μόνο από _saveWallet
+    // Αν υπάρχουν ήδη στο user object, τα συμπεριλαμβάνουμε
+    if(user.cosmos_addrs)payload.cosmos_addrs=user.cosmos_addrs;
+    if(user.cardano_addrs)payload.cardano_addrs=user.cardano_addrs;
+
+    // Χρησιμοποιούμε PATCH για να μην overwrite-άρουμε fields που δεν στέλνουμε
+    var r=await fetch(_SB_URL+"/rest/v1/cloud_users?id=eq."+user.id,{
+      method:"PATCH",
+      headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),
+      body:JSON.stringify(payload)
+    });
+
+    if(!r.ok){
+      var errText=await r.text();
+      console.warn("[syncUser] PATCH failed "+r.status+":",errText.slice(0,120));
+      // Fallback: POST με upsert (για νέους χρήστες)
+      var r2=await fetch(_SB_URL+"/rest/v1/cloud_users",{
+        method:"POST",
+        headers:Object.assign({},_SB_H,{"Prefer":"resolution=merge-duplicates,return=minimal"}),
+        body:JSON.stringify(payload)
+      });
+      if(!r2.ok)console.warn("[syncUser] POST fallback failed:",r2.status);
+      else console.log("[syncUser] POST fallback OK");
+    }
+  }catch(e){console.warn("[syncUser] exception:",e.message);}
+}
+function _compressAvatar(b64,sz,q){return new Promise(res=>{try{var img=new Image();img.onload=()=>{var cv=document.createElement("canvas");cv.width=cv.height=sz||64;var ctx=cv.getContext("2d");var s=Math.min(img.naturalWidth,img.naturalHeight),sx=(img.naturalWidth-s)/2,sy=(img.naturalHeight-s)/2;ctx.drawImage(img,sx,sy,s,s,0,0,sz,sz);res(cv.toDataURL("image/jpeg",q||.7));};img.onerror=()=>res(null);img.src=b64;}catch(e){res(null);}});}
+async function _uploadAvatarToStorage(uid,b64){
+  try{
+    // Compress aggressively before upload (max 200px, quality 0.7)
+    var compressed = await new Promise(function(res){
+      try{
+        var img=new Image();
+        img.onload=function(){
+          var MAX=200;
+          var cv=document.createElement("canvas");
+          cv.width=cv.height=MAX;
+          var ctx=cv.getContext("2d");
+          var s=Math.min(img.naturalWidth,img.naturalHeight);
+          var sx=(img.naturalWidth-s)/2,sy=(img.naturalHeight-s)/2;
+          ctx.drawImage(img,sx,sy,s,s,0,0,MAX,MAX);
+          // Try multiple quality levels until under 500KB
+          var q=0.75;
+          var data=cv.toDataURL("image/jpeg",q);
+          while(data.length>700000&&q>0.3){q-=0.1;data=cv.toDataURL("image/jpeg",q);}
+          res(data);
+        };
+        img.onerror=function(){res(null);};
+        img.src=b64;
+      }catch(e){res(null);}
+    });
+    if(!compressed){console.warn("[avatar] Compression failed");return null;}
+    // Convert to blob
+    var fetchRes=await fetch(compressed);
+    var blob=await fetchRes.blob();
+    console.log("[avatar] Compressed size:",Math.round(blob.size/1024)+"KB");
+    // Upload
+    var filename=uid+".jpg";
+    var r=await fetch(_SB_URL+"/storage/v1/object/avatars/"+filename,{
+      method:"POST",
+      headers:{
+        "apikey":_SB_ANON,
+        "Authorization":"Bearer "+_SB_ANON,
+        "Content-Type":"image/jpeg",
+        "x-upsert":"true"
+      },
+      body:blob
+    });
+    if(r.ok){
+      console.log("[avatar] Upload OK:",filename);
+      return _SB_URL+"/storage/v1/object/public/avatars/"+filename+"?t="+Date.now();
+    }
+    var errText=await r.text();
+    console.warn("[avatar] Upload failed:",r.status,errText.slice(0,120));
+    return null;
+  }catch(e){
+    console.warn("[avatar] Exception:",e.message);
+    return null;
+  }
+}
+
+// ─── Presence & Stats ─────────────────────────────────────────────
+var _presInt=null;
+function _startPresence(user){
+  if(!user)return;
+  var upd=function(){
+    var device=/android/i.test(navigator.userAgent)?"Android":/iphone|ipad/i.test(navigator.userAgent)?"iOS":"Web";
+    fetch(_SB_URL+"/rest/v1/user_presence?on_conflict=user_id,app_id",{
+      method:"POST",
+      headers:Object.assign({},_SB_H,{"Prefer":"resolution=merge-duplicates,return=minimal"}),
+      body:JSON.stringify({user_id:user.id,last_seen:new Date().toISOString(),device:device,app_id:"ggwall"})
+    }).catch(function(){});
+  };
+  upd();
+  if(_presInt)clearInterval(_presInt);
+  _presInt=setInterval(upd,60000);
+}
+function _updateUserStats(u){
+  if(!u)return;
+  var now=new Date().toISOString();
+  fetch(_SB_URL+"/rest/v1/user_stats?on_conflict=user_id,app_id",{
+    method:"POST",
+    headers:Object.assign({},_SB_H,{"Prefer":"resolution=merge-duplicates,return=minimal"}),
+    body:JSON.stringify({user_id:u.id,last_login:now,app_id:"ggwall"})
+  }).catch(function(){});
+}
+
+// ─── Unbonding ────────────────────────────────────────────────────
+async function checkUnbonding(){
+  try{var r=await fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&order=updated_at.desc",{headers:_SB_H,signal:AbortSignal.timeout(5000)});if(!r.ok)return;var d=await r.json();var active=(d||[]).filter(u=>u.status==="unbonding"&&new Date(u.completion_time)>new Date());var b=document.getElementById("unbonding-banner");if(b){if(active.length){b.style.display="";b.textContent="⏳ "+active.length+" εκκρεμής unbonding";}else b.style.display="none";}}catch(e){}
+}
+function _showUnbondDetail(){
+  fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&status=eq.unbonding&order=completion_time.asc",{headers:_SB_H})
+    .then(function(r){return r.json();})
+    .then(function(rows){
+      if(!rows||!rows.length){showToast("Δεν υπάρχουν εκκρεμείς unbonding","gold");return;}
+      // Build modal content
+      var html='<div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;">';
+      rows.forEach(function(u){
+        var comp=new Date(u.completion_time);
+        var now=new Date();
+        var days=Math.ceil((comp-now)/(1000*60*60*24));
+        var chain=u.chain_id||'';
+        var chainName=chain.replace('-network','').replace('-2','').toUpperCase();
+        var amt=parseFloat(u.amount||0).toFixed(2);
+        var dateStr=comp.toLocaleDateString('el-GR',{day:'2-digit',month:'2-digit'});
+        html+='<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.1);border-radius:8px;padding:10px 12px;">'
+          +'<div style="display:flex;align-items:center;gap:8px;">'
+            +'<span style="font-size:14px;">⏳</span>'
+            +'<div>'
+              +'<div style="font-size:12px;font-weight:600;color:#f7e7b8;">'+chainName+'</div>'
+              +'<div style="font-size:10px;color:rgba(231,228,216,.4);">'+amt+' · '+u.validator.slice(0,16)+'...</div>'
+            +'</div>'
+          +'</div>'
+          +'<div style="text-align:right;">'
+            +'<div style="font-size:12px;font-weight:600;color:#f5c24a;">'+days+' ημ.</div>'
+            +'<div style="font-size:10px;color:rgba(231,228,216,.4);">'+dateStr+'</div>'
+          +'</div>'
+          +'</div>';
+      });
+      html+='</div>';
+      // Show in a modal overlay
+      var overlay=document.createElement('div');
+      overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+      overlay.className='unbond-overlay';
+      overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:20px;width:100%;max-width:380px;">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
+          +'<span style="font-size:13px;font-weight:700;color:#f7e7b8;">⏳ Εκκρεμείς Unbonding</span>'
+          +'<button onclick="document.querySelectorAll(\'.unbond-overlay\').forEach(function(el){el.remove();})" style="background:none;border:none;color:rgba(231,228,216,.5);font-size:18px;cursor:pointer;">✕</button>'
+        +'</div>'
+        +html
+        +'</div>';
+      overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+      document.body.appendChild(overlay);
+    }).catch(function(){showToast("Σφάλμα φόρτωσης","red");});
+}
+
+// ─── Logout ───────────────────────────────────────────────────────
+async function _doLogout(){
+  try{await _sb.auth.signOut();}catch(e){}
+  // Καθάρισε μόνο session — ΟΧΙ localStorage (χρήστης παραμένει cached → PIN screen)
+  sessionStorage.removeItem("pin_ok");sessionStorage.removeItem("active_user");sessionStorage.removeItem("login_pin");
+  if(_presInt)clearInterval(_presInt);
+  window.location.replace("login.html");
+}
+
+// ─── Service Worker ───────────────────────────────────────────────
+if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js",{scope:"/crypto-portfolio/"}).then(reg=>{navigator.serviceWorker.addEventListener("controllerchange",()=>{var ts=parseInt(sessionStorage.getItem("login_ts")||"0");if(Date.now()-ts<5000)return;window.location.reload();});}).catch(e=>console.warn("SW:",e));});}
+
+// ─── INIT ─────────────────────────────────────────────────────────
+(async function(){
+  document.body.style.visibility="visible";
+  initUsers();
+  var au=getActiveUser();if(!au){window.location.replace("login.html");return;}
+  applyActiveUser(au);
+  // Load widget layout from Supabase
+  await loadWidgetLayout();
+  // Load addresses FIRST (sync part), then render
+  decryptAndLoadAddrs(sessionStorage.getItem("login_pin"),au.id);
+  // Render portfolio (addresses are parsed, prices loading async)
+  navTo("portfolio");
+  // Periodic refresh
+  // Listen for iframe resize messages
+  window.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='iframeResize'){
+      document.querySelectorAll('iframe[id^="slot-iframe-"]').forEach(function(ifr){
+        try{var h=ifr.contentWindow.document.body.scrollHeight;if(h>50)ifr.style.height=(h+20)+'px';}
+        catch(err){if(e.data.h)ifr.style.height=(e.data.h+20)+'px';}
+      });
+    }
+  });
+  setInterval(async function(){
+    if(!_user)return;
+    // Safety timeout — hide loader after 8s no matter what
+    setTimeout(function(){if(!_balancesReady)_hideLoader();},8000);
+    await _loadFromCache(_user.id);
+    await loadPrices(false);
+
+  },5*60*1000);
+  // Background tasks
+  setTimeout(()=>{_syncUserToCloud(au);},2000);
+  setTimeout(()=>{_startPresence(au);_updateUserStats(au);},3000);
+  setTimeout(()=>{checkUnbonding();},4000);
+  // Log visit
+  fetch(_SB_URL+"/rest/v1/visits",{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),body:JSON.stringify({username:au.name,device:/android/i.test(navigator.userAgent||"")?"Android":/iphone|ipad/i.test(navigator.userAgent||"")?"iOS":"Web",app_id:"ggwall",created_at:new Date().toISOString()})}).catch(()=>{});
+})();
+</script>
+  <!-- PWA Install Banner -->
+  <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:12px 16px;background:var(--surface);border-top:1px solid rgba(245,194,74,.2);box-shadow:0 -8px 32px rgba(0,0,0,.5);display:none;align-items:center;gap:12px;">
+    <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,194,74,.12);border:1px solid rgba(245,194,74,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <img src="icon192.png" style="width:28px;height:28px;border-radius:7px;" onerror="this.style.display='none'"/>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:700;color:var(--cream);">Εγκατάσταση GGWALL</div>
+      <div style="font-size:10px;color:var(--muted);">Πρόσβαση χωρίς browser, push notifications</div>
+    </div>
+    <button onclick="_pwaInstall()" style="padding:8px 16px;border-radius:8px;background:var(--gold);border:none;color:#0b0d12;font-size:12px;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;flex-shrink:0;">Εγκατάσταση</button>
+    <button onclick="_pwaDismiss()" style="padding:8px;border-radius:8px;background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;">✕</button>
+  </div>
+</body>
+</html>

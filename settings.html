@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>GGWALL — Settings</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--gold:#f5c24a;--gold-deep:#d4af5a;--cream:#f7e7b8;--red:#ff5f6d;--green:#7dd67d;--bg:#0b0d12;--surface:#12151d;--surface2:#1a1f2b;--text:#e7e4d8;--muted:rgba(231,228,216,.5);--border:rgba(245,194,74,.12);--border2:rgba(255,255,255,.06);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Space Grotesk",sans-serif;overflow:hidden;}
+body{visibility:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(245,194,74,.2);border-radius:99px;}
+.mono{font-family:"JetBrains Mono",monospace;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.card-title{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-family:"JetBrains Mono",monospace;margin-bottom:12px;}
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:"Space Grotesk",sans-serif;transition:all .15s;}
+.btn-gold{background:linear-gradient(135deg,#d4af5a,#f7e7b8 55%,#d4af5a);color:#0b0d12;}
+.btn-gold:hover{opacity:.9;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:rgba(245,194,74,.35);color:var(--text);}
+.btn-red{background:rgba(255,95,109,.15);border:1px solid rgba(255,95,109,.3);color:var(--red);}
+.inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;font-family:"Space Grotesk",sans-serif;outline:none;transition:border-color .2s;}
+.inp:focus{border-color:rgba(245,194,74,.5);}
+.inp::placeholder{color:var(--muted);}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+.pill-green{background:rgba(125,214,125,.12);color:var(--green);}
+.pill-red{background:rgba(255,95,109,.12);color:var(--red);}
+.pill-gold{background:rgba(245,194,74,.12);color:var(--gold);}
+
+/* Top bar */
+#topbar{position:fixed;top:0;left:0;right:0;height:52px;background:rgba(11,13,18,.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;z-index:100;}
+.tb-title{font-size:14px;font-weight:700;letter-spacing:2px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* Layout */
+#settings-layout{display:flex;height:100vh;padding-top:52px;}
+#settings-sidebar{width:200px;background:rgba(9,11,17,.7);border-right:1px solid var(--border);padding:14px 0;flex-shrink:0;overflow-y:auto;}
+#settings-main{flex:1;overflow-y:auto;padding:20px;}
+
+/* Sidebar tabs */
+.stab{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .15s;border-left:2px solid transparent;}
+.stab:hover{background:rgba(245,194,74,.06);color:var(--text);}
+.stab.active{background:rgba(245,194,74,.1);color:var(--gold);border-left-color:var(--gold);}
+.stab-icon{font-size:15px;width:20px;text-align:center;}
+
+/* Section */
+.s-section{display:none;}
+.s-section.active{display:block;}
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:700px){.s-grid{grid-template-columns:1fr;}}
+.s-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2);}
+.s-row:last-child{border-bottom:none;}
+.s-label{font-size:12px;color:var(--muted);}
+.s-val{font-size:12px;font-weight:600;font-family:"JetBrains Mono",monospace;}
+
+/* Widget builder */
+.wgt-list{display:flex;flex-direction:column;gap:6px;}
+.wgt-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:default;}
+.wgt-drag{color:var(--muted);cursor:grab;font-size:16px;}
+.wgt-name{flex:1;font-size:12px;font-weight:600;}
+.wgt-col{font-size:9px;color:var(--muted);font-family:"JetBrains Mono",monospace;background:rgba(255,255,255,.05);padding:2px 7px;border-radius:4px;}
+.wgt-move{display:flex;gap:3px;}
+.wgt-move button{width:22px;height:22px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.wgt-move button:hover{background:rgba(245,194,74,.1);color:var(--gold);}
+
+/* Users table */
+.users-table{width:100%;border-collapse:collapse;}
+.users-table th{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--border2);text-align:left;font-family:"JetBrains Mono",monospace;}
+.users-table td{font-size:12px;padding:8px 10px;border-bottom:1px solid var(--border2);vertical-align:middle;}
+.users-table tr:last-child td{border-bottom:none;}
+
+/* Toast */
+#toast-wrap{position:fixed;top:62px;right:12px;display:flex;flex-direction:column;gap:5px;z-index:999;pointer-events:none;}
+.toast{padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;max-width:260px;animation:t-in .2s ease;font-family:"Space Grotesk",sans-serif;}
+.toast-green{background:rgba(125,214,125,.16);border:1px solid rgba(125,214,125,.28);color:var(--green);}
+.toast-red{background:rgba(255,95,109,.16);border:1px solid rgba(255,95,109,.28);color:var(--red);}
+.toast-gold{background:rgba(245,194,74,.16);border:1px solid rgba(245,194,74,.28);color:var(--gold);}
+.toast-muted{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--text);}
+@keyframes t-in{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+
+/* Mobile */
+@media(max-width:600px){
+  #settings-sidebar{width:48px;}
+  .stab span:not(.stab-icon){display:none;}
+  .stab-icon{width:100%;text-align:center;}
+  #settings-main{padding:14px 10px;}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+<script>(function(){if(sessionStorage.getItem("pin_ok")!=="1"){window.location.replace("login.html");return;}try{var u=JSON.parse(sessionStorage.getItem("active_user")||"null");if(!u||u.role!=="admin"){window.location.replace("index.html");}}catch(e){window.location.replace("index.html");}})();</script>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--muted);font-size:13px;">&#8592; Πίσω</a>
+  <div style="width:1px;height:20px;background:var(--border2);margin:0 4px;"></div>
+  <span class="tb-title">GGWALL</span>
+  <span style="font-size:10px;color:rgba(245,194,74,.35);font-family:JetBrains Mono,monospace;margin-left:2px;">Settings</span>
+  <div style="flex:1;"></div>
+  <span id="tb-admin-name" style="font-size:11px;color:var(--muted);font-family:JetBrains Mono,monospace;"></span>
+</div>
+
+<!-- LAYOUT -->
+<div id="settings-layout">
+
+  <!-- Sidebar -->
+  <nav id="settings-sidebar">
+    <div class="stab active" id="st-dashboard" onclick="switchTab('dashboard')">
+      <span class="stab-icon">&#9783;</span><span>Dashboard</span>
+    </div>
+    <div class="stab" id="st-appearance" onclick="switchTab('appearance')">
+      <span class="stab-icon">&#127775;</span><span>Appearance</span>
+    </div>
+    <div class="stab" id="st-users" onclick="switchTab('users')">
+      <span class="stab-icon">&#128101;</span><span>Users</span>
+    </div>
+    <div class="stab" id="st-analytics" onclick="switchTab('analytics')">
+      <span class="stab-icon">&#128200;</span><span>Analytics</span>
+    </div>
+    <div class="stab" id="st-push" onclick="switchTab('push')">
+      <span class="stab-icon">&#128276;</span><span>Push</span>
+    </div>
+    <div class="stab" id="st-db" onclick="switchTab('db')">
+      <span class="stab-icon">&#128451;</span><span>Database</span>
+    </div>
+    <div class="stab" id="st-invitations" onclick="switchTab('invitations')">
+      <span class="stab-icon">&#128140;</span><span>Invitations</span>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div id="settings-main">
+
+    <!-- ── DASHBOARD BUILDER ── -->
+    <div class="s-section active" id="sec-dashboard">
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">Dashboard Builder</h2>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Ρύθμισε τη σειρά και τα widgets του dashboard. Αλλαγές αποθηκεύονται ανά χρήστη.</p>
+
+      <div class="s-grid">
+        <!-- Main column widgets -->
+        <div class="card">
+          <div class="card-title">Κεντρική στήλη (Main)</div>
+          <div class="wgt-list" id="wgt-main-list"></div>
+          <button class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:11px;" onclick="_addWidget('main')">+ Προσθήκη widget</button>
+        </div>
+        <!-- Right column widgets -->
+        <div class="card">
+          <div class="card-title">Δεξιά στήλη (Right)</div>
+          <div class="wgt-list" id="wgt-right-list"></div>
+          <button class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:11px;" onclick="_addWidget('right')">+ Προσθήκη widget</button>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">Presets</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="presets-list"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <input class="inp" id="preset-name" placeholder="Όνομα preset..." style="flex:1;"/>
+          <button class="btn btn-gold" onclick="_savePreset()">&#128190; Αποθήκευση</button>
+        </div>
+      </div>
+
+      <!-- Custom Slots -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">Custom Slots (5)</div>
+        <p style="font-size:10px;color:var(--muted);margin-bottom:10px;">Βάλε custom HTML ή iframe σε οποιαδήποτε θέση του dashboard.</p>
+        <div id="custom-slots-list"></div>
+      </div>
+    </div>
+
+    <!-- ── APPEARANCE ── -->
+    <div class="s-section" id="sec-appearance">
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">Appearance</h2>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Προσαρμογή εμφάνισης για όλους τους χρήστες.</p>
+      <div class="card">
+        <div class="card-title">Branding</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:JetBrains Mono,monospace;">APP NAME</div>
+            <input class="inp" id="app-name-inp" value="GGWALL" placeholder="App name"/>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:JetBrains Mono,monospace;">LOGIN LOGO URL (αφήνεις κενό = orbit animation)</div>
+            <input class="inp" id="login-logo-inp" placeholder="https://..."/>
+          </div>
+          <button class="btn btn-gold" onclick="_saveBranding()" style="width:100%;">&#128190; Αποθήκευση</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">Χρώματα (coming soon)</div>
+        <p style="font-size:11px;color:var(--muted);">Custom color theme editor — upcoming feature.</p>
+      </div>
+    </div>
+
+    <!-- ── USERS ── -->
+    <div class="s-section" id="sec-users">
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">Users</h2>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Διαχείριση χρηστών (cloud_users table).</p>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="card-title" style="margin-bottom:0;">ΕΝΕΡΓΟΙ ΧΡΗΣΤΕΣ</div>
+          <button class="btn btn-ghost" style="font-size:10px;" onclick="_loadUsers()">&#8635; Refresh</button>
+        </div>
+        <div id="users-table-wrap">
+          <div style="font-size:11px;color:var(--muted);text-align:center;padding:16px;">Φόρτωση...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS ── -->
+    <div class="s-section" id="sec-analytics">
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">Analytics</h2>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Στατιστικά χρήσης από Supabase.</p>
+      <div class="s-grid" id="analytics-cards">
+        <div class="card"><div class="card-title">ΣΥΝΔΕΣΕΙΣ (30D)</div><div class="s-val mono text-gold" style="font-size:28px;" id="stat-visits">—</div></div>
+        <div class="card"><div class="card-title">ΕΝΕΡΓΟΙ ΧΡΗΣΤΕΣ</div><div class="s-val mono text-green" style="font-size:28px;" id="stat-active">—</div></div>
+        <div class="card"><div class="card-title">PUSH SUBSCRIPTIONS</div><div class="s-val mono" style="font-size:28px;" id="stat-push">—</div></div>
+        <div class="card"><div class="card-title">FEEDBACK (unread)</div><div class="s-val mono text-gold" style="font-size:28px;" id="stat-feedback">—</div></div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">ΠΡΌΣΦΑΤΕΣ ΣΥΝΔΕΣΕΙΣ</div>
+        <div id="recent-visits"></div>
+      </div>
+    </div>
+
+    <!-- ── PUSH ── -->
+    <div class="s-section" id="sec-push">
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">Push Notifications</h2>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Broadcast μήνυμα σε όλους τους συνδρομητές.</p>
+
+      <!-- SEND -->
+      <div class="card">
+        <div class="card-title">ΑΠΟΣΤΟΛΗ</div>
+        <!-- Presets -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">ΕΤΟΙΜΑ TEMPLATES</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <button class="btn btn-ghost" style="font-size:11px;" onclick="_fillPreset('jail')">🚨 Jailed Validator</button>
+            <button class="btn btn-ghost" style="font-size:11px;" onclick="_fillPreset('unbond')">⏳ Unbonding</button>
+            <button class="btn btn-ghost" style="font-size:11px;" onclick="_fillPreset('token')">📥 Νέο Token</button>
+            <button class="btn btn-ghost" style="font-size:11px;" onclick="_fillPreset('portfolio')">📊 Portfolio Update</button>
+            <button class="btn btn-ghost" style="font-size:11px;" onclick="_fillPreset('custom')">✏️ Custom</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <input class="inp" id="push-title" placeholder="Τίτλος ειδοποίησης" oninput="_updatePushPreview()"/>
+            <input class="inp" id="push-short" placeholder="Σύντομο μήνυμα (εμφανίζεται στη συσκευή)" oninput="_updatePushPreview()"/>
+            <textarea class="inp" id="push-body" rows="3" style="resize:none;" placeholder="Αναλυτικό μήνυμα (προαιρετικό — φαίνεται στο notification center)" oninput="_updatePushPreview()"></textarea>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="btn btn-gold" onclick="_sendBroadcast()">&#128228; Αποστολή σε όλους</button>
+              <span id="push-subs-count" style="font-size:11px;color:var(--muted);">— συνδρομητές</span>
+            </div>
+            <div id="push-status" style="font-size:11px;min-height:14px;text-align:center;"></div>
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Live Preview</div>
+            <div style="background:var(--surface2);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,194,74,.12);border:1px solid rgba(245,194,74,.2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">⚡</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">GGWALL · τώρα</div>
+                <div id="pp-title" style="font-size:12px;font-weight:600;color:var(--cream);margin-bottom:2px;">Τίτλος...</div>
+                <div id="pp-short" style="font-size:11px;color:var(--muted);">Σύντομο μήνυμα...</div>
+              </div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:10px;">
+              <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Αναλυτικό (notification center):</div>
+              <div id="pp-body" style="font-size:11px;color:var(--muted);line-height:1.5;">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="card" style="margin-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="card-title" style="margin-bottom:0;">ΙΣΤΟΡΙΚΟ ΑΠΟΣΤΟΛΩΝ</div>
+          <button class="btn" style="font-size:11px;color:var(--red);border-color:rgba(255,95,109,.3);padding:4px 10px;" onclick="_deleteAllNotifications()">🗑 Διαγραφή όλων</button>
+        </div>
+        <div id="push-history-list">
+          <div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;">Φόρτωση...</div>
+        </div>
+      </div>
+
+      <!-- SUBSCRIBERS -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">ΣΥΝΔΡΟΜΗΤΕΣ</div>
+        <div id="push-subs-list">
+          <div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;">Φόρτωση...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DATABASE ── -->
+    <div class="s-section" id="sec-db">
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">Database</h2>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Κατάσταση Supabase tables και manual actions.</p>
+      <div class="s-grid" id="db-status-grid">
+        <div class="card"><div class="card-title">ΣΥΝΔΕΣΗ</div><span class="pill pill-gold" id="db-conn-pill">Checking...</span></div>
+        <div class="card"><div class="card-title">PRICES CACHE</div><div id="db-prices-info" class="s-val mono" style="font-size:11px;">—</div></div>
+        <div class="card"><div class="card-title">CLOUD USERS</div><div id="db-users-count" class="s-val mono" style="font-size:24px;">—</div></div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">ACTIONS</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);">
+            <div><div style="font-size:12px;font-weight:600;">Seed dashboard για όλους τους χρήστες</div><div style="font-size:10px;color:var(--muted);">Δημιουργεί default widgets + custom slots</div></div>
+            <button class="btn btn-ghost" onclick="_seedAllUsers()" style="font-size:10px;white-space:nowrap;">Run Seed</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+            <div><div style="font-size:12px;font-weight:600;">Sync prices now</div><div style="font-size:10px;color:var(--muted);">Trigger price fetch edge function</div></div>
+            <button class="btn btn-ghost" onclick="_syncPricesNow()" style="font-size:10px;white-space:nowrap;">Sync</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s-section" id="sec-invitations">
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">Invitation Codes</h2>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Δημιουργία και διαχείριση κωδικών πρόσκλησης.</p>
+
+      <!-- Create new code -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">ΝΕΟΣ ΚΩΔΙΚΟΣ</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+          <div style="display:flex;gap:8px;">
+            <input id="inv-code-val" class="s-inp" placeholder="GGWALL-XXXX (ή αυτόματο)" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;font-family:'JetBrains Mono',monospace;outline:none;"/>
+            <button class="btn btn-ghost" style="font-size:10px;white-space:nowrap;" onclick="_genInvCode()">⚡ Auto</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="font-size:11px;color:var(--muted);">Χρήσεις:</div>
+            <select id="inv-uses" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;color:var(--text);font-size:11px;outline:none;">
+              <option value="1">1 (single use)</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+            </select>
+            <div style="font-size:11px;color:var(--muted);margin-left:8px;">Expiry:</div>
+            <select id="inv-expiry" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;color:var(--text);font-size:11px;outline:none;">
+              <option value="">Χωρίς</option>
+              <option value="1">1 μέρα</option>
+              <option value="7">7 μέρες</option>
+              <option value="30">30 μέρες</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input id="inv-note" class="s-inp" placeholder="Σημείωση (π.χ. «Για τον Γιώργη»)" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;outline:none;"/>
+          </div>
+          <button class="btn btn-gold" onclick="_createInvCode()">+ Δημιουργία</button>
+        </div>
+      </div>
+
+      <!-- List of codes -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="card-title" style="margin-bottom:0;">ΕΝΕΡΓΟΙ ΚΩΔΙΚΟΙ</div>
+          <button class="btn btn-ghost" style="font-size:10px;" onclick="_loadInvitations()">&#8635; Refresh</button>
+        </div>
+        <div id="inv-list">
+          <div style="font-size:11px;color:var(--muted);text-align:center;padding:16px;">Φόρτωση...</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /settings-main -->
+</div><!-- /settings-layout -->
+
+<div id="toast-wrap"></div>
+
+<script>
+"use strict";
+const _SB_URL  = "https://rzrxulubttnjtxziodib.supabase.co";
+const _SB_ANON = "sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A";
+const _SB_H    = {"apikey":_SB_ANON,"Authorization":"Bearer "+_SB_ANON,"Content-Type":"application/json"};
+const _sb      = supabase.createClient(_SB_URL, _SB_ANON);
+var _user=null;
+
+// ── Helpers ───────────────────────────────────────────────────────
+function showToast(msg,type,dur){type=type||"muted";dur=dur||2500;var el=document.createElement("div");el.className="toast toast-"+(type==="green"?"green":type==="red"?"red":type==="gold"?"gold":"muted");el.textContent=msg;var c=document.getElementById("toast-wrap");if(c){c.appendChild(el);setTimeout(()=>el.remove(),dur);}}
+function _sb_get(path){return fetch(_SB_URL+"/rest/v1/"+path,{headers:_SB_H}).then(r=>r.ok?r.json():[]).catch(()=>[]);}
+function _sb_post(path,body,prefer){return fetch(_SB_URL+"/rest/v1/"+path,{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":prefer||"return=minimal"}),body:JSON.stringify(body)}).then(r=>r.ok).catch(()=>false);}
+
+// ── Tab navigation ────────────────────────────────────────────────
+function switchTab(tab){
+  document.querySelectorAll(".stab").forEach(el=>el.classList.toggle("active",el.id==="st-"+tab));
+  document.querySelectorAll(".s-section").forEach(el=>el.classList.toggle("active",el.id==="sec-"+tab));
+  ({dashboard:_loadDashboard,appearance:_loadAppearance,users:_loadUsers,analytics:_loadAnalytics,push:_loadPush,db:_loadDb,invitations:_loadInvitations}[tab]||function(){})();
+}
+
+// ── Dashboard Builder ─────────────────────────────────────────────
+var _layout={main:["hero","chart"],right:["summary","allocation","top-assets","fear-greed"]};
+var _allWidgets=["hero","chart","summary","allocation","top-assets","fear-greed","staking","custom1","custom2","custom3","custom4","custom5"];
+var _widgetLabels={"hero":"Hero (Αξία Portfolio)","chart":"Chart (P&L)","summary":"Σύνοψη","allocation":"Κατανομή","top-assets":"Top Assets","fear-greed":"Fear & Greed","staking":"Staking","custom1":"Custom Slot 1","custom2":"Custom Slot 2","custom3":"Custom Slot 3","custom4":"Custom Slot 4","custom5":"Custom Slot 5"};
+
+async function _loadDashboard(){
+  // Load from __app_settings__ (global layout for all users)
+  var presets=await _sb_get("dashboard_presets?user_id=eq.__app_settings__&is_active=eq.true");
+  var active=(presets||[])[0];
+  if(active&&active.widgets){
+    if(typeof active.widgets==='string') active.widgets=JSON.parse(active.widgets);
+    if(Array.isArray(active.widgets))_layout={main:active.widgets,right:[]};
+    else _layout={main:active.widgets.main||[],right:active.widgets.right||[]};
+  }
+  _renderWidgetLists();
+  _loadCustomSlots();
+}
+
+function _renderWidgetLists(){
+  ['main','right'].forEach(function(col){
+    var el=document.getElementById('wgt-'+col+'-list');if(!el)return;
+    var items=(_layout&&_layout[col])||[];
+    if(!items.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px 0;text-align:center;">Κενό</div>';return;}
+    var html2='';
+    items.forEach(function(wid,i){
+      var c2=col;
+      var upBtn=i>0?'<button onclick="_moveWidget(\''+c2+'\','+i+',-1)">↑</button>':'<button disabled style="opacity:.3;">↑</button>';
+      var dnBtn=i<items.length-1?'<button onclick="_moveWidget(\''+c2+'\','+i+',1)">↓</button>':'<button disabled style="opacity:.3;">↓</button>';
+      var rmBtn='<button onclick="_removeWidget(\''+c2+'\','+i+')" style="color:var(--red);">✕</button>';
+      html2+='<div class="wgt-item">'
+        +'<span class="wgt-drag">⠿</span>'
+        +'<span class="wgt-name">'+(_widgetLabels[wid]||wid)+'</span>'
+        +'<span class="wgt-col">'+c2+'</span>'
+        +'<div class="wgt-move">'+upBtn+dnBtn+rmBtn+'</div>'
+        +'</div>';
+    });
+    el.innerHTML=html2;
+  });
+}
+
+function _moveWidget(col,idx,dir){
+  var arr=_layout[col];var tmp=arr[idx];arr[idx]=arr[idx+dir];arr[idx+dir]=tmp;
+  _renderWidgetLists();_autoSaveLayout();
+}
+function _removeWidget(col,idx){
+  _layout[col].splice(idx,1);_renderWidgetLists();_autoSaveLayout();
+}
+function _addWidgetToCol(col,wid){
+  _layout[col].push(wid);_renderWidgetLists();_autoSaveLayout();
+}
+async function _autoSaveLayout(){
+  var r=await fetch(_SB_URL+"/rest/v1/dashboard_presets?user_id=eq.__app_settings__&is_active=eq.true",{
+    method:"PATCH",headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),
+    body:JSON.stringify({widgets:_layout,updated_at:new Date().toISOString()})
+  });
+  if(!r.ok){
+    await _sb_post("dashboard_presets",{user_id:"__app_settings__",name:"Default",widgets:_layout,is_active:true});
+  }
+}
+function _addWidget(col){
+  var avail=_allWidgets.filter(w=>!_layout.main.includes(w)&&!_layout.right.includes(w));
+  if(!avail.length)return showToast("Δεν υπάρχουν διαθέσιμα widgets","gold");
+  var wid=avail[0];_layout[col].push(wid);_renderWidgetLists();
+}
+
+async function _savePreset(){
+  // Save as global layout for all users
+  var r=await fetch(_SB_URL+"/rest/v1/dashboard_presets?user_id=eq.__app_settings__&is_active=eq.true",{
+    method:"PATCH",headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),
+    body:JSON.stringify({widgets:_layout,updated_at:new Date().toISOString()})
+  });
+  if(!r.ok){
+    // If no preset exists, create one
+    await _sb_post("dashboard_presets",{user_id:"__app_settings__",name:"Default",widgets:_layout,is_active:true});
+  }
+  showToast("✓ Layout αποθηκεύτηκε για όλους","green");
+  _loadDashboard();
+}
+
+function _renderPresets(presets){
+  var el=document.getElementById("presets-list");if(!el)return;
+  if(!presets||!presets.length){el.innerHTML='<span style="font-size:11px;color:var(--muted);">Δεν υπάρχουν presets</span>';return;}
+  var presHtml="";
+  presets.forEach(function(p){
+    var sty=p.is_active?"border-color:var(--gold);color:var(--gold);":"";
+    presHtml+='<button class="btn btn-ghost" style="font-size:11px;'+sty+'" onclick="_loadPreset(\x22'+p.id+'\x22)">'+p.name+(p.is_active?" ✓":"")+'</button>';
+  });
+  el.innerHTML=presHtml;
+}
+
+async function _loadPreset(id){
+  var presets=await _sb_get("dashboard_presets?id=eq."+id);
+  var p=presets?.[0];if(!p)return;
+  if(p.widgets){if(Array.isArray(p.widgets))_layout={main:p.widgets,right:[]};else _layout=p.widgets;}
+  _renderWidgetLists();showToast("✓ "+p.name+" φορτώθηκε","green");
+}
+
+async function _loadCustomSlots(){
+  if(!_user)return;
+  var slots=await _sb_get("custom_slots?user_id=eq."+_user.id+"&order=slot_index.asc");
+  var el=document.getElementById("custom-slots-list");if(!el)return;
+  el.innerHTML=(slots&&slots.length?slots:[1,2,3,4,5].map(i=>({slot_index:i,name:"Custom "+i,enabled:false,mode:"html",content:""}))).map(s=>{
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--border2);">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">'
+        +'<div style="font-size:12px;font-weight:600;">Slot '+s.slot_index+': '+s.name+'</div>'
+        +'<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--muted);">'
+          +'<input type="checkbox" '+(s.enabled?"checked ":"")+' onchange="_toggleSlot('+s.slot_index+',this.checked)" style="accent-color:var(--gold);"/> Ενεργό'
+        +'</label>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;margin-bottom:6px;">'
+        +'<select id="slot-mode-'+s.slot_index+'" class="inp" style="width:auto;flex-shrink:0;" onchange="_slotModeChange('+s.slot_index+',this.value)">'
+          +'<option value="html"'+(s.mode==="html"?" selected":"")+'>HTML</option>'
+          +'<option value="iframe"'+(s.mode==="iframe"?" selected":"")+'>iFrame URL</option>'
+        +'</select>'
+        +'<input class="inp" id="slot-name-'+s.slot_index+'" value="'+s.name+'" placeholder="Όνομα slot"/>'
+      +'</div>'
+      +'<textarea class="inp" id="slot-content-'+s.slot_index+'" rows="3" style="resize:vertical;font-family:JetBrains Mono,monospace;font-size:11px;" placeholder="'+(s.mode==="iframe"?"https://...":"<div>Custom HTML...</div>")+'">'+s.content+'</textarea>'
+      +'<button class="btn btn-gold" onclick="_saveSlot('+s.slot_index+')" style="margin-top:6px;font-size:10px;">&#128190; Αποθήκευση</button>'
+      +'</div>';
+  }).join("");
+}
+
+async function _saveSlot(idx){
+  if(!_user)return;
+  var name=document.getElementById("slot-name-"+idx)?.value||"Custom "+idx;
+  var content=document.getElementById("slot-content-"+idx)?.value||"";
+  var modeEl=document.getElementById("slot-mode-"+idx);
+  var mode=modeEl?modeEl.value:"html";
+  var r=await fetch(_SB_URL+"/rest/v1/custom_slots?user_id=eq."+_user.id+"&slot_index=eq."+idx,{
+    method:"PATCH",
+    headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),
+    body:JSON.stringify({name,content,mode,updated_at:new Date().toISOString()})
+  });
+  if(r.ok)showToast("✓ Slot "+idx+" αποθηκεύτηκε","green");
+  else showToast("⚠ Αποτυχία αποθήκευσης","red");
+}
+
+function _toggleSlot(idx,enabled){
+  if(!_user)return;
+  fetch(_SB_URL+"/rest/v1/custom_slots?user_id=eq."+_user.id+"&slot_index=eq."+idx,{method:"PATCH",headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),body:JSON.stringify({enabled})});
+}
+function _slotModeChange(idx,mode){
+  var inp=document.getElementById("slot-content-"+idx);if(inp)inp.placeholder=mode==="iframe"?"https://...":"<div>Custom HTML...</div>";}
+
+// ── Appearance ────────────────────────────────────────────────────
+async function _loadAppearance(){
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/cloud_users?id=eq.__app_settings__&app_id=eq.ggwall",{headers:_SB_H});
+    if(r.ok){var d=await r.json();if(d&&d[0]&&d[0].avatar){try{var s=JSON.parse(d[0].avatar);if(s.login_logo_url)document.getElementById("login-logo-inp").value=s.login_logo_url;}catch(e){}}}
+  }catch(e){}
+}
+async function _saveBranding(){
+  var logo=(document.getElementById("login-logo-inp")?.value||"").trim();
+  var s=JSON.stringify({login_logo_url:logo});
+  await fetch(_SB_URL+"/rest/v1/cloud_users",{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify({id:"__app_settings__",name:"__app_settings__",avatar:s,app_id:"ggwall"})});
+  showToast("✓ Branding αποθηκεύτηκε","green");
+}
+
+// ── Users ─────────────────────────────────────────────────────────
+async function _loadUsers(){
+  var wrap=document.getElementById("users-table-wrap");if(!wrap)return;
+  wrap.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;">Φόρτωση...</div>';
+  var users=await _sb_get("cloud_users?app_id=eq.ggwall&id=neq.__app_settings__&order=created_at.desc");
+  if(!users||!users.length){wrap.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;">Δεν βρέθηκαν χρήστες</div>';return;}
+  var html='<table class="users-table"><thead><tr><th>Χρήστης</th><th>Role</th><th>Email</th><th>Last seen</th><th>Actions</th></tr></thead><tbody>';
+  users.forEach(function(u){
+    var cls=u.role==="admin"?"color:var(--gold)":"";
+    var avHtml=u.avatar&&!u.avatar.startsWith("img:")?u.avatar:(u.name||"?").slice(0,2);
+    html+='<tr data-name="'+_esc(u.name)+'" data-uid="'+u.id+'">'
+      +'<td><div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:24px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;border:1px solid var(--border);">'+avHtml+'</div>'
+      +'<span style="font-size:12px;font-weight:600;'+cls+'">'+u.name+'</span></div></td>'
+      +'<td><span class="pill '+(u.role==="admin"?"pill-gold":"")+'">'+u.role+'</span></td>'
+      +'<td><span style="font-size:10px;color:var(--muted);">'+(u.email||"—")+'</span></td>'
+      +'<td><span style="font-size:9px;color:var(--muted);font-family:JetBrains Mono,monospace;">'+(u.last_seen?new Date(u.last_seen).toLocaleDateString("el-GR"):"—")+'</span></td>'
+      +'<td id="urow-'+u.id+'" style="display:flex;gap:5px;"><button class="btn btn-ghost" style="font-size:10px;" onclick="_toggleRole(this)">'+(u.role==="admin"?"→ Viewer":"→ Admin")+'</button><button class="btn btn-red" style="font-size:10px;" onclick="_deleteUser(this)">✕</button></td>'
+      +'</tr>';
+  });
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+}
+
+async function _deleteUser(btn){
+  var row=btn.closest("tr");if(!row)return;
+  var name=row.dataset.name;
+  if(!name||name==='Askaar')return showToast("⚠ Δεν μπορείς να διαγράψεις τον admin","red");
+  if(!confirm("Διαγραφή χρήστη «"+name+"»; Αυτό δεν αναιρείται!"))return;
+  // Use complete delete function (cloud_users + auth.users)
+  var r=await fetch(_SB_URL+"/rest/v1/rpc/delete_user_complete",{
+    method:"POST",
+    headers:Object.assign({},_SB_H,{"Prefer":"return=representation"}),
+    body:JSON.stringify({p_name:name})
+  });
+  if(!r.ok)return showToast("⚠ Αποτυχία διαγραφής","red");
+  showToast("✓ Χρήστης «"+name+"» διαγράφηκε","green");
+  _loadUsers();
+}
+
+async function _toggleRole(btn){
+  var row=btn.closest("tr");if(!row)return;
+  var name=row.dataset.name;
+  var currRole=cells[1]?.textContent?.trim()||"viewer";
+  var users=await _sb_get("cloud_users?app_id=eq.ggwall&name=eq."+encodeURIComponent(name)+"&select=id,role");
+  if(!users||!users[0])return showToast("⚠ User not found","red");
+  var uid=users[0].id, newRole=currRole==="admin"?"viewer":"admin";
+  await fetch(_SB_URL+"/rest/v1/cloud_users?id=eq."+uid,{method:"PATCH",headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),body:JSON.stringify({role:newRole})});
+  showToast("✓ Role → "+newRole,"green");_loadUsers();
+}
+
+// ── Analytics ─────────────────────────────────────────────────────
+async function _loadAnalytics(){
+  try{
+    var cutoff=new Date();cutoff.setDate(cutoff.getDate()-30);var cutStr=cutoff.toISOString();
+    var [visits,users,pushSubs,feedback]=await Promise.all([
+      _sb_get("visits?created_at=gte."+cutStr+"&select=id&app_id=eq.ggwall"),
+      _sb_get("user_presence?last_seen=gte."+cutStr+"&select=user_id&app_id=eq.ggwall"),
+      _sb_get("push_subscriptions?select=id&app_id=eq.ggwall"),
+      _sb_get("feedback?status=eq.new&select=id"),
+    ]);
+    var f=id=>document.getElementById(id);
+    if(f("stat-visits"))f("stat-visits").textContent=visits.length;
+    if(f("stat-active"))f("stat-active").textContent=[...new Set(users.map(u=>u.user_id))].length;
+    if(f("stat-push"))f("stat-push").textContent=pushSubs.length;
+    if(f("stat-feedback"))f("stat-feedback").textContent=feedback.length;
+    // Recent visits
+    var rv=await _sb_get("visits?app_id=eq.ggwall&order=created_at.desc&limit=20");
+    var rvEl=document.getElementById("recent-visits");
+    if(rvEl)rvEl.innerHTML=(rv||[]).map(v=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2);font-size:11px;"><span style="font-weight:600;">'+v.username+'</span><span style="color:var(--muted);font-family:JetBrains Mono,monospace;font-size:9px;">'+new Date(v.created_at).toLocaleString("el-GR")+'</span></div>').join("") || '<div style="font-size:11px;color:var(--muted);text-align:center;padding:10px;">Δεν βρέθηκαν επισκέψεις</div>';
+  }catch(e){showToast("⚠ "+e.message,"red");}
+}
+
+function _esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Push ──────────────────────────────────────────────────────────
+var _pushPresets={
+  jail:{title:'⚠️ Validator Jailed!',short:'strangelove (ATOM · Cosmos) μπήκε σε jail!',long:'Κάνε redelegate άμεσα για να μην χάσεις αποδόσεις.'},
+  unbond:{title:'⏳ Unbonding ξεκίνησε',short:'4,184 ATOM ξεκίνησαν unbonding (21 ημέρες)',long:'Αναμενόμενη ολοκλήρωση: 15/05/2026'},
+  token:{title:'📥 Νέο Token!',short:'+80.2 PLANQ στο osmo13rqe7vw...',long:'Ανακαλύφθηκε νέο token στο πορτοφόλι σου.'},
+  portfolio:{title:'📊 Portfolio Update',short:'Το ATOM ανέβηκε +5.2% σήμερα! (+511€)',long:'Συνολική αξία: 10,699€ · P&L 24h: +511€'},
+  custom:{title:'',short:'',long:''}
+};
+function _fillPreset(key){
+  var p=_pushPresets[key];if(!p)return;
+  var t=document.getElementById('push-title');
+  var s=document.getElementById('push-short');
+  var b=document.getElementById('push-body');
+  if(t)t.value=p.title;
+  if(s)s.value=p.short;
+  if(b)b.value=p.long;
+  _updatePushPreview();
+}
+
+function _updatePushPreview(){
+  var t=document.getElementById('push-title')?.value||'Τίτλος...';
+  var s=document.getElementById('push-short')?.value||'Σύντομο μήνυμα...';
+  var b=document.getElementById('push-body')?.value||'—';
+  var pt=document.getElementById('pp-title');var ps=document.getElementById('pp-short');var pb=document.getElementById('pp-body');
+  if(pt)pt.textContent=t;if(ps)ps.textContent=s;if(pb)pb.textContent=b;
+}
+
+async function _loadPush(){
+  var [subs,notifs]=await Promise.all([
+    _sb_get("push_subscriptions?app_id=eq.ggwall&order=created_at.desc"),
+    _sb_get("notifications?order=created_at.desc")
+  ]);
+  // Subs count
+  var sc=document.getElementById('push-subs-count');
+  if(sc)sc.textContent=(subs&&subs.length?subs.length:0)+' συνδρομητές';
+  // Subs list
+  var el=document.getElementById("push-subs-list");
+  if(el)el.innerHTML=(subs&&subs.length?subs:[]).map(s=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border2);">'
+    +'<div><span style="font-size:12px;font-weight:600;">'+s.username+'</span>'
+    +'<span style="font-size:9px;color:var(--muted);margin-left:8px;">'+(s.device_type||'Web')+'</span></div>'
+    +'<span style="font-size:9px;color:var(--muted);font-family:JetBrains Mono,monospace;">'+new Date(s.created_at||Date.now()).toLocaleDateString("el-GR")+'</span>'
+    +'</div>').join("")||'<div style="font-size:11px;color:var(--muted);text-align:center;padding:10px;">Δεν υπάρχουν συνδρομητές</div>';
+  // History
+  _renderNotifHistory(notifs||[]);
+}
+
+function _renderNotifHistory(notifs){
+  var el=document.getElementById('push-history-list');
+  if(!el)return;
+  if(!notifs.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;">Δεν υπάρχουν αποστολές</div>';return;}
+  el.innerHTML=notifs.map(n=>{
+    var ico='📢';
+    var dt=new Date(n.created_at).toLocaleString('el-GR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border2);">'
+      +'<div style="width:30px;height:30px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">'+ico+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:12px;font-weight:600;color:var(--cream);">'+_esc(n.title||'—')+'</div>'
+        +'<div style="font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_esc(n.body||'')+'</div>'
+        +(n.detail?'<div style="font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;">'+_esc(n.detail)+'</div>':'')
+        +'<div style="font-size:9px;color:var(--muted);margin-top:2px;font-family:JetBrains Mono,monospace;">'+dt+'</div>'
+      +'</div>'
+      +'<button class="btn" style="font-size:10px;color:var(--red);border-color:rgba(255,95,109,.2);padding:3px 8px;flex-shrink:0;" onclick="_deleteNotif('+JSON.stringify(n.id)+')">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+async function _deleteNotif(id){
+  try{
+    await fetch(_SB_URL+'/rest/v1/notifications?id=eq.'+id,{method:'DELETE',headers:_SB_H});
+    showToast('✓ Διαγράφηκε','gold');
+    _loadPush();
+  }catch(e){showToast('⚠ '+e.message,'red');}
+}
+
+async function _deleteAllNotifications(){
+  if(!confirm('Διαγραφή όλων των notifications;'))return;
+  try{
+    await fetch(_SB_URL+'/rest/v1/notifications',{method:'DELETE',headers:_SB_H});
+    showToast('✓ Διαγράφηκαν όλα','gold');
+    _loadPush();
+  }catch(e){showToast('⚠ '+e.message,'red');}
+}
+
+async function _sendBroadcast(){
+  var title=(document.getElementById("push-title")?.value||"").trim();
+  var shortMsg=(document.getElementById("push-short")?.value||"").trim();
+  var body=(document.getElementById("push-body")?.value||"").trim();
+  var st=document.getElementById("push-status");
+  if(!title||!shortMsg){if(st)st.textContent="⚠ Συμπλήρωσε τίτλο και σύντομο μήνυμα";return;}
+  if(st)st.textContent="⏳ Αποστολή...";
+  try{
+    // Save to notifications table
+    await _sb_post("notifications",{title,body:shortMsg,detail:body||null,sent_by:"broadcast",created_at:new Date().toISOString()});
+    // Send push via edge function (βρίσκει μόνο του τα subscriptions)
+    var r=await fetch(_SB_URL+'/functions/v1/send-push',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_SB_ANON},
+      body:JSON.stringify({title,message:shortMsg,app_id:'ggwall'})
+    });
+    var res=await r.json();
+    var sent=res.sent||0,total=res.total||0;
+    if(st)st.innerHTML='<span style="color:var(--green);">✓ Εστάλη σε '+sent+'/'+total+' συνδρομητές</span>';
+    document.getElementById('push-title').value='';
+    document.getElementById('push-short').value='';
+    document.getElementById('push-body').value='';
+    _updatePushPreview();
+    setTimeout(_loadPush,1000);
+  }catch(e){if(st)st.innerHTML='<span style="color:var(--red);">⚠ '+e.message+'</span>';}
+}
+
+// ── DB Status ─────────────────────────────────────────────────────
+async function _loadDb(){
+  // Connection test
+  var pill=document.getElementById("db-conn-pill");
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/cloud_users?limit=1",{headers:_SB_H,signal:AbortSignal.timeout(5000)});
+    if(pill)pill.className=r.ok?"pill pill-green":"pill pill-red";if(pill)pill.textContent=r.ok?"Connected":"Error "+r.status;
+  }catch(e){if(pill){pill.className="pill pill-red";pill.textContent="Offline";}}
+  // Prices cache info
+  try{
+    var prices=await _sb_get("prices_cache?order=updated_at.desc&limit=1");
+    var pi=document.getElementById("db-prices-info");
+    if(pi&&prices&&prices[0])pi.textContent=new Date(prices[0].updated_at).toLocaleString("el-GR");
+  }catch(e){}
+  // Counts
+  try{
+    var users=await _sb_get("cloud_users?app_id=eq.ggwall&select=id,name");
+    var uc=document.getElementById("db-users-count");
+    if(uc)uc.textContent=(users||[]).length;
+  }catch(e){}
+}
+
+async function _seedAllUsers(){
+  try{
+    var users=await _sb_get("cloud_users?app_id=eq.ggwall&select=id,name");
+    var count=0;
+    for(var u of (users||[])){
+      await fetch(_SB_URL+"/rest/v1/rpc/seed_user_dashboard",{method:"POST",headers:_SB_H,body:JSON.stringify({p_user_id:u.id})});count++;
+    }
+    showToast("✓ Seeded "+count+" users","green");
+  }catch(e){showToast("⚠ "+e.message,"red");}
+}
+
+async function _syncPricesNow(){
+  try{
+    await fetch(_SB_URL+"/functions/v1/fetch-prices",{method:"POST",headers:{"Authorization":"Bearer "+_SB_ANON,"Content-Type":"application/json"},body:"{}"});
+    showToast("✓ Price sync triggered","green");
+  }catch(e){showToast("⚠ "+e.message,"red");}
+}
+
+// ── Invitations ───────────────────────────────────────────────────
+function _genInvCode(){
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code='GGWALL-';
+  for(var i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  var el=document.getElementById('inv-code-val');if(el)el.value=code;
+}
+
+async function _createInvCode(){
+  var code=(document.getElementById('inv-code-val')?.value||'').trim().toUpperCase();
+  var uses=parseInt(document.getElementById('inv-uses')?.value||'1');
+  var expDays=document.getElementById('inv-expiry')?.value;
+  var note=document.getElementById('inv-note')?.value||'';
+  if(!code){showToast('⚠ Βάλε κωδικό ή πάτα Auto','red');return;}
+  if(!code.startsWith('GGWALL-')){showToast('⚠ Ο κωδικός πρέπει να ξεκινά με GGWALL-','red');return;}
+  var body={code,uses_max:uses,uses_count:0,active:true,note:note||null};
+  if(expDays)body.expires_at=new Date(Date.now()+parseInt(expDays)*86400000).toISOString();
+  var r=await fetch(_SB_URL+'/rest/v1/invitations',{
+    method:'POST',
+    headers:Object.assign({},_SB_H,{'Prefer':'return=minimal'}),
+    body:JSON.stringify(body)
+  });
+  if(r.ok){
+    showToast('✓ Code «'+code+'» δημιουργήθηκε','green');
+    document.getElementById('inv-code-val').value='';
+    document.getElementById('inv-note').value='';
+    _loadInvitations();
+  } else {
+    var err=await r.text();
+    showToast('⚠ '+(err.includes('duplicate')?'Ο κωδικός υπάρχει ήδη':err.slice(0,60)),'red');
+  }
+}
+
+async function _loadInvitations(){
+  var el=document.getElementById('inv-list');if(!el)return;
+  el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;">Φόρτωση...</div>';
+  var data=await _sb_get('invitations?order=created_at.desc');
+  if(!data||!data.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:16px;">Δεν υπάρχουν κωδικοί</div>';return;}
+  var now=new Date();
+  var html='<table class="users-table"><thead><tr><th>Code</th><th>Χρήσεις</th><th>Status</th><th>Expiry</th><th>Note</th><th></th></tr></thead><tbody>';
+  data.forEach(function(inv){
+    var expired=inv.expires_at&&new Date(inv.expires_at)<now;
+    var used=inv.uses_count>=inv.uses_max;
+    var status=!inv.active?'inactive':expired?'expired':used?'used':'active';
+    var statusColor={active:'var(--green)',used:'var(--muted)',expired:'var(--red)',inactive:'var(--muted)'}[status];
+    var statusLabel={active:'✓ Active',used:'✓ Used',expired:'✕ Expired',inactive:'— Inactive'}[status];
+    var expStr=inv.expires_at?new Date(inv.expires_at).toLocaleDateString('el-GR'):'—';
+    html+='<tr>'
+      +'<td><span style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--gold);">'+inv.code+'</span></td>'
+      +'<td><span style="font-family:JetBrains Mono,monospace;font-size:11px;">'+inv.uses_count+'/'+inv.uses_max+'</span></td>'
+      +'<td><span style="font-size:10px;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span></td>'
+      +'<td><span style="font-size:10px;color:var(--muted);">'+expStr+'</span></td>'
+      +'<td><span style="font-size:10px;color:var(--muted);">'+(inv.note||'—')+'</span></td>'
+      +'<td style="display:flex;gap:4px;" data-code="'+inv.code+'">'
+      +(status==='active'?'<button class="btn btn-ghost" style="font-size:9px;" onclick="_toggleInvActive(this,false)">Pause</button>':'')
+      +(status==='inactive'?'<button class="btn btn-ghost" style="font-size:9px;" onclick="_toggleInvActive(this,true)">Resume</button>':'')
+      +'<button class="btn btn-red" style="font-size:9px;" onclick="_deleteInv(this)">✕</button>'
+      +'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+async function _toggleInvActive(btn,active){
+  var code=btn.closest('td').dataset.code;
+  var r=await fetch(_SB_URL+'/rest/v1/invitations?code=eq.'+encodeURIComponent(code),{
+    method:'PATCH',headers:Object.assign({},_SB_H,{'Prefer':'return=minimal'}),
+    body:JSON.stringify({active})
+  });
+  if(r.ok){showToast('✓ Updated','green');_loadInvitations();}
+  else showToast('⚠ Αποτυχία','red');
+}
+
+async function _deleteInv(btn){
+  var code=btn.closest('td').dataset.code;
+  if(!confirm('Διαγραφή κωδικού «'+code+'»;'))return;
+  var r=await fetch(_SB_URL+'/rest/v1/invitations?code=eq.'+encodeURIComponent(code),{method:'DELETE',headers:_SB_H});
+  if(r.ok){showToast('✓ Διαγράφηκε','green');_loadInvitations();}
+  else showToast('⚠ Αποτυχία','red');
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+(async function(){
+  document.body.style.visibility="visible";
+  try{_user=JSON.parse(sessionStorage.getItem("active_user")||"null");}catch(e){}
+  if(!_user||_user.role!=="admin"){window.location.replace("index.html");return;}
+  var nm=document.getElementById("tb-admin-name");if(nm)nm.textContent=_user.name;
+  // Load first tab
+  _loadDashboard();
+  _loadDb();
+})();
+</script>
+</body>
+</html>
