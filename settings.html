@@ -569,27 +569,11 @@ async function _loadUsers(){
       +'<td><span class="pill '+(u.role==="admin"?"pill-gold":"")+'">'+u.role+'</span></td>'
       +'<td><span style="font-size:10px;color:var(--muted);">'+(u.email||"—")+'</span></td>'
       +'<td><span style="font-size:9px;color:var(--muted);font-family:JetBrains Mono,monospace;">'+(u.last_seen?new Date(u.last_seen).toLocaleDateString("el-GR"):"—")+'</span></td>'
-      +'<td id="urow-'+u.id+'" style="display:flex;gap:5px;"><button class="btn btn-ghost" style="font-size:10px;" onclick="_toggleRole(this)">'+(u.role==="admin"?"→ Viewer":"→ Admin")+'</button><button class="btn btn-red" style="font-size:10px;" onclick="_deleteUser(this)">✕</button></td>'
+      +'<td id="urow-'+u.id+'" style="display:flex;gap:5px;"><button class="btn btn-ghost" style="font-size:10px;" onclick="_toggleRole(this)">'+(u.role==="admin"?"→ Viewer":"→ Admin")+'</button></td>'
       +'</tr>';
   });
   html+='</tbody></table>';
   wrap.innerHTML=html;
-}
-
-async function _deleteUser(btn){
-  var row=btn.closest("tr");if(!row)return;
-  var name=row.dataset.name;
-  if(!name||name==='Askaar')return showToast("⚠ Δεν μπορείς να διαγράψεις τον admin","red");
-  if(!confirm("Διαγραφή χρήστη «"+name+"»; Αυτό δεν αναιρείται!"))return;
-  // Use complete delete function (cloud_users + auth.users)
-  var r=await fetch(_SB_URL+"/rest/v1/rpc/delete_user_complete",{
-    method:"POST",
-    headers:Object.assign({},_SB_H,{"Prefer":"return=representation"}),
-    body:JSON.stringify({p_name:name})
-  });
-  if(!r.ok)return showToast("⚠ Αποτυχία διαγραφής","red");
-  showToast("✓ Χρήστης «"+name+"» διαγράφηκε","green");
-  _loadUsers();
 }
 
 async function _toggleRole(btn){
@@ -754,8 +738,9 @@ async function _loadDb(){
   // Counts
   try{
     var users=await _sb_get("cloud_users?app_id=eq.ggwall&select=id,name");
+    var realUsers=(users||[]).filter(function(u){return u.name&&!u.name.startsWith("__");});
     var uc=document.getElementById("db-users-count");
-    if(uc)uc.textContent=(users||[]).length;
+    if(uc)uc.textContent=realUsers.length;
   }catch(e){}
 }
 
