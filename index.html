@@ -198,6 +198,18 @@ body{visibility:hidden;}
 .ptab{padding:3px 7px;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;font-family:"JetBrains Mono",monospace;border:none;background:transparent;}
 .ptab.active{background:rgba(245,194,74,.15);color:var(--gold);}
 .ptab:hover:not(.active){color:var(--text);}
+/* Comparison chart custom legend */
+.cmp-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.cmp-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:7px;background:var(--surface2);border:1px solid var(--border2);font-size:10px;font-weight:700;color:var(--text);cursor:pointer;transition:all .15s;font-family:"JetBrains Mono",monospace;min-height:32px;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.cmp-pill:hover{border-color:var(--border);transform:translateY(-1px);}
+.cmp-pill:active{transform:translateY(0);}
+.cmp-pill.muted{opacity:.4;background:transparent;}
+.cmp-pill.muted .cmp-dot{filter:grayscale(1);}
+.cmp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cmp-pct{font-size:9px;color:var(--muted);font-weight:600;}
+.cmp-pill:not(.muted) .cmp-pct.pos{color:var(--green);}
+.cmp-pill:not(.muted) .cmp-pct.neg{color:var(--red);}
+@media(max-width:600px){.cmp-pill{min-height:36px;padding:8px 11px;font-size:10.5px;}.cmp-dot{width:9px;height:9px;}.cmp-pct{font-size:9.5px;}}
 
 /* Allocation bars */
 .alloc-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
@@ -687,6 +699,12 @@ var _addrsReady=false;
 var _rawAddrs=null;
 var _phDays=parseInt(localStorage.getItem("ggwall_ph_range")||"1");if(![1,7,30,60,90,365].includes(_phDays))_phDays=1;
 var _cmpRange=parseInt(localStorage.getItem("ggwall_cmp_range")||"7");
+// Comparison chart: dedicated colors (JUNO=red για διάκριση από BTC=orange)
+const CMP_COLORS={"bitcoin":"#f7931a","cosmos":"#818cf8","osmosis":"#ff6fd8","juno-network":"#ff414b","cardano":"#0d9de8"};
+const CMP_COIN_IDS=["bitcoin","cosmos","osmosis","juno-network","cardano"];
+const CMP_VIS_KEY="ggwall_cmp_visible";
+var _cmpVisible=(function(){try{var s=JSON.parse(localStorage.getItem(CMP_VIS_KEY)||"null");if(s&&typeof s==="object"){var r={};CMP_COIN_IDS.forEach(function(c){r[c]=s[c]!==false;});return r;}}catch(e){}var r={};CMP_COIN_IDS.forEach(function(c){r[c]=true;});return r;})();
+function _saveCmpVis(){try{localStorage.setItem(CMP_VIS_KEY,JSON.stringify(_cmpVisible));}catch(e){}}
 var _phChart=null, _cmpChart=null;
 var _balancesReady=false; // true όταν τα balances έχουν φορτωθεί από cache + prices
 var _minDisplayEur=parseFloat(localStorage.getItem("ggwall_min_display")||"10");
@@ -1078,7 +1096,7 @@ function _renderMarkets(main,right){
   cc.innerHTML='<div class="card-head"><span class="card-title">ΣΥΓΚΡΙΣΗ</span>'
     +'<div class="period-tabs" id="cmp-tabs">'
     +[1,7,30,365].map(function(d){return '<button class="ptab'+(d===_cmpRange?" active":"")+'" onclick="_setCmpRange('+(d)+')">'+(d===1?"1D":d===7?"7D":d===30?"30D":"1Y")+'</button>';}).join("")
-    +'</div></div><div style="height:130px;"><canvas id="cmp-chart" style="width:100%;height:100%;"></canvas></div>';
+    +'</div></div><div class="cmp-legend" id="cmp-legend"></div><div style="height:240px;position:relative;"><canvas id="cmp-chart" style="width:100%;height:100%;"></canvas></div>';
   main.appendChild(cc);
   if(right)right.innerHTML="";
   if(!_cmpChart)loadHistoricalData(_cmpRange);
@@ -1395,19 +1413,56 @@ async function loadHistoricalData(days){
   try{
     var cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);
     var cmpHeaders=Object.assign({},_SB_H,{"Range":"0-100000","Range-Unit":"items"});
-    var r=await fetch(_SB_URL+"/rest/v1/price_history_hourly?select=coin_id,created_at,price_eur&coin_id=in.(bitcoin,cosmos,osmosis)&created_at=gte."+cutoff.toISOString()+"&order=created_at.asc&limit=100000",{headers:cmpHeaders,signal:AbortSignal.timeout(10000)});
+    var coinFilter=CMP_COIN_IDS.join(",");
+    var r=await fetch(_SB_URL+"/rest/v1/price_history_hourly?select=coin_id,created_at,price_eur&coin_id=in.("+coinFilter+")&created_at=gte."+cutoff.toISOString()+"&order=created_at.asc&limit=100000",{headers:cmpHeaders,signal:AbortSignal.timeout(10000)});
     if(!r.ok)return;var rows=await r.json();
-    // Use ALL hourly points
     var byTs={};rows.forEach(row=>{if(!byTs[row.created_at])byTs[row.created_at]={};byTs[row.created_at][row.coin_id]=row.price_eur;});
     var allTs=Object.keys(byTs).sort();if(!allTs.length)return;
     if(_cmpChart&&typeof _cmpChart.destroy==="function"){_cmpChart.destroy();_cmpChart=null;}
-    var coinIds=[...new Set(rows.map(r=>r.coin_id))];
-    var datasets=coinIds.map(id=>{var firstTs=allTs.find(t=>byTs[t][id]),first=firstTs?byTs[firstTs][id]:1;return{label:(coinReg[id]?.sym||id).toUpperCase(),data:allTs.map(t=>{var p=byTs[t][id];return p?((p/first-1)*100):null;}),borderColor:COIN_BRAND[id]||"#f5c24a",borderWidth:2,tension:.4,fill:false,pointRadius:0,spanGaps:true};});
+    // Build datasets in fixed order, apply persisted visibility
+    var datasets=CMP_COIN_IDS.map(function(id){
+      var firstTs=allTs.find(function(t){return byTs[t][id];});
+      var first=firstTs?byTs[firstTs][id]:1;
+      var data=allTs.map(function(t){var p=byTs[t][id];return p?((p/first-1)*100):null;});
+      var ds={label:((coinReg[id]&&coinReg[id].sym)||id).toUpperCase(),data:data,borderColor:CMP_COLORS[id]||"#f5c24a",borderWidth:2.2,tension:.35,fill:false,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:CMP_COLORS[id]||"#f5c24a",spanGaps:true,hidden:!_cmpVisible[id]};
+      ds._coinId=id;
+      return ds;
+    });
     var cmpLabels=allTs.map(function(t){var dt=new Date(t);return _cmpRange===1?dt.toLocaleTimeString("el-GR",{hour:"2-digit",minute:"2-digit"}):dt.toLocaleDateString("el-GR",{day:"numeric",month:"short"});});
-    _cmpChart=new Chart(canv,{type:"line",data:{labels:cmpLabels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:"rgba(231,228,216,.5)",font:{size:9,family:"JetBrains Mono"},boxWidth:10,padding:6}}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:9,family:"JetBrains Mono"}}},y:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:9,family:"JetBrains Mono"},callback:v=>v.toFixed(1)+"%"}}}}});
+    var isMobile=window.innerWidth<=600;
+    var maxTicks=isMobile?(_cmpRange===1?4:_cmpRange<=7?5:_cmpRange<=30?5:6):(_cmpRange===1?6:_cmpRange<=7?7:_cmpRange<=30?8:10);
+    _cmpChart=new Chart(canv,{type:"line",data:{labels:cmpLabels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500,easing:"easeOutQuart"},interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:"rgba(11,13,18,.95)",titleColor:"#f5c24a",bodyColor:"#e7e4d8",borderColor:"rgba(245,194,74,.3)",borderWidth:1,padding:isMobile?8:10,titleFont:{family:"JetBrains Mono",size:10,weight:"600"},bodyFont:{family:"JetBrains Mono",size:isMobile?10:11},callbacks:{label:function(ctx){var v=ctx.parsed.y;if(v===null||v===undefined)return null;var sign=v>=0?"+":"";return ctx.dataset.label+": "+sign+v.toFixed(2)+"%";}}}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:isMobile?8:9,family:"JetBrains Mono"},maxTicksLimit:maxTicks,autoSkip:true,maxRotation:0}},y:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:isMobile?8:9,family:"JetBrains Mono"},callback:function(v){return (v>=0?"+":"")+v.toFixed(0)+"%";},maxTicksLimit:isMobile?4:5},position:"right"}}}});
+    _buildCmpLegend(datasets);
   }catch(e){console.warn("[cmp]",e.message);}
 }
+function _buildCmpLegend(datasets){
+  var c=document.getElementById("cmp-legend");if(!c)return;
+  c.innerHTML="";
+  datasets.forEach(function(ds){
+    var id=ds._coinId;var arr=ds.data;
+    var lastVal=null;for(var i=arr.length-1;i>=0;i--){if(arr[i]!==null&&arr[i]!==undefined){lastVal=arr[i];break;}}
+    if(lastVal===null)lastVal=0;
+    var sign=lastVal>=0?"+":"";
+    var pctClass=lastVal>=0?"pos":"neg";
+    var pill=document.createElement("div");
+    pill.className="cmp-pill"+(_cmpVisible[id]?"":" muted");
+    pill.dataset.id=id;
+    pill.innerHTML='<span class="cmp-dot" style="background:'+CMP_COLORS[id]+';"></span><span>'+ds.label+'</span><span class="cmp-pct '+pctClass+'">'+sign+lastVal.toFixed(2)+'%</span>';
+    pill.addEventListener("click",function(){
+      _cmpVisible[id]=!_cmpVisible[id];
+      _saveCmpVis();
+      if(_cmpChart){
+        var dsIdx=_cmpChart.data.datasets.findIndex(function(d){return d._coinId===id;});
+        if(dsIdx>=0){var meta=_cmpChart.getDatasetMeta(dsIdx);meta.hidden=!_cmpVisible[id];_cmpChart.update();}
+      }
+      pill.classList.toggle("muted",!_cmpVisible[id]);
+    });
+    c.appendChild(pill);
+  });
+}
 function _setCmpRange(d){_cmpRange=d;localStorage.setItem("ggwall_cmp_range",String(d));if(_cmpChart&&typeof _cmpChart.destroy==="function"){_cmpChart.destroy();}_cmpChart=null;document.querySelectorAll("#cmp-tabs .ptab").forEach((b,i)=>b.classList.toggle("active",[1,7,30,365][i]===d));loadHistoricalData(d);}
+// Redraw cmp chart on viewport breakpoint crossing (mobile <-> desktop)
+(function(){var _wasMobile=window.innerWidth<=600;var _t=null;window.addEventListener("resize",function(){clearTimeout(_t);_t=setTimeout(function(){var nowMobile=window.innerWidth<=600;if(nowMobile!==_wasMobile&&_cmpChart){_wasMobile=nowMobile;_cmpChart.destroy();_cmpChart=null;loadHistoricalData(_cmpRange);}},300);});})();
 
 // ─── User Overlay ─────────────────────────────────────────────────
 function openUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.add("open");_updatePushBtn();_loadNotifHist();}
