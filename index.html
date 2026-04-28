@@ -431,7 +431,7 @@ body{visibility:hidden;}
     <button class="topbar-btn" onclick="openUserOverlay()" id="user-btn" title="Ρυθμίσεις">
       <span id="tb-avatar" style="font-size:15px;">&#128100;</span>
     </button>
-    <a id="admin-link" href="settings.html" class="topbar-btn" title="Admin" style="display:none;">&#9881;</a>
+    <!-- Admin link removed — admin operations are now in offline GGWALLADMIN panel -->
   </div>
 </div>
 
@@ -775,8 +775,7 @@ function applyActiveUser(user){
   // Topbar avatar
   var tb=document.getElementById("tb-avatar");
   if(tb){var ph=user.photo||(user.avatar?.startsWith("img:")?user.avatar.slice(4):null);if(ph)tb.innerHTML='<img src="'+ph+'" style="width:22px;height:22px;object-fit:cover;border-radius:50%;"/>';else tb.textContent=user.avatar&&!user.avatar.startsWith("img:")?user.avatar:user.initials||"👤";}
-  // Admin link
-  var al=document.getElementById("admin-link");if(al)al.style.display=user.role==="admin"?"flex":"none";
+  // Admin link removed — admin tools are in offline GGWALLADMIN panel
   // Version
   var vEl=document.getElementById("tb-ver");if(vEl)vEl.textContent=_VER;
   // Populate overlay
