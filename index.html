@@ -1232,10 +1232,10 @@ function decryptAndLoadAddrs(pin,userId){
 // Φόρτωσε balances από Supabase cache → instant display
 async function _loadFromCache(userId){
   if(!userId)return false;
-  // Pre-load custom slots if not loaded yet
+  // Pre-load custom slots if not loaded yet (GLOBAL — από __app_settings__)
   if(_customSlots.length===0){
     try{
-      var slotRes=await fetch(_SB_URL+'/rest/v1/custom_slots?user_id=eq.'+userId+'&enabled=eq.true&order=slot_index.asc',{headers:_SB_H,signal:AbortSignal.timeout(3000)});
+      var slotRes=await fetch(_SB_URL+'/rest/v1/custom_slots?user_id=eq.__app_settings__&enabled=eq.true&order=slot_index.asc',{headers:_SB_H,signal:AbortSignal.timeout(3000)});
       var slots=await slotRes.json();
       if(slots&&slots.length)_customSlots=slots;
     }catch(e){}
