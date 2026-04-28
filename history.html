@@ -210,6 +210,22 @@ body::before{
 .tx-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.6;}
 .tx-card:hover{border-color:var(--accent);}
 .tx-card.open{border-color:var(--accent);}
+/* ── SPAM badges ──────────────────────────────── */
+.tx-card.spam-suspect{background:rgba(255,159,67,.03);}
+.tx-card.spam-suspect::before{background:#ff9f43;opacity:.8;}
+.tx-card.spam-danger{background:rgba(255,95,109,.04);}
+.tx-card.spam-danger::before{background:#ff5f6d;opacity:1;}
+.spam-banner{display:flex;align-items:center;gap:8px;padding:7px 18px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid;}
+.spam-banner.danger{background:rgba(255,95,109,.12);color:#ff5f6d;border-bottom-color:rgba(255,95,109,.2);}
+.spam-banner.suspect{display:none;}
+.spam-pill{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;border:1px solid;}
+.spam-pill.warn{background:rgba(255,159,67,.15);color:#ff9f43;border-color:rgba(255,159,67,.25);}
+.spam-pill.danger{background:rgba(255,95,109,.15);color:#ff5f6d;border-color:rgba(255,95,109,.25);}
+/* Spam tab in filter bar */
+.tab.spam-tab{display:inline-flex;align-items:center;gap:5px;}
+.tab.spam-tab .spam-count{background:rgba(255,95,109,.2);color:#ff5f6d;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;font-family:'JetBrains Mono',monospace;letter-spacing:0;}
+.tab.spam-tab.on{background:rgba(255,95,109,.12);color:#ff5f6d;}
+.tab.spam-tab.on .spam-count{background:rgba(255,95,109,.3);}
 .tx-main{display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center;padding:18px 22px;cursor:pointer;}
 .tx-icon{width:44px;height:44px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}
 .tx-row1{display:flex;align-items:center;gap:14px;margin-bottom:6px;flex-wrap:wrap;}
@@ -372,6 +388,7 @@ body::before{
           <button class="tab" data-type="delegate">Stake</button>
           <button class="tab" data-type="rewards">Rewards</button>
           <button class="tab" data-type="swap">Swap</button>
+          <button class="tab spam-tab" data-type="spam">Spam <span class="spam-count" id="spam-count">0</span></button>
         </div>
         <div class="fright">
 <select class="sel" id="period-sel">
@@ -634,6 +651,14 @@ function renderHero() {
   document.getElementById('cnt-out').textContent = outCount.toLocaleString('el-GR');
   document.getElementById('cnt-rew').textContent = rewCount.toLocaleString('el-GR');
   document.getElementById('cnt-stk').textContent = stkCount.toLocaleString('el-GR');
+
+  // Spam count (από όλα τα transactions, όχι μόνο τα filtered)
+  var spamCount = state.transactions.filter(function(t){return t.spam_score && t.spam_score > 0;}).length;
+  var spamCountEl = document.getElementById('spam-count');
+  if (spamCountEl) spamCountEl.textContent = spamCount;
+  // Hide spam tab αν δεν υπάρχει spam
+  var spamTab = document.querySelector('.tab.spam-tab');
+  if (spamTab) spamTab.style.display = spamCount > 0 ? '' : 'none';
 }
 
 function renderWallets() {
@@ -883,12 +908,28 @@ function renderTxCard(tx, isLive) {
 
   var cpHtml = renderCounterparty(tx, t.color);
 
-  var card = '<div class="tx-card ' + (isOpen ? 'open' : '') + '' + '" data-txid="' + tx.id + '" style="--accent:' + t.color + ';--accent-bg:' + t.bg + ';">';
+  // ── Spam detection ─────────────────────────────────
+  var spamScore = tx.spam_score || 0;
+  var spamReasons = tx.spam_reasons || '';
+  var spamClass = '';
+  var spamBanner = '';
+  var spamPill = '';
+  if (spamScore === 2) {
+    spamClass = ' spam-danger';
+    spamBanner = '<div class="spam-banner danger"><span>🚨</span><span>Επικίνδυνο SCAM — Μην επισκεφθείς URLs</span></div>';
+    spamPill = ' <span class="spam-pill danger" title="' + escapeHtml(spamReasons) + '">🚨 SCAM</span>';
+  } else if (spamScore === 1) {
+    spamClass = ' spam-suspect';
+    spamPill = ' <span class="spam-pill warn" title="' + escapeHtml(spamReasons) + '">⚠ SPAM</span>';
+  }
+
+  var card = '<div class="tx-card ' + (isOpen ? 'open' : '') + spamClass + '" data-txid="' + tx.id + '" style="--accent:' + t.color + ';--accent-bg:' + t.bg + ';">';
+  card += spamBanner;
   card += '<div class="tx-main">';
   card += '<div class="tx-icon">' + t.icon + '</div>';
   card += '<div>';
   card += '<div class="tx-row1">';
-  card += '<span class="tx-type">' + t.label + '</span>';
+  card += '<span class="tx-type">' + t.label + '</span>' + spamPill;
   if (w) card += '<span class="tx-wallet" style="color:' + w.color + ';">● ' + w.name + '</span>';
   card += '<span class="tx-chain"><span class="chain-dot" style="background:' + chain.color + ';width:14px;height:14px;font-size:7px;">' + chain.symbol.slice(0,1) + '</span> ' + chain.name + '</span>';
   card += '<span class="tx-time">' + time + '</span>';
@@ -968,7 +1009,12 @@ function applyFilters() {
   var cutoff = f.period === 'all' ? 0 : now - (parseInt(f.period) * 24 * 60 * 60 * 1000);
 
   return state.transactions.filter(function(tx) {
-    if (f.type !== 'all' && tx.type !== f.type) return false;
+    // Special: 'spam' type filter shows ONLY spam txs
+    if (f.type === 'spam') {
+      if (!tx.spam_score || tx.spam_score === 0) return false;
+    } else if (f.type !== 'all' && tx.type !== f.type) {
+      return false;
+    }
     if (f.chain !== 'all' && tx.chain_id !== f.chain) return false;
     if (cutoff > 0 && new Date(tx.timestamp).getTime() < cutoff) return false;
     if (f.wallet !== 'all') {
