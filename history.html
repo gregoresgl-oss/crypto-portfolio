@@ -226,6 +226,12 @@ body::before{
 .tab.spam-tab .spam-count{background:rgba(255,95,109,.2);color:#ff5f6d;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;font-family:'JetBrains Mono',monospace;letter-spacing:0;}
 .tab.spam-tab.on{background:rgba(255,95,109,.12);color:#ff5f6d;}
 .tab.spam-tab.on .spam-count{background:rgba(255,95,109,.3);}
+/* IBC Relay toggle */
+.ibc-toggle{background:transparent;color:rgba(255,255,255,.5);border:1px solid var(--line);padding:6px 11px;border-radius:8px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;font-weight:700;transition:all .15s;}
+.ibc-toggle:hover{border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.7);}
+.ibc-toggle.on{background:rgba(98,134,255,.12);color:#6286ff;border-color:rgba(98,134,255,.4);}
+.ibc-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .15s;}
+.ibc-toggle.on .ibc-dot{background:#6286ff;box-shadow:0 0 8px rgba(98,134,255,.6);}
 .tx-main{display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center;padding:18px 22px;cursor:pointer;}
 .tx-icon{width:44px;height:44px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}
 .tx-row1{display:flex;align-items:center;gap:14px;margin-bottom:6px;flex-wrap:wrap;}
@@ -391,6 +397,9 @@ body::before{
           <button class="tab spam-tab" data-type="spam">Spam <span class="spam-count" id="spam-count">0</span></button>
         </div>
         <div class="fright">
+          <button id="ibc-toggle" class="ibc-toggle" type="button" title="IBC Relay Noise (MsgUpdateClient, MsgRecvPacket κτλ)">
+            <span class="ibc-dot"></span>IBC RELAY
+          </button>
 <select class="sel" id="period-sel">
             <option value="30">30 ημέρες</option>
             <option value="90">90 ημέρες</option>
@@ -488,7 +497,8 @@ var state = {
     wallet: 'all',
     type: 'all',
     chain: 'all',
-    period: 'all'
+    period: 'all',
+    showIbcRelay: false   // ⬅ default OFF: hide IBC relayer noise
   },
   expanded: null,
   renameTarget: null    // wallet object being renamed
@@ -1009,6 +1019,17 @@ function applyFilters() {
   var cutoff = f.period === 'all' ? 0 : now - (parseInt(f.period) * 24 * 60 * 60 * 1000);
 
   return state.transactions.filter(function(tx) {
+    // Filter out IBC relayer noise (default OFF)
+    if (!f.showIbcRelay) {
+      var t = tx.type || '';
+      if (t === '/ibc.core.client.v1.MsgUpdateClient' ||
+          t === '/ibc.core.channel.v1.MsgRecvPacket' ||
+          t === '/ibc.core.channel.v1.MsgAcknowledgement' ||
+          t === '/ibc.core.channel.v1.MsgTimeout' ||
+          t === '/ibc.core.channel.v1.MsgTimeoutOnClose' ||
+          t === '/ibc.core.connection.v1.MsgConnectionOpenAck' ||
+          t === '/ibc.core.connection.v1.MsgConnectionOpenConfirm') return false;
+    }
     // Special: 'spam' type filter shows ONLY spam txs
     if (f.type === 'spam') {
       if (!tx.spam_score || tx.spam_score === 0) return false;
@@ -1100,6 +1121,21 @@ function bindFilters() {
     state.filters.period = e.target.value;
     render();
   });
+
+  // IBC Relay toggle (persisted in localStorage)
+  var ibcBtn = document.getElementById('ibc-toggle');
+  if (ibcBtn) {
+    var saved = localStorage.getItem('ggwall_show_ibc_relay');
+    state.filters.showIbcRelay = (saved === '1');
+    ibcBtn.classList.toggle('on', state.filters.showIbcRelay);
+
+    ibcBtn.addEventListener('click', function() {
+      state.filters.showIbcRelay = !state.filters.showIbcRelay;
+      ibcBtn.classList.toggle('on', state.filters.showIbcRelay);
+      localStorage.setItem('ggwall_show_ibc_relay', state.filters.showIbcRelay ? '1' : '0');
+      render();
+    });
+  }
 }
 
 // ──────────── Run ────────────
