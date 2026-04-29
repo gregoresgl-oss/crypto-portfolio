@@ -499,9 +499,7 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
         <button class="pin-btn sm" onclick="pinPress('C')">CLR</button><button class="pin-btn" onclick="pinPress('0')">0</button><button class="pin-btn sm" onclick="pinPress('D')">⌫</button>
       </div>
       <div id="pin-err" class="err" style="margin-top:10px;"></div>
-      <div style="text-align:center;margin-top:12px;">
-        <button onclick="_showScreen('landing')" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;">← Αλλαγή χρήστη</button>
-      </div>
+      <!-- "Αλλαγή χρήστη" button removed: full logout now goes to email/password screen -->
     </div>
   </div>
 
@@ -1511,8 +1509,8 @@ async function _checkExistingSession(){
     return;
   }
 
-  // ── SLOW PATH: no cache → need network ──
-  _showScreen('landing'); // show landing immediately while checking
+  // ── SLOW PATH: no cache → go directly to email/password screen ──
+  _showScreen('auth'); // email/password login screen
   fetchAppSettings();
   _checkExistingSession();
 })();

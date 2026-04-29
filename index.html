@@ -1985,8 +1985,14 @@ function _showUnbondDetail(){
 // ─── Logout ───────────────────────────────────────────────────────
 async function _doLogout(){
   try{await _sb.auth.signOut();}catch(e){}
-  // Καθάρισε μόνο session — ΟΧΙ localStorage (χρήστης παραμένει cached → PIN screen)
-  sessionStorage.removeItem("pin_ok");sessionStorage.removeItem("active_user");sessionStorage.removeItem("login_pin");
+  // FULL LOGOUT: clear both session AND localStorage
+  // Επόμενη φορά: email + password (όχι PIN screen)
+  sessionStorage.removeItem("pin_ok");
+  sessionStorage.removeItem("active_user");
+  sessionStorage.removeItem("login_pin");
+  sessionStorage.removeItem("login_ts");
+  // Clear user from localStorage so login page shows email/password screen
+  localStorage.removeItem("ggwall_users_v1");
   if(_presInt)clearInterval(_presInt);
   window.location.replace("login.html");
 }
