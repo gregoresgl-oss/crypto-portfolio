@@ -733,18 +733,24 @@ function initUsers(){
 }
 
 async function syncUsersFromCloud(){
+  // AUTO-CLEANUP: sync ONLY the currently logged-in user, not all users
+  // (security: prevents stale users from accumulating)
   try{
-    var r=await fetch(_SB_URL+"/rest/v1/cloud_users?app_id=eq.ggwall&order=created_at.asc",{headers:_SB_H,signal:AbortSignal.timeout(7000)});
-    if(!r.ok)return false;var cu=await r.json();if(!cu||!cu.length)return false;
     var local=getUsers();
-    var merged=cu.filter(c=>c.name&&!c.name.startsWith("__")).map(c=>{
-      var ex=local.find(u=>u.id===c.id||u.name===c.name);
-      var av=c.avatar||ex?.avatar||"🧑‍💻",ph=null;
-      if(av.startsWith("img:")){ph=av.slice(4);av="🧑‍💻";}
-      if(c.photo_url)ph=c.photo_url;if(!ph&&ex?.photo)ph=ex.photo;
-      return{id:c.id,name:c.name,role:c.role||"viewer",color:c.color||"#a5b4fc",avatar:av,photo:ph,photo_url:c.photo_url||null,email:c.email||ex?.email||"",initials:(c.name||"").slice(0,2).toUpperCase(),pin:ex?.pin||DEF_PIN,_fromCloud:true};
-    });
-    if(!merged.length)return false;saveUsers(merged);return true;
+    var current=null;
+    try{current=JSON.parse(sessionStorage.getItem("active_user")||"null");}catch(e){}
+    var myId=current?.id || (local[0]?.id);
+    if(!myId)return false;
+    var r=await fetch(_SB_URL+"/rest/v1/cloud_users?id=eq."+myId+"&app_id=eq.ggwall",{headers:_SB_H,signal:AbortSignal.timeout(7000)});
+    if(!r.ok)return false;var cu=await r.json();if(!cu||!cu.length)return false;
+    var c=cu[0];
+    if(!c.name || c.name.startsWith("__"))return false;
+    var ex=local.find(u=>u.id===c.id);
+    var av=c.avatar||ex?.avatar||"🧑‍💻",ph=null;
+    if(av.startsWith("img:")){ph=av.slice(4);av="🧑‍💻";}
+    if(c.photo_url)ph=c.photo_url;if(!ph&&ex?.photo)ph=ex.photo;
+    var merged=[{id:c.id,name:c.name,role:c.role||"viewer",color:c.color||"#a5b4fc",avatar:av,photo:ph,photo_url:c.photo_url||null,email:c.email||ex?.email||"",initials:(c.name||"").slice(0,2).toUpperCase(),pin:ex?.pin||DEF_PIN,_fromCloud:true,device_verified:ex?.device_verified||true}];
+    saveUsers(merged);return true;
   }catch(e){return false;}
 }
 
