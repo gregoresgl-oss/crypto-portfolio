@@ -1756,12 +1756,6 @@ function _toggleNotif(id,uid){
   var current=parseInt((badge?.textContent||'0').replace(/[^0-9]/g,''))||0;
   if(badge&&current>0)badge.innerHTML='<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:9px;padding:2px 8px;border-radius:99px;">'+(current-1)+' νέα</span>';
 }
-async function _deleteUserNotif(id){
-  try{await fetch(_SB_URL+'/rest/v1/notifications?id=eq.'+id,{method:'DELETE',headers:_SB_H});_loadNotifHist();}catch(e){}
-}
-async function _deleteAllUserNotifs(){
-  try{await fetch(_SB_URL+'/rest/v1/notifications',{method:'DELETE',headers:_SB_H});localStorage.removeItem("ggwall_read_notifs");_loadNotifHist();}catch(e){}
-}
 function _updatePushBtn(){var btn=document.getElementById("push-btn");if(!btn)return;var on=localStorage.getItem("ggwall_push_enabled")==="1";btn.textContent=on?"Απενεργοποίηση":"Ενεργοποίηση";btn.style.color=on?"var(--green)":"var(--muted)";}
 async function _togglePush(){if(localStorage.getItem("ggwall_push_enabled")==="1")await _unsubscribePush();else await _subscribePush();}
 async function _subscribePush(){try{if(!("serviceWorker"in navigator)||!("PushManager"in window))return showToast("⚠ Push δεν υποστηρίζεται","red");var perm=await Notification.requestPermission();if(perm!=="granted")return showToast("⚠ Δεν δόθηκε άδεια","red");var reg=await navigator.serviceWorker.ready;var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_b64ToUint8(_VAPID)});var p256=btoa(String.fromCharCode(...new Uint8Array(sub.getKey("p256dh"))));var auth=btoa(String.fromCharCode(...new Uint8Array(sub.getKey("auth"))));await fetch(_SB_URL+"/rest/v1/push_subscriptions",{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify({endpoint:sub.endpoint,p256dh:p256,auth,username:_user?.name||"unknown",app_id:"ggwall"})});localStorage.setItem("ggwall_push_enabled","1");showToast("✓ Push ενεργό","green");_updatePushBtn();}catch(e){showToast("⚠ "+e.message,"red");}}

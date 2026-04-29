@@ -272,7 +272,29 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
         <button type="submit" class="btn-gold">Σύνδεση →</button>
         <div id="login-err" class="err"></div>
       </form>
+      <div style="text-align:center;margin-top:8px;">
+        <button onclick="_showScreen('forgot-pass')" style="background:none;border:none;color:var(--gold);font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;text-decoration:underline;">Ξέχασες τον κωδικό;</button>
+      </div>
       <button onclick="_showScreen('landing')" class="btn-ghost" style="margin-top:8px;">← Πίσω</button>
+    </div>
+  </div>
+
+  <!-- ══ FORGOT PASSWORD ══ -->
+  <div class="screen" id="screen-forgot-pass">
+    <div style="text-align:center;padding:14px 0 10px;">
+      <div style="font-size:28px;margin-bottom:8px;">🔑</div>
+      <div style="font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px;">Επαναφορά Κωδικού</div>
+      <div style="font-size:11px;color:var(--muted);">Θα λάβεις email με σύνδεσμο επαναφοράς.</div>
+    </div>
+    <div class="card">
+      <form onsubmit="event.preventDefault();_doForgotPassword();" style="display:flex;flex-direction:column;gap:10px;">
+        <div class="iw">
+          <input class="inp" id="forgot-email" type="email" placeholder="Το email του λογαριασμού" autocomplete="email"/>
+        </div>
+        <button type="submit" class="btn-gold">Αποστολή →</button>
+        <div id="forgot-msg" class="err"></div>
+      </form>
+      <button onclick="_showScreen('auth')" class="btn-ghost" style="margin-top:8px;">← Πίσω</button>
     </div>
   </div>
 
@@ -555,7 +577,7 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
         <div style="font-size:10px;color:var(--muted);">λεπτά</div>
       </div>
       <button class="btn-ghost" onclick="_showScreen('auth')" style="margin-bottom:8px;">🔑 Σύνδεση με κύριο κωδικό</button>
-      <div style="font-size:10px;color:var(--muted);text-align:center;">Ξέχασες τον κωδικό; Επικοινώνησε με τον admin.</div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;">Ξέχασες τον κωδικό; <a href="#" onclick="event.preventDefault();_showScreen('forgot-pass');" style="color:var(--gold);text-decoration:underline;">Επαναφορά εδώ</a>.</div>
     </div>
   </div>
 
@@ -667,7 +689,36 @@ function _obfuscatePin(pin){
 }
 
 // ── Screen navigation ─────────────────────────────────────────────
-var _SCREENS=['landing','auth','inv-code','inv-account','inv-profile','inv-wallet','inv-pin','inv-welcome','returning','lockout'];
+var _SCREENS=['landing','auth','inv-code','inv-account','inv-profile','inv-wallet','inv-pin','inv-welcome','returning','lockout','forgot-pass','reset-password'];
+// ── Forgot Password (sends reset email) ──────────────────────────
+async function _doForgotPassword(){
+  var email=(document.getElementById('forgot-email')?.value||'').trim().toLowerCase();
+  var msg=document.getElementById('forgot-msg');
+  if(!msg)return;
+  msg.style.display='none';msg.style.color='';
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    msg.textContent='⚠ Βάλε ένα έγκυρο email';msg.style.display='block';return;
+  }
+  // Disable button to prevent multi-clicks
+  var btn=document.querySelector('#screen-forgot-pass button[type="submit"]');
+  if(btn){btn.disabled=true;btn.style.opacity='.6';btn.textContent='⏳ Αποστολή...';}
+  try{
+    var redirectTo=window.location.origin+window.location.pathname.replace(/[^\/]*$/,'login.html');
+    var r=await _sb.auth.resetPasswordForEmail(email,{redirectTo:redirectTo});
+    if(r.error)throw r.error;
+    // Success — Supabase always returns success even για ανύπαρκτα emails (security)
+    msg.style.color='var(--green)';
+    msg.textContent='✅ Αν το email υπάρχει, θα λάβεις σύνδεσμο επαναφοράς σε λίγα λεπτά.';
+    msg.style.display='block';
+    if(btn){btn.textContent='✅ Στάλθηκε';}
+  }catch(e){
+    msg.style.color='var(--red)';
+    msg.textContent='⚠ '+(e.message||'Σφάλμα — δοκίμασε ξανά');
+    msg.style.display='block';
+    if(btn){btn.disabled=false;btn.style.opacity='';btn.textContent='Αποστολή →';}
+  }
+}
+
 // ── Reset Password ───────────────────────────────────────────────
 async function _doResetPassword(){
   var p1=document.getElementById('reset-pass1').value;
