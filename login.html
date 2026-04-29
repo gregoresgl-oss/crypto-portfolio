@@ -1079,14 +1079,8 @@ function _loginSuccess(user){
   sessionStorage.setItem('active_user',JSON.stringify(user));
   sessionStorage.setItem('login_pin', _pinInput||'0000');
   sessionStorage.setItem('login_ts', String(Date.now()));
-  // Log visit (fire & forget)
-  fetch(_SB_URL+'/rest/v1/visits',{method:'POST',
-    headers:Object.assign({},_SB_HDR,{'Prefer':'return=minimal'}),
-    body:JSON.stringify({username:user.name,device:_getDevice(),app_id:'ggwall',created_at:new Date().toISOString()})
-  }).catch(function(){});
   _eyeSuccess(function(){window.location.replace(APP_URL);});
 }
-function _getDevice(){var ua=navigator.userAgent||'';return /android/i.test(ua)?'Android':/iphone|ipad/i.test(ua)?'iOS':'Web';}
 
 // ── Supabase Auth: LOGIN ──────────────────────────────────────────
 async function _doLogin(){

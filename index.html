@@ -2002,8 +2002,6 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   setTimeout(()=>{_syncUserToCloud(au);},2000);
   setTimeout(()=>{_startPresence(au);_updateUserStats(au);},3000);
   setTimeout(()=>{checkUnbonding();},4000);
-  // Log visit
-  fetch(_SB_URL+"/rest/v1/visits",{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":"return=minimal"}),body:JSON.stringify({username:au.name,device:/android/i.test(navigator.userAgent||"")?"Android":/iphone|ipad/i.test(navigator.userAgent||"")?"iOS":"Web",app_id:"ggwall",created_at:new Date().toISOString()})}).catch(()=>{});
 })();
 </script>
   <!-- PWA Install Banner -->
