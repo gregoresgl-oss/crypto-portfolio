@@ -1064,10 +1064,19 @@ function _orbitFeedback(){
 
 // ── Login success ─────────────────────────────────────────────────
 function _loginSuccess(user){
-  // Mark this user as device-verified (entered PIN successfully here)
+  // AUTO-CLEANUP: keep ONLY the logged-in user in localStorage
+  // (security: prevents stale users from previous logins from accumulating)
   var users=getUsers();
   var idx=users.findIndex(function(u){return u.id===user.id;});
-  if(idx>=0){users[idx].device_verified=true;saveUsers(users);}
+  if(idx>=0){
+    // User exists in localStorage — keep only this one, mark as verified
+    users[idx].device_verified=true;
+    saveUsers([users[idx]]);
+  } else {
+    // User not in localStorage yet — create entry with current user only
+    var entry=Object.assign({},user,{device_verified:true});
+    saveUsers([entry]);
+  }
   sessionStorage.setItem('pin_ok','1');
   sessionStorage.setItem('active_user',JSON.stringify(user));
   sessionStorage.setItem('login_pin', _pinInput||'0000');
