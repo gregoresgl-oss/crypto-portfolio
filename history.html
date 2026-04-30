@@ -641,7 +641,32 @@ body::before{
 // ──────────── Constants ────────────
 var SB_URL = "https://rzrxulubttnjtxziodib.supabase.co";
 var SB_ANON = "sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A";
-var SB_H = {'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON};
+
+// ──────────── Auth Helper ────────────
+// Reads JWT from localStorage (set by login.html via Supabase Auth)
+// and returns proper headers for authenticated requests.
+function getAuthHeaders() {
+  var headers = {'apikey': SB_ANON};
+  try {
+    var sess = localStorage.getItem('sb-rzrxulubttnjtxziodib-auth-token');
+    if (sess) {
+      var parsed = JSON.parse(sess);
+      if (parsed && parsed.access_token) {
+        headers['Authorization'] = 'Bearer ' + parsed.access_token;
+        return headers;
+      }
+    }
+  } catch(e) {}
+  // Fallback to anon (e.g. logged out users hitting public pages)
+  headers['Authorization'] = 'Bearer ' + SB_ANON;
+  return headers;
+}
+
+// Backward-compat shim — code that uses SB_H still works.
+// Note: This is evaluated once at load. For most cases this is fine
+// because we read it after login completes. If session changes mid-page,
+// callers should use getAuthHeaders() directly.
+var SB_H = getAuthHeaders();
 
 var TX_TYPES = {
   send:       {label:'Αποστολή',   color:'#ff5f6d', icon:'↗', bg:'rgba(255,95,109,.12)'},
