@@ -695,10 +695,11 @@ function renderHero() {
   var inCount = 0, outCount = 0, rewCount = 0, stkCount = 0;
   filtered.forEach(function(t) {
     var v = parseFloat(t.value_eur || 0);
-    if (t.type === 'receive') { inSum += v; inCount++; }
-    else if (t.type === 'send') { outSum += Math.abs(v); outCount++; }
-    else if (t.type === 'rewards') { rewSum += v; rewCount++; }
-    else if (t.type === 'delegate' || t.type === 'undelegate') { stkCount++; }
+    var nt = normalizeType(t);
+    if (nt === 'receive') { inSum += v; inCount++; }
+    else if (nt === 'send') { outSum += Math.abs(v); outCount++; }
+    else if (nt === 'rewards') { rewSum += v; rewCount++; }
+    else if (nt === 'delegate' || nt === 'undelegate' || nt === 'redelegate') { stkCount++; }
   });
 
   var net = inSum + rewSum - outSum;
@@ -729,6 +730,32 @@ function renderHero() {
   renderHeroChart(filtered);
 }
 
+// ── Normalize tx type to canonical: send/receive/rewards/delegate/etc ──
+function normalizeType(tx) {
+  var t = String(tx.type || '').toLowerCase();
+  // Old short types (live source)
+  if (t === 'send' || t === 'receive' || t === 'rewards' || t === 'delegate' ||
+      t === 'undelegate' || t === 'redelegate' || t === 'swap' || t === 'ibc_transfer') {
+    return t;
+  }
+  // Mintscan-style types (full proto path)
+  if (t.indexOf('msgwithdrawdelegatorreward') >= 0) return 'rewards';
+  if (t.indexOf('msgdelegate') >= 0) return 'delegate';
+  if (t.indexOf('msgundelegate') >= 0) return 'undelegate';
+  if (t.indexOf('msgbeginredelegate') >= 0) return 'redelegate';
+  if (t.indexOf('msgswap') >= 0 || t.indexOf('msgsplitrouteswap') >= 0) return 'swap';
+  if (t.indexOf('msgtransfer') >= 0) {
+    // IBC transfer — sender = εμείς → out, αλλιώς in
+    return (tx.counterparty_kind === 'from') ? 'receive' : 'send';
+  }
+  if (t.indexOf('msgsend') >= 0 || t.indexOf('msgmultisend') >= 0) {
+    // counterparty_kind 'from' → εμείς receive, 'to' → εμείς send
+    return (tx.counterparty_kind === 'from') ? 'receive' : 'send';
+  }
+  // Default: skip (vote, exec contract, ibc relay, κτλ.)
+  return 'other';
+}
+
 // ── Hero cumulative net flow chart ──
 function renderHeroChart(txs) {
   // Filter by chart range (separate from main period filter)
@@ -757,9 +784,10 @@ function renderHeroChart(txs) {
     if (!v) return;
     var day = String(t.timestamp).slice(0,10);
     if (!dayMap[day]) dayMap[day] = {net:0, in:0, out:0};
-    if (t.type === 'receive') { dayMap[day].in += v; dayMap[day].net += v; }
-    else if (t.type === 'send') { dayMap[day].out += Math.abs(v); dayMap[day].net -= Math.abs(v); }
-    else if (t.type === 'rewards') { dayMap[day].in += v; dayMap[day].net += v; }
+    var nt = normalizeType(t);
+    if (nt === 'receive') { dayMap[day].in += v; dayMap[day].net += v; }
+    else if (nt === 'send') { dayMap[day].out += Math.abs(v); dayMap[day].net -= Math.abs(v); }
+    else if (nt === 'rewards') { dayMap[day].in += v; dayMap[day].net += v; }
   });
 
   var days = Object.keys(dayMap).sort();
