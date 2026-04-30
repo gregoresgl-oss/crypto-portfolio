@@ -911,7 +911,15 @@ function _buildWidget(id,ctx){
     if(slot.mode==='iframe'){
       var ifr=document.createElement('iframe');
       ifr.sandbox='allow-scripts allow-same-origin';
-      var sc=slot.content.replace('__USER_ID__',(_user&&_user.id)||'')
+      // Inject JWT token από local storage (set by login.html via Supabase Auth)
+      var _jwt=_SB_ANON;
+      try{
+        var _ses=localStorage.getItem('sb-rzrxulubttnjtxziodib-auth-token');
+        if(_ses){var _p=JSON.parse(_ses);if(_p&&_p.access_token)_jwt=_p.access_token;}
+      }catch(e){}
+      var sc=slot.content
+        .replace('__USER_ID__',(_user&&_user.id)||'')
+        .replace(/__JWT_TOKEN__/g,_jwt)
         +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
       ifr.srcdoc=sc;
       ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:800px;";
