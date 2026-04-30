@@ -902,21 +902,20 @@ function normalizeType(tx) {
       t === 'undelegate' || t === 'redelegate' || t === 'swap' || t === 'ibc_transfer') {
     return t;
   }
+  // Auto-restake virtual reward
+  if (t === 'auto_restake_reward') return 'rewards';
   // Mintscan-style types (full proto path)
   if (t.indexOf('msgwithdrawdelegatorreward') >= 0) return 'rewards';
+  if (t.indexOf('msgbeginredelegate') >= 0) return 'redelegate';
   if (t.indexOf('msgdelegate') >= 0) return 'delegate';
   if (t.indexOf('msgundelegate') >= 0) return 'undelegate';
-  if (t.indexOf('msgbeginredelegate') >= 0) return 'redelegate';
   if (t.indexOf('msgswap') >= 0 || t.indexOf('msgsplitrouteswap') >= 0) return 'swap';
   if (t.indexOf('msgtransfer') >= 0) {
-    // IBC transfer — sender = εμείς → out, αλλιώς in
     return (tx.counterparty_kind === 'from') ? 'receive' : 'send';
   }
   if (t.indexOf('msgsend') >= 0 || t.indexOf('msgmultisend') >= 0) {
-    // counterparty_kind 'from' → εμείς receive, 'to' → εμείς send
     return (tx.counterparty_kind === 'from') ? 'receive' : 'send';
   }
-  // Default: skip (vote, exec contract, ibc relay, κτλ.)
   return 'other';
 }
 
