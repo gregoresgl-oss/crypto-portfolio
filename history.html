@@ -133,6 +133,22 @@ body::before{
 .net-val{font-size:42px;font-weight:600;color:var(--green);letter-spacing:-1px;line-height:1;}
 .net-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.5px;}
 .hero-r{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.hero-stats{flex:0 0 auto;min-width:280px;}
+.hero-chart-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;}
+.hero-range{display:flex;gap:4px;justify-content:flex-end;}
+.rg-btn{background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.1);padding:6px 12px;border-radius:7px;font-size:10px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:0.5px;transition:all 0.15s;}
+.rg-btn:hover{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);}
+.rg-btn.on{background:rgba(159,115,255,0.18);color:#c9b3ff;border-color:rgba(159,115,255,0.4);}
+.hero-chart{position:relative;height:140px;}
+.hero-chart svg{width:100%;height:100%;display:block;}
+.hero-xaxis{display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,0.35);font-family:'JetBrains Mono',monospace;padding:0 4px;letter-spacing:0.4px;}
+.hero-tooltip{position:absolute;background:rgba(20,15,30,0.96);border:0.5px solid rgba(159,115,255,0.4);border-radius:8px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);z-index:10;transform:translateX(-50%);}
+.ht-date{color:rgba(255,255,255,0.45);font-size:9px;letter-spacing:0.5px;margin-bottom:3px;}
+.ht-rows{display:flex;gap:14px;align-items:center;}
+.ht-sep{width:0.5px;height:22px;background:rgba(255,255,255,0.1);}
+.ht-lbl{color:rgba(255,255,255,0.5);font-size:9px;}
+.ht-val{font-weight:600;}
+@media (max-width:760px){.hero-chart-wrap{width:100%;}.hero-stats{min-width:0;}}
 .counts{display:flex;gap:24px;padding-top:18px;border-top:1px solid var(--line-2);flex-wrap:wrap;}
 .count{display:flex;flex-direction:column;gap:2px;}
 .count b{font-size:22px;font-weight:600;color:var(--text);font-family:'JetBrains Mono',monospace;}
@@ -358,11 +374,50 @@ body::before{
         <div class="hero-bg"></div>
         <div class="hero-content">
           <div class="hero-top">
-            <div>
+            <div class="hero-stats">
               <div class="eyebrow">// ΣΥΝΑΛΛΑΓΕΣ</div>
-              <div class="net-lbl" id="net-label">Καθαρή ροή 30 ημερών</div>
+              <div class="net-lbl" id="net-label">Καθαρή ροή · όλο το ιστορικό</div>
               <div class="net-val" id="net-val">+€0</div>
               <div class="net-sub" id="net-sub">+€0 in &nbsp;·&nbsp; −€0 out &nbsp;·&nbsp; +€0 rewards</div>
+            </div>
+
+            <div class="hero-chart-wrap">
+              <div class="hero-range">
+                <button class="rg-btn on" data-range="all">ALL</button>
+                <button class="rg-btn" data-range="2y">2Y</button>
+                <button class="rg-btn" data-range="1y">1Y</button>
+                <button class="rg-btn" data-range="90d">90D</button>
+                <button class="rg-btn" data-range="30d">30D</button>
+              </div>
+              <div class="hero-chart" id="hero-chart">
+                <svg id="hero-chart-svg" viewBox="0 0 700 130" preserveAspectRatio="none" width="100%" height="100%">
+                  <defs>
+                    <linearGradient id="heroAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#9f73ff" stop-opacity="0.5"/>
+                      <stop offset="60%" stop-color="#9f73ff" stop-opacity="0.1"/>
+                      <stop offset="100%" stop-color="#9f73ff" stop-opacity="0"/>
+                    </linearGradient>
+                    <filter id="heroLineGlow"><feGaussianBlur stdDeviation="1.8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <line x1="0" y1="30" x2="700" y2="30" stroke="rgba(255,255,255,0.04)" stroke-dasharray="2,4"/>
+                  <line x1="0" y1="65" x2="700" y2="65" stroke="rgba(255,255,255,0.04)" stroke-dasharray="2,4"/>
+                  <line x1="0" y1="100" x2="700" y2="100" stroke="rgba(255,255,255,0.04)" stroke-dasharray="2,4"/>
+                  <path id="hero-area" d="" fill="url(#heroAreaGrad)"/>
+                  <path id="hero-line" d="" fill="none" stroke="#9f73ff" stroke-width="1.6" filter="url(#heroLineGlow)"/>
+                  <circle id="hero-end-dot" cx="0" cy="0" r="3" fill="#9f73ff"/>
+                  <line id="hero-cursor-line" x1="0" y1="0" x2="0" y2="130" stroke="rgba(159,115,255,0.5)" stroke-width="0.5" style="display:none;"/>
+                  <circle id="hero-cursor-dot" cx="0" cy="0" r="3" fill="#9f73ff" style="display:none;"/>
+                </svg>
+                <div id="hero-tooltip" class="hero-tooltip" style="display:none;">
+                  <div class="ht-date" id="ht-date">—</div>
+                  <div class="ht-rows">
+                    <div><div class="ht-lbl">CUMULATIVE</div><div class="ht-val" id="ht-cum">+€0</div></div>
+                    <div class="ht-sep"></div>
+                    <div><div class="ht-lbl">DAILY NET</div><div class="ht-val" id="ht-daily">+€0</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="hero-xaxis" id="hero-xaxis"></div>
             </div>
 
           </div>
@@ -669,6 +724,162 @@ function renderHero() {
   // Hide spam tab αν δεν υπάρχει spam
   var spamTab = document.querySelector('.tab.spam-tab');
   if (spamTab) spamTab.style.display = spamCount > 0 ? '' : 'none';
+
+  // Render hero chart
+  renderHeroChart(filtered);
+}
+
+// ── Hero cumulative net flow chart ──
+function renderHeroChart(txs) {
+  // Filter by chart range (separate from main period filter)
+  var range = state.filters.chartRange || 'all';
+  var now = Date.now();
+  var rangeMs = {
+    '30d': 30*864e5, '90d': 90*864e5, '1y': 365*864e5, '2y': 730*864e5
+  }[range];
+
+  // Build chronological cash flow series
+  var sorted = txs.slice().sort(function(a,b){
+    return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+  });
+
+  if (rangeMs) {
+    var cutoff = now - rangeMs;
+    sorted = sorted.filter(function(t){
+      return new Date(t.timestamp).getTime() >= cutoff;
+    });
+  }
+
+  // Group by day → daily net
+  var dayMap = {}; // day → { net, in, out, rew }
+  sorted.forEach(function(t){
+    var v = parseFloat(t.value_eur || 0);
+    if (!v) return;
+    var day = String(t.timestamp).slice(0,10);
+    if (!dayMap[day]) dayMap[day] = {net:0, in:0, out:0};
+    if (t.type === 'receive') { dayMap[day].in += v; dayMap[day].net += v; }
+    else if (t.type === 'send') { dayMap[day].out += Math.abs(v); dayMap[day].net -= Math.abs(v); }
+    else if (t.type === 'rewards') { dayMap[day].in += v; dayMap[day].net += v; }
+  });
+
+  var days = Object.keys(dayMap).sort();
+  if (!days.length) {
+    document.getElementById('hero-area').setAttribute('d', '');
+    document.getElementById('hero-line').setAttribute('d', '');
+    document.getElementById('hero-end-dot').setAttribute('cx', '0');
+    document.getElementById('hero-xaxis').innerHTML = '';
+    return;
+  }
+
+  // Cumulative
+  var cum = 0;
+  var points = days.map(function(d){
+    cum += dayMap[d].net;
+    return { day: d, cum: cum, daily: dayMap[d].net };
+  });
+
+  // SVG dimensions
+  var W = 700, H = 130;
+  var minCum = Math.min.apply(null, points.map(function(p){return p.cum;}));
+  var maxCum = Math.max.apply(null, points.map(function(p){return p.cum;}));
+  if (maxCum === minCum) maxCum = minCum + 1;
+
+  var firstTs = new Date(points[0].day).getTime();
+  var lastTs = new Date(points[points.length-1].day).getTime();
+  if (lastTs === firstTs) lastTs = firstTs + 864e5;
+
+  // Coordinates
+  var coords = points.map(function(p){
+    var ts = new Date(p.day).getTime();
+    var x = ((ts - firstTs) / (lastTs - firstTs)) * W;
+    var y = H - 5 - ((p.cum - minCum) / (maxCum - minCum)) * (H - 15);
+    return { x: x, y: y, cum: p.cum, daily: p.daily, day: p.day };
+  });
+
+  // Line path
+  var linePath = coords.map(function(c, i){
+    return (i === 0 ? 'M ' : 'L ') + c.x.toFixed(1) + ',' + c.y.toFixed(1);
+  }).join(' ');
+
+  // Area path (closed)
+  var areaPath = linePath + ' L ' + W + ',' + H + ' L 0,' + H + ' Z';
+
+  document.getElementById('hero-line').setAttribute('d', linePath);
+  document.getElementById('hero-area').setAttribute('d', areaPath);
+
+  var endC = coords[coords.length-1];
+  var endDot = document.getElementById('hero-end-dot');
+  endDot.setAttribute('cx', endC.x);
+  endDot.setAttribute('cy', endC.y);
+
+  // X-axis labels (5 ticks)
+  var xax = document.getElementById('hero-xaxis');
+  if (coords.length > 1) {
+    var ticks = [0, 0.25, 0.5, 0.75, 1].map(function(p){
+      var idx = Math.floor(p * (coords.length - 1));
+      var d = new Date(coords[idx].day);
+      var month = ['ΙΑΝ','ΦΕΒ','ΜΑΡ','ΑΠΡ','ΜΑΪ','ΙΟΥΝ','ΙΟΥΛ','ΑΥΓ','ΣΕΠ','ΟΚΤ','ΝΟΕ','ΔΕΚ'][d.getMonth()];
+      return month + ' ' + d.getFullYear();
+    });
+    xax.innerHTML = ticks.map(function(t){return '<span>'+t+'</span>';}).join('');
+  } else xax.innerHTML = '';
+
+  // Store coords for tooltip
+  state._heroCoords = coords;
+}
+
+// ── Hero chart tooltip handlers ──
+function bindHeroChartHover() {
+  var wrap = document.getElementById('hero-chart');
+  var tooltip = document.getElementById('hero-tooltip');
+  var cursorLine = document.getElementById('hero-cursor-line');
+  var cursorDot = document.getElementById('hero-cursor-dot');
+  if (!wrap) return;
+
+  wrap.addEventListener('mousemove', function(e){
+    var coords = state._heroCoords;
+    if (!coords || !coords.length) return;
+    var rect = wrap.getBoundingClientRect();
+    var pxX = e.clientX - rect.left;
+    var ratioX = pxX / rect.width;
+    var svgX = ratioX * 700;
+
+    // Find closest coord
+    var closest = coords[0], minDist = Infinity;
+    for (var i = 0; i < coords.length; i++) {
+      var d = Math.abs(coords[i].x - svgX);
+      if (d < minDist) { minDist = d; closest = coords[i]; }
+    }
+
+    // Format
+    var date = new Date(closest.day);
+    var dateStr = date.getDate() + ' ' + ['ΙΑΝ','ΦΕΒ','ΜΑΡ','ΑΠΡ','ΜΑΪ','ΙΟΥΝ','ΙΟΥΛ','ΑΥΓ','ΣΕΠ','ΟΚΤ','ΝΟΕ','ΔΕΚ'][date.getMonth()] + ' ' + date.getFullYear();
+    document.getElementById('ht-date').textContent = dateStr;
+    document.getElementById('ht-cum').textContent = (closest.cum >= 0 ? '+' : '') + '€' + Math.round(closest.cum).toLocaleString('el-GR');
+    document.getElementById('ht-cum').style.color = closest.cum >= 0 ? '#9f73ff' : '#ff5f6d';
+    document.getElementById('ht-daily').textContent = (closest.daily >= 0 ? '+' : '') + '€' + Math.round(closest.daily).toLocaleString('el-GR');
+    document.getElementById('ht-daily').style.color = closest.daily >= 0 ? '#7dd67d' : '#ff5f6d';
+
+    // Position tooltip at the closest x
+    var tipLeft = (closest.x / 700) * 100;
+    tooltip.style.left = tipLeft + '%';
+    tooltip.style.top = '5px';
+    tooltip.style.display = 'block';
+
+    // Cursor line + dot
+    cursorLine.setAttribute('x1', closest.x);
+    cursorLine.setAttribute('x2', closest.x);
+    cursorLine.style.display = '';
+    cursorDot.setAttribute('cx', closest.x);
+    cursorDot.setAttribute('cy', closest.y);
+    cursorDot.style.display = '';
+  });
+
+  wrap.addEventListener('mouseleave', function(){
+    tooltip.style.display = 'none';
+    cursorLine.style.display = 'none';
+    cursorDot.style.display = 'none';
+  });
 }
 
 function renderWallets() {
@@ -1136,6 +1347,24 @@ function bindFilters() {
       render();
     });
   }
+
+  // Hero chart range buttons
+  var savedRange = localStorage.getItem('ggwall_chart_range') || 'all';
+  state.filters.chartRange = savedRange;
+  document.querySelectorAll('.rg-btn').forEach(function(b){
+    if (b.dataset.range === savedRange) b.classList.add('on');
+    else b.classList.remove('on');
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.rg-btn').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      state.filters.chartRange = b.dataset.range;
+      localStorage.setItem('ggwall_chart_range', b.dataset.range);
+      render();
+    });
+  });
+
+  // Hero chart hover tooltip
+  bindHeroChartHover();
 }
 
 // ──────────── Run ────────────
