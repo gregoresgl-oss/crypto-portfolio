@@ -625,7 +625,25 @@ const C_SALT   = "ggwall-einhasad-v1";
 const BTC_ID   = "bitcoin", ETH_ID = "ethereum";
 const _SB_URL  = "https://rzrxulubttnjtxziodib.supabase.co";
 const _SB_ANON = "sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A";
-const _SB_H    = {"apikey":_SB_ANON,"Authorization":"Bearer "+_SB_ANON,"Content-Type":"application/json"};
+
+// ──────────── Auth Helper (uses JWT από Supabase Auth login) ────────────
+function _getAuthHeaders() {
+  const headers = {"apikey": _SB_ANON, "Content-Type": "application/json"};
+  try {
+    const sess = localStorage.getItem('sb-rzrxulubttnjtxziodib-auth-token');
+    if (sess) {
+      const parsed = JSON.parse(sess);
+      if (parsed && parsed.access_token) {
+        headers["Authorization"] = "Bearer " + parsed.access_token;
+        return headers;
+      }
+    }
+  } catch(e) {}
+  headers["Authorization"] = "Bearer " + _SB_ANON;
+  return headers;
+}
+const _SB_H    = _getAuthHeaders();
+const _sb      = supabase.createClient(_SB_URL, _SB_ANON);
 const _VAPID   = "BE4W6HzwVX4WXVoL-gRo7XULnlajvew5zctuMgHQRkNuURrDUMiA0iy8bg2xdGa6IXllmEpg_gGuHUvUonKYPJA";
 const _sb      = supabase.createClient(_SB_URL, _SB_ANON);
 
