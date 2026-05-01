@@ -283,6 +283,8 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 /* Banners */
 .auth-banner{margin-top:14px;padding:11px 14px;border-radius:12px;font-size:12px;line-height:1.5;display:flex;gap:10px;align-items:flex-start;}
 .auth-banner svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;}
+.auth-banner > div, .auth-banner > span{flex:1;min-width:0;}
+.auth-banner b{color:#f4f1ff;font-weight:600;}
 .auth-banner.purple{background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);color:rgba(220,214,255,0.75);}
 .auth-banner.purple svg{color:#a78bfa;}
 .auth-banner.teal{background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);color:rgba(220,214,255,0.75);}
@@ -295,11 +297,12 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 .auth-chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:13px;color:#f5c24a;background:rgba(245,194,74,0.08);border:1px solid rgba(245,194,74,0.3);padding:6px 14px;border-radius:8px;margin:0 auto 14px;}
 
 /* PIN dots (4-digit grid) */
-.auth-pin-grid{display:flex;gap:10px;justify-content:center;margin:18px 0 8px;}
-.auth-pin-cell{width:54px;height:64px;border-radius:14px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#f5c24a;font-family:'JetBrains Mono',monospace;transition:all 0.2s;}
+.auth-pin-grid{display:flex;gap:10px;justify-content:center;margin:18px 0 8px;cursor:text;}
+.auth-pin-cell{width:54px;height:64px;border-radius:14px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#f5c24a;font-family:'JetBrains Mono',monospace;transition:all 0.2s;cursor:pointer;}
+.auth-pin-cell:hover{border-color:rgba(245,194,74,0.4);}
 .auth-pin-cell.filled{border-color:rgba(245,194,74,0.5);background:rgba(245,194,74,0.05);}
 .auth-pin-cell.warn{border-color:rgba(251,113,133,0.5);background:rgba(251,113,133,0.08);animation:auth-shake 0.35s ease;}
-.auth-pin-input{position:absolute;opacity:0;pointer-events:none;}
+.auth-pin-input{position:absolute;left:-9999px;opacity:0;width:1px;height:1px;}
 
 /* PIN warn pulse (3 attempts left) */
 .auth-pin-warning{margin-top:10px;padding:10px 14px;background:rgba(251,113,133,0.1);border:1px solid rgba(251,113,133,0.3);border-radius:12px;font-size:12px;color:#fb7185;text-align:center;animation:auth-pulse-warn 1s ease-in-out infinite;}
@@ -778,7 +781,7 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 
       <div class="auth-banner purple">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά τη σύνδεση θα χρησιμοποιείς <b>4ψήφιο PIN</b>.
+        <span>Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά τη σύνδεση θα χρησιμοποιείς <b>4ψήφιο PIN</b>.</span>
       </div>
 
       <button class="auth-btn" id="reset-btn" disabled onclick="_doResetPasswordV2()">
@@ -824,7 +827,7 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
       <div class="auth-subtitle" id="setpin-subtitle">Θα το χρησιμοποιείς για γρήγορη σύνδεση. Διάλεξε 4 ψηφία που θυμάσαι εύκολα.</div>
 
       <div style="text-align:center;margin-top:6px;">
-        <div class="auth-pin-grid" id="setpin-display">
+        <div class="auth-pin-grid" id="setpin-display" onclick="document.getElementById('sp-input').focus();">
           <div class="auth-pin-cell" id="sp-c0"></div>
           <div class="auth-pin-cell" id="sp-c1"></div>
           <div class="auth-pin-cell" id="sp-c2"></div>
@@ -837,7 +840,7 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
       <div id="setpin-confirm-section" style="display:none;">
         <div class="auth-eyebrow" style="margin-top:18px;">Επιβεβαίωση</div>
         <div style="text-align:center;">
-          <div class="auth-pin-grid">
+          <div class="auth-pin-grid" onclick="document.getElementById('spc-input').focus();">
             <div class="auth-pin-cell" id="spc-c0"></div>
             <div class="auth-pin-cell" id="spc-c1"></div>
             <div class="auth-pin-cell" id="spc-c2"></div>
@@ -850,7 +853,7 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 
       <div class="auth-banner purple">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά από 5 λανθασμένες προσπάθειες ο λογαριασμός κλειδώνει.
+        <span>Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά από 5 λανθασμένες προσπάθειες ο λογαριασμός κλειδώνει.</span>
       </div>
 
       <button class="auth-btn" id="setpin-btn" disabled onclick="_doSetPin()">
