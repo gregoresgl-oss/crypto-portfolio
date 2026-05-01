@@ -201,7 +201,109 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 .att.used{background:var(--red);}
 .lockout-box{background:rgba(255,95,109,.07);border:1px solid rgba(255,95,109,.18);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px;}
 .lockout-timer{font-size:32px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);margin:4px 0;}
-</style>
+/* ════════════════════════════════════════════
+   AUTH FLOW SCREENS (forgot/reset/set-pin/forgot-pin)
+   Namespace: .auth-*
+   ════════════════════════════════════════════ */
+
+.auth-hero{position:relative;width:140px;height:140px;margin:0 auto 22px;display:flex;align-items:center;justify-content:center;}
+.auth-hero-disk{position:relative;width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f5c24a,#e8a92e);display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px -10px rgba(245,194,74,0.45),inset 0 1px 0 rgba(255,255,255,0.5);animation:auth-float 4s ease-in-out infinite;z-index:2;}
+.auth-hero-disk svg{width:30px;height:30px;color:#0b0d12;}
+.auth-hero-ring{position:absolute;top:50%;left:50%;border:1px solid rgba(245,194,74,0.4);border-radius:50%;animation:auth-ring-pulse 3s ease-out infinite;}
+.auth-hero-ring.r1{width:104px;height:104px;margin:-52px 0 0 -52px;}
+.auth-hero-ring.r2{width:140px;height:140px;margin:-70px 0 0 -70px;animation-delay:0.6s;}
+@keyframes auth-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes auth-ring-pulse{0%{transform:scale(0.9);opacity:0.9;}100%{transform:scale(1.25);opacity:0;}}
+
+/* Success mark (Email Sent + Done) */
+.auth-success{position:relative;width:84px;height:84px;margin:0 auto 18px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,0.4),rgba(52,211,153,0.1) 70%,transparent);display:flex;align-items:center;justify-content:center;animation:auth-pop 0.55s cubic-bezier(.34,1.56,.64,1);}
+.auth-success svg{width:42px;height:42px;color:#34d399;}
+.auth-success svg path{stroke-dasharray:60;stroke-dashoffset:60;animation:auth-draw 0.55s ease-out 0.25s forwards;}
+@keyframes auth-pop{0%{transform:scale(0.4);}100%{transform:scale(1);}}
+@keyframes auth-draw{to{stroke-dashoffset:0;}}
+
+.auth-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:#34d399;text-transform:uppercase;margin:0 auto 14px;}
+.auth-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:#34d399;animation:auth-blink 1.4s ease-in-out infinite;}
+@keyframes auth-blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+.auth-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.22em;color:#f5c24a;text-transform:uppercase;text-align:center;margin-bottom:8px;}
+.auth-title{font-size:24px;font-weight:600;letter-spacing:-0.01em;color:#f4f1ff;text-align:center;margin-bottom:8px;line-height:1.2;}
+.auth-subtitle{font-size:14px;line-height:1.5;color:rgba(220,214,255,0.55);text-align:center;max-width:340px;margin:0 auto 24px;}
+
+.auth-field{position:relative;margin-top:18px;}
+.auth-label{display:block;font-size:11px;font-weight:600;letter-spacing:0.5px;color:rgba(220,214,255,0.7);margin-bottom:7px;text-transform:uppercase;}
+.auth-input-wrap{position:relative;}
+.auth-input-wrap svg.prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:rgba(220,214,255,0.4);pointer-events:none;}
+.auth-input-wrap .suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:rgba(220,214,255,0.4);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:color 0.2s;}
+.auth-input-wrap .suffix:hover{color:rgba(220,214,255,0.7);}
+.auth-input-wrap .suffix.active{color:#f5c24a;}
+.auth-input{width:100%;padding:13px 14px 13px 40px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);border-radius:14px;color:#f4f1ff;font-size:14px;font-family:inherit;transition:all 0.2s ease;}
+.auth-input:focus{outline:none;border-color:rgba(245,194,74,0.5);box-shadow:0 0 0 4px rgba(245,194,74,0.1);}
+.auth-input.error{border-color:rgba(251,113,133,0.5);box-shadow:0 0 0 4px rgba(251,113,133,0.1);animation:auth-shake 0.35s ease;}
+.auth-input.success{border-color:rgba(52,211,153,0.5);box-shadow:0 0 0 4px rgba(52,211,153,0.1);}
+@keyframes auth-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+.auth-helper{font-size:12px;color:rgba(220,214,255,0.45);margin-top:6px;line-height:1.4;}
+.auth-helper.error{color:#fb7185;}
+.auth-helper.success{color:#34d399;}
+
+.auth-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:linear-gradient(135deg,#f5c24a,#e8a92e);color:#0b0d12;border:none;border-radius:14px;font-size:14.5px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:18px;position:relative;overflow:hidden;transition:transform 0.15s ease,box-shadow 0.15s ease;box-shadow:0 12px 30px -10px rgba(245,194,74,0.55),inset 0 1px 0 rgba(255,255,255,0.5),inset 0 -2px 0 rgba(0,0,0,0.08);}
+.auth-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 16px 36px -10px rgba(245,194,74,0.65),inset 0 1px 0 rgba(255,255,255,0.5),inset 0 -2px 0 rgba(0,0,0,0.08);}
+.auth-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.auth-btn.loading{pointer-events:none;}
+.auth-btn-ghost{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;background:rgba(28,22,52,0.55);color:rgba(220,214,255,0.7);border:1px solid rgba(167,139,250,0.18);border-radius:14px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;margin-top:10px;transition:all 0.15s ease;}
+.auth-btn-ghost:hover{border-color:rgba(167,139,250,0.32);color:#f4f1ff;}
+
+.auth-spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,0.2);border-top-color:#0b0d12;border-radius:50%;animation:auth-spin 0.8s linear infinite;}
+@keyframes auth-spin{to{transform:rotate(360deg);}}
+
+/* Strength panel */
+.auth-strength{margin-top:14px;padding:14px;background:rgba(13,10,28,0.4);border:1px solid rgba(167,139,250,0.18);border-radius:12px;}
+.auth-strength-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;color:rgba(220,214,255,0.55);margin-bottom:10px;text-transform:uppercase;}
+.auth-strength-label{font-weight:600;color:rgba(220,214,255,0.4);}
+.auth-strength-label.weak{color:#fb7185;}
+.auth-strength-label.medium{color:#fbbf24;}
+.auth-strength-label.good{color:#f5c24a;}
+.auth-strength-label.strong{color:#34d399;}
+.auth-strength-bar{display:flex;gap:4px;margin-bottom:12px;}
+.auth-strength-seg{flex:1;height:4px;border-radius:2px;background:rgba(220,214,255,0.08);overflow:hidden;position:relative;}
+.auth-strength-seg::after{content:'';position:absolute;inset:0;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform 0.35s cubic-bezier(.5,.1,.25,1);}
+.auth-strength-seg.on::after{transform:scaleX(1);}
+.auth-strength-seg.weak{color:#fb7185;}
+.auth-strength-seg.medium{color:#fbbf24;}
+.auth-strength-seg.good{color:#f5c24a;}
+.auth-strength-seg.strong{color:#34d399;}
+.auth-criteria{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.auth-criterion{display:flex;align-items:center;gap:8px;font-size:11.5px;color:rgba(220,214,255,0.4);transition:color 0.25s;}
+.auth-criterion::before{content:'';width:16px;height:16px;border-radius:50%;background:rgba(220,214,255,0.08);position:relative;flex-shrink:0;transition:all 0.25s;}
+.auth-criterion.met{color:#34d399;}
+.auth-criterion.met::before{background:#34d399;box-shadow:0 0 12px rgba(52,211,153,0.5);}
+.auth-criterion.met::after{content:'';position:absolute;left:5px;width:6px;height:3px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg) scale(1);transition:transform 0.2s;}
+
+/* Banners */
+.auth-banner{margin-top:14px;padding:11px 14px;border-radius:12px;font-size:12px;line-height:1.5;display:flex;gap:10px;align-items:flex-start;}
+.auth-banner svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;}
+.auth-banner.purple{background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);color:rgba(220,214,255,0.75);}
+.auth-banner.purple svg{color:#a78bfa;}
+.auth-banner.teal{background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);color:rgba(220,214,255,0.75);}
+.auth-banner.teal svg{color:#34d399;}
+.auth-banner.gold{background:rgba(245,194,74,0.08);border:1px solid rgba(245,194,74,0.2);color:rgba(220,214,255,0.75);}
+.auth-banner.gold svg{color:#f5c24a;}
+.auth-banner.danger{background:rgba(251,113,133,0.08);border:1px solid rgba(251,113,133,0.2);color:rgba(220,214,255,0.85);}
+.auth-banner.danger svg{color:#fb7185;}
+
+.auth-chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:13px;color:#f5c24a;background:rgba(245,194,74,0.08);border:1px solid rgba(245,194,74,0.3);padding:6px 14px;border-radius:8px;margin:0 auto 14px;}
+
+/* PIN dots (4-digit grid) */
+.auth-pin-grid{display:flex;gap:10px;justify-content:center;margin:18px 0 8px;}
+.auth-pin-cell{width:54px;height:64px;border-radius:14px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#f5c24a;font-family:'JetBrains Mono',monospace;transition:all 0.2s;}
+.auth-pin-cell.filled{border-color:rgba(245,194,74,0.5);background:rgba(245,194,74,0.05);}
+.auth-pin-cell.warn{border-color:rgba(251,113,133,0.5);background:rgba(251,113,133,0.08);animation:auth-shake 0.35s ease;}
+.auth-pin-input{position:absolute;opacity:0;pointer-events:none;}
+
+/* PIN warn pulse (3 attempts left) */
+.auth-pin-warning{margin-top:10px;padding:10px 14px;background:rgba(251,113,133,0.1);border:1px solid rgba(251,113,133,0.3);border-radius:12px;font-size:12px;color:#fb7185;text-align:center;animation:auth-pulse-warn 1s ease-in-out infinite;}
+@keyframes auth-pulse-warn{0%,100%{opacity:1;}50%{opacity:0.7;}}
 </head>
 <body>
 
@@ -280,21 +382,110 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
   </div>
 
   <!-- ══ FORGOT PASSWORD ══ -->
+  <!-- ════ FORGOT PASSWORD (premium redesign) ════ -->
   <div class="screen" id="screen-forgot-pass">
-    <div style="text-align:center;padding:14px 0 10px;">
-      <div style="font-size:28px;margin-bottom:8px;">🔑</div>
-      <div style="font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px;">Επαναφορά Κωδικού</div>
-      <div style="font-size:11px;color:var(--muted);">Θα λάβεις email με σύνδεσμο επαναφοράς.</div>
-    </div>
     <div class="card">
-      <form onsubmit="event.preventDefault();_doForgotPassword();" style="display:flex;flex-direction:column;gap:10px;">
-        <div class="iw">
-          <input class="inp" id="forgot-email" type="email" placeholder="Το email του λογαριασμού" autocomplete="email"/>
+      <div class="auth-hero">
+        <div class="auth-hero-ring r1"></div>
+        <div class="auth-hero-ring r2"></div>
+        <div class="auth-hero-disk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
-        <button type="submit" class="btn-gold">Αποστολή →</button>
-        <div id="forgot-msg" class="err"></div>
+      </div>
+      <div class="auth-eyebrow">Personal Cosmos</div>
+      <div class="auth-title">Επαναφορά Κωδικού</div>
+      <div class="auth-subtitle">Γράψε το email σου και θα σου στείλουμε σύνδεσμο για να ορίσεις νέο κωδικό πρόσβασης.</div>
+
+      <form onsubmit="event.preventDefault();_doForgotPassword();">
+        <div class="auth-field">
+          <div class="auth-label">Email Λογαριασμού</div>
+          <div class="auth-input-wrap">
+            <svg class="prefix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <input class="auth-input" id="forgot-email" type="email" placeholder="you@ggwall.gr" autocomplete="email"/>
+          </div>
+          <div class="auth-helper" id="forgot-helper">Θα λάβεις email μέσα σε ~30 δευτερόλεπτα.</div>
+        </div>
+        <button type="submit" class="auth-btn" id="forgot-btn">
+          <span>Αποστολή Συνδέσμου</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+        </button>
+        <button type="button" class="auth-btn-ghost" onclick="_showScreen('auth')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+          Πίσω στη Σύνδεση
+        </button>
       </form>
-      <button onclick="_showScreen('auth')" class="btn-ghost" style="margin-top:8px;">← Πίσω</button>
+    </div>
+  </div>
+
+  <!-- ════ EMAIL SENT ════ -->
+  <div class="screen" id="screen-forgot-sent">
+    <div class="card" style="text-align:center;">
+      <div class="auth-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="auth-pill">Email Στάλθηκε</div>
+      <div class="auth-title">Έλεγξε τα εισερχόμενά σου</div>
+      <div class="auth-subtitle">Στείλαμε σύνδεσμο επαναφοράς στο:</div>
+      <div class="auth-chip" id="sent-email">—</div>
+      <div class="auth-subtitle" style="margin-bottom:14px;">Ο σύνδεσμος λήγει σε <b style="color:#f5c24a;">15 λεπτά</b>.</div>
+
+      <div class="auth-banner teal" style="text-align:left;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>Tip: Αν χρησιμοποιείς <b>Gmail</b>, αναζήτησε <code style="background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:3px;font-size:11px;">from:noreply</code></div>
+      </div>
+
+      <button type="button" class="auth-btn-ghost" id="resend-btn" onclick="_doResendForgotEmail()" style="margin-top:14px;">
+        <span id="resend-text">Δεν έλαβες email; Στείλε ξανά (30s)</span>
+      </button>
+      <button type="button" class="auth-btn-ghost" onclick="_showScreen('forgot-pass')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+        Πίσω
+      </button>
+    </div>
+  </div>
+
+  <!-- ════ FORGOT PIN (re-auth flow) ════ -->
+  <div class="screen" id="screen-forgot-pin">
+    <div class="card">
+      <div class="auth-hero">
+        <div class="auth-hero-ring r1"></div>
+        <div class="auth-hero-ring r2"></div>
+        <div class="auth-hero-disk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+      </div>
+      <div class="auth-eyebrow">Επαναφορά PIN</div>
+      <div class="auth-title">Επιβεβαίωσε ταυτότητα</div>
+      <div class="auth-subtitle">Για να ορίσεις νέο PIN, θα ξανασυνδεθείς με τον κωδικό σου.</div>
+
+      <form onsubmit="event.preventDefault();_doForgotPinAuth();">
+        <div class="auth-field">
+          <div class="auth-label">Email</div>
+          <div class="auth-input-wrap">
+            <svg class="prefix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <input class="auth-input" id="fpin-email" type="email" placeholder="you@ggwall.gr" autocomplete="email"/>
+          </div>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Κωδικός</div>
+          <div class="auth-input-wrap">
+            <svg class="prefix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input class="auth-input" id="fpin-pass" type="password" placeholder="Ο τρέχων κωδικός σου" autocomplete="current-password"/>
+            <button type="button" class="suffix" id="fpin-eye" onclick="_tvPassNew('fpin-pass','fpin-eye')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="auth-helper error" id="fpin-err" style="display:none;"></div>
+        </div>
+        <button type="submit" class="auth-btn" id="fpin-btn">
+          <span>Συνέχεια</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+        </button>
+        <button type="button" class="auth-btn-ghost" onclick="_showScreen('returning')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+          Πίσω
+        </button>
+      </form>
     </div>
   </div>
 
@@ -521,44 +712,168 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
         <button class="pin-btn sm" onclick="pinPress('C')">CLR</button><button class="pin-btn" onclick="pinPress('0')">0</button><button class="pin-btn sm" onclick="pinPress('D')">⌫</button>
       </div>
       <div id="pin-err" class="err" style="margin-top:10px;"></div>
+      <button type="button" onclick="_showScreen('forgot-pin')" style="margin-top:14px;background:none;border:none;color:rgba(220,214,255,0.55);font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;letter-spacing:0.5px;text-decoration:underline;text-underline-offset:3px;">Ξέχασες το PIN;</button>
       <!-- "Αλλαγή χρήστη" button removed: full logout now goes to email/password screen -->
     </div>
   </div>
 
   <!-- ══ LOCKOUT ══ -->
   <!-- ── Reset Password Screen ── -->
+  <!-- ════ RESET PASSWORD (premium redesign) ════ -->
   <div class="screen" id="screen-reset-password">
-    <div style="text-align:center;margin-bottom:20px;">
-      <div style="width:64px;height:64px;border-radius:50%;background:rgba(251,146,60,.12);border:2px solid rgba(251,146,60,.3);display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px;">🔑</div>
-      <div class="screen-title">Νέος Κωδικός</div>
-      <div class="screen-sub">Ορίσε τον νέο κωδικό πρόσβασης</div>
+    <div class="card">
+      <div class="auth-hero">
+        <div class="auth-hero-ring r1"></div>
+        <div class="auth-hero-ring r2"></div>
+        <div class="auth-hero-disk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="10.85" y1="12.15" x2="19" y2="4"/><line x1="18" y1="5" x2="20" y2="7"/><line x1="15" y1="8" x2="17" y2="10"/></svg>
+        </div>
+      </div>
+      <div class="auth-eyebrow">Νέος Κωδικός</div>
+      <div class="auth-title">Όρισε νέο κωδικό</div>
+      <div class="auth-subtitle">Διάλεξε έναν δυνατό κωδικό. Θα τον χρησιμοποιείς για forgot-pin & sensitive actions — η καθημερινή σύνδεση γίνεται με 4ψήφιο PIN.</div>
+
+      <div class="auth-field">
+        <div class="auth-label">Νέος Κωδικός</div>
+        <div class="auth-input-wrap">
+          <svg class="prefix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input class="auth-input" id="reset-pass1" type="password" placeholder="Τουλάχιστον 8 χαρακτήρες" autocomplete="new-password" oninput="_checkResetStrengthV2(this.value)"/>
+          <button type="button" class="suffix" id="reset-pass1-eye" onclick="_tvPassNew('reset-pass1','reset-pass1-eye')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="auth-strength">
+        <div class="auth-strength-head">
+          <span>Ισχύς κωδικού</span>
+          <span class="auth-strength-label" id="reset-slabel">—</span>
+        </div>
+        <div class="auth-strength-bar" id="reset-sbars">
+          <div class="auth-strength-seg"></div>
+          <div class="auth-strength-seg"></div>
+          <div class="auth-strength-seg"></div>
+          <div class="auth-strength-seg"></div>
+        </div>
+        <div class="auth-criteria">
+          <div class="auth-criterion" id="rr-len">Τουλάχιστον 8 χαρακτήρες</div>
+          <div class="auth-criterion" id="rr-upper">Κεφαλαίο γράμμα</div>
+          <div class="auth-criterion" id="rr-num">Αριθμός</div>
+          <div class="auth-criterion" id="rr-sym">Σύμβολο</div>
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <div class="auth-label">Επιβεβαίωση Κωδικού</div>
+        <div class="auth-input-wrap">
+          <svg class="prefix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input class="auth-input" id="reset-pass2" type="password" placeholder="Πληκτρολόγησε ξανά" autocomplete="new-password" oninput="_checkResetMatchV2()"/>
+          <button type="button" class="suffix" id="reset-pass2-eye" onclick="_tvPassNew('reset-pass2','reset-pass2-eye')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="auth-helper" id="reset-match" style="display:none;"></div>
+      </div>
+
+      <div class="auth-banner purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά τη σύνδεση θα χρησιμοποιείς <b>4ψήφιο PIN</b>.
+      </div>
+
+      <button class="auth-btn" id="reset-btn" disabled onclick="_doResetPasswordV2()">
+        <span>Αποθήκευση Κωδικού</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="20,6 9,17 4,12"/></svg>
+      </button>
+      <div id="reset-msg" class="auth-helper error" style="display:none;text-align:center;"></div>
     </div>
-    <div class="form-group">
-      <div class="iw">
-        <input type="password" id="reset-pass1" placeholder="Νέος κωδικός (min 8)" class="inp" autocomplete="new-password" oninput="_checkResetStrength(this.value)"/>
-        <span class="ie" onclick="_tvPass('reset-pass1',this)">👁</span>
+  </div>
+
+  <!-- ════ PASSWORD UPDATED (Done) ════ -->
+  <div class="screen" id="screen-password-done">
+    <div class="card" style="text-align:center;">
+      <div class="auth-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
       </div>
-      <div class="sbars" id="reset-sbars"><div class="sbar"></div><div class="sbar"></div><div class="sbar"></div><div class="sbar"></div></div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-        <span id="reset-slabel" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);">—</span>
+      <div class="auth-pill">Επιτυχία</div>
+      <div class="auth-title">Ο κωδικός σου ενημερώθηκε</div>
+      <div class="auth-subtitle">Όλα τα δεδομένα σου είναι ασφαλή. Συνδέσου με τον νέο κωδικό σου για να συνεχίσεις.</div>
+      <div class="auth-banner teal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Ασφαλείς συνεδρίες ενεργοποιήθηκαν.
       </div>
-      <div class="rules-box">
-        <div class="rule" id="rr-len"><div class="rdot"></div>Τουλάχιστον 8 χαρακτήρες</div>
-        <div class="rule" id="rr-upper"><div class="rdot"></div>Κεφαλαίο γράμμα (A-Z)</div>
-        <div class="rule" id="rr-num"><div class="rdot"></div>Αριθμός (0-9)</div>
-        <div class="rule" id="rr-sym"><div class="rdot"></div>Σύμβολο (!@#$%...)</div>
-      </div>
+      <button class="auth-btn" onclick="window.location.replace('login.html')">
+        <span>Σύνδεση</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+      </button>
     </div>
-    <div class="form-group" style="margin-top:10px;">
-      <div class="iw">
-        <input type="password" id="reset-pass2" placeholder="Επιβεβαίωση κωδικού" class="inp" autocomplete="new-password"/>
-        <span class="ie" onclick="_tvPass('reset-pass2',this)">👁</span>
+  </div>
+
+  <!-- ════ SET NEW PIN (post-login auto-prompt OR after forgot-pin) ════ -->
+  <div class="screen" id="screen-set-pin">
+    <div class="card">
+      <div class="auth-hero">
+        <div class="auth-hero-ring r1"></div>
+        <div class="auth-hero-ring r2"></div>
+        <div class="auth-hero-disk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        </div>
       </div>
+      <div class="auth-eyebrow" id="setpin-eyebrow">Όρισε PIN</div>
+      <div class="auth-title">Δημιούργησε 4ψήφιο PIN</div>
+      <div class="auth-subtitle" id="setpin-subtitle">Θα το χρησιμοποιείς για γρήγορη σύνδεση. Διάλεξε 4 ψηφία που θυμάσαι εύκολα.</div>
+
+      <div style="text-align:center;margin-top:6px;">
+        <div class="auth-pin-grid" id="setpin-display">
+          <div class="auth-pin-cell" id="sp-c0"></div>
+          <div class="auth-pin-cell" id="sp-c1"></div>
+          <div class="auth-pin-cell" id="sp-c2"></div>
+          <div class="auth-pin-cell" id="sp-c3"></div>
+        </div>
+        <input class="auth-pin-input" id="sp-input" type="tel" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" oninput="_setPinDigit(this.value);"/>
+        <div class="auth-helper" id="setpin-helper">Πάτα στα κουτάκια ή πληκτρολόγησε</div>
+      </div>
+
+      <div id="setpin-confirm-section" style="display:none;">
+        <div class="auth-eyebrow" style="margin-top:18px;">Επιβεβαίωση</div>
+        <div style="text-align:center;">
+          <div class="auth-pin-grid">
+            <div class="auth-pin-cell" id="spc-c0"></div>
+            <div class="auth-pin-cell" id="spc-c1"></div>
+            <div class="auth-pin-cell" id="spc-c2"></div>
+            <div class="auth-pin-cell" id="spc-c3"></div>
+          </div>
+          <input class="auth-pin-input" id="spc-input" type="tel" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" oninput="_setPinConfirmDigit(this.value);"/>
+          <div class="auth-helper" id="setpin-match-helper">Πληκτρολόγησε ξανά το PIN</div>
+        </div>
+      </div>
+
+      <div class="auth-banner purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά από 5 λανθασμένες προσπάθειες ο λογαριασμός κλειδώνει.
+      </div>
+
+      <button class="auth-btn" id="setpin-btn" disabled onclick="_doSetPin()">
+        <span>Αποθήκευση PIN</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="20,6 9,17 4,12"/></svg>
+      </button>
+      <div id="setpin-err" class="auth-helper error" style="display:none;text-align:center;"></div>
     </div>
-    <div class="ibox" style="margin-top:10px;">🔒 Αποθηκεύεται ως <b>bcrypt hash</b>. Μετά την πρώτη σύνδεση χρησιμοποιείς μόνο <b>4ψήφιο PIN</b>.</div>
-    <div class="ibox">🛡️ Ο κωδικός <b>δεν αποθηκεύεται</b> σε plaintext — κανείς δεν μπορεί να τον δει.</div>
-    <div id="reset-msg" style="font-size:12px;color:var(--red);text-align:center;margin-top:8px;display:none;"></div>
-    <button onclick="_doResetPassword()" class="btn-primary" style="margin-top:12px;width:100%;">Αποθήκευση Κωδικού</button>
+  </div>
+
+  <!-- ════ PIN UPDATED (Done) ════ -->
+  <div class="screen" id="screen-pin-done">
+    <div class="card" style="text-align:center;">
+      <div class="auth-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="auth-pill">Επιτυχία</div>
+      <div class="auth-title">Το PIN ορίστηκε</div>
+      <div class="auth-subtitle">Τώρα μπορείς να συνδέεσαι γρήγορα με το 4ψήφιο PIN σου.</div>
+      <button class="auth-btn" onclick="_pinDoneContinue()">
+        <span>Συνέχεια</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+      </button>
+    </div>
   </div>
 
   <div class="screen" id="screen-lockout">
@@ -571,12 +886,11 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
       <div class="attempt-wrap" style="margin-bottom:14px;">
         <div class="att used"></div><div class="att used"></div><div class="att used"></div><div class="att used"></div><div class="att used"></div>
       </div>
-      <div class="lockout-box">
-        <div style="font-size:11px;color:var(--red);font-family:'JetBrains Mono',monospace;margin-bottom:4px;">⏱ Δοκίμασε ξανά σε</div>
-        <div class="lockout-timer" id="lockout-timer">30:00</div>
-        <div style="font-size:10px;color:var(--muted);">λεπτά</div>
+      <div class="auth-banner danger" style="margin-bottom:14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>Ο λογαριασμός κλειδώθηκε για ασφάλεια. Επικοινώνησε με τον <b>διαχειριστή</b> για ξεκλείδωμα.</div>
       </div>
-      <button class="btn-ghost" onclick="_showScreen('auth')" style="margin-bottom:8px;">🔑 Σύνδεση με κύριο κωδικό</button>
+      <button class="btn-ghost" onclick="_showScreen('forgot-pin')" style="margin-bottom:8px;">🔑 Επαναφορά PIN με κωδικό</button>
       <div style="font-size:10px;color:var(--muted);text-align:center;">Ξέχασες τον κωδικό; <a href="#" onclick="event.preventDefault();_showScreen('forgot-pass');" style="color:var(--gold);text-decoration:underline;">Επαναφορά εδώ</a>.</div>
     </div>
   </div>
@@ -689,34 +1003,86 @@ function _obfuscatePin(pin){
 }
 
 // ── Screen navigation ─────────────────────────────────────────────
-var _SCREENS=['landing','auth','inv-code','inv-account','inv-profile','inv-wallet','inv-pin','inv-welcome','returning','lockout','forgot-pass','reset-password'];
+var _SCREENS=['landing','auth','inv-code','inv-account','inv-profile','inv-wallet','inv-pin','inv-welcome','returning','lockout','forgot-pass','forgot-sent','forgot-pin','reset-password','password-done','set-pin','pin-done'];
 // ── Forgot Password (sends reset email) ──────────────────────────
 async function _doForgotPassword(){
   var email=(document.getElementById('forgot-email')?.value||'').trim().toLowerCase();
-  var msg=document.getElementById('forgot-msg');
-  if(!msg)return;
-  msg.style.display='none';msg.style.color='';
+  var emailInput=document.getElementById('forgot-email');
+  var helper=document.getElementById('forgot-helper');
+  helper.classList.remove('error','success');
+  emailInput.classList.remove('error','success');
+
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    msg.textContent='⚠ Βάλε ένα έγκυρο email';msg.style.display='block';return;
+    emailInput.classList.add('error');
+    helper.classList.add('error');
+    helper.textContent='✕ Δώσε ένα έγκυρο email.';
+    return;
   }
-  // Disable button to prevent multi-clicks
-  var btn=document.querySelector('#screen-forgot-pass button[type="submit"]');
-  if(btn){btn.disabled=true;btn.style.opacity='.6';btn.textContent='⏳ Αποστολή...';}
+  var btn=document.getElementById('forgot-btn');
+  if(btn){
+    btn.disabled=true;
+    btn.classList.add('loading');
+    btn.innerHTML='<div class="auth-spinner"></div><span>Αποστολή...</span>';
+  }
   try{
     var redirectTo=window.location.origin+window.location.pathname.replace(/[^\/]*$/,'login.html');
     var r=await _sb.auth.resetPasswordForEmail(email,{redirectTo:redirectTo});
     if(r.error)throw r.error;
-    // Success — Supabase always returns success even για ανύπαρκτα emails (security)
-    msg.style.color='var(--green)';
-    msg.textContent='✅ Αν το email υπάρχει, θα λάβεις σύνδεσμο επαναφοράς σε λίγα λεπτά.';
-    msg.style.display='block';
-    if(btn){btn.textContent='✅ Στάλθηκε';}
+    // Show sent screen
+    document.getElementById('sent-email').textContent=email;
+    _showScreen('forgot-sent');
+    _startResendCooldown();
+    // Reset btn
+    if(btn){btn.disabled=false;btn.classList.remove('loading');btn.innerHTML='<span>Αποστολή Συνδέσμου</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>';}
   }catch(e){
-    msg.style.color='var(--red)';
-    msg.textContent='⚠ '+(e.message||'Σφάλμα — δοκίμασε ξανά');
-    msg.style.display='block';
-    if(btn){btn.disabled=false;btn.style.opacity='';btn.textContent='Αποστολή →';}
+    emailInput.classList.add('error');
+    helper.classList.add('error');
+    helper.textContent='✕ '+(e.message||'Σφάλμα — δοκίμασε ξανά');
+    if(btn){btn.disabled=false;btn.classList.remove('loading');btn.innerHTML='<span>Αποστολή Συνδέσμου</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>';}
   }
+}
+
+// Resend cooldown
+var _resendInterval=null;
+function _startResendCooldown(){
+  var btn=document.getElementById('resend-btn');
+  var txt=document.getElementById('resend-text');
+  if(!btn)return;
+  var s=30;
+  btn.disabled=true;
+  btn.style.opacity='0.5';
+  txt.textContent='Στείλε ξανά ('+s+'s)';
+  if(_resendInterval)clearInterval(_resendInterval);
+  _resendInterval=setInterval(function(){
+    s--;
+    if(s<=0){
+      clearInterval(_resendInterval);
+      btn.disabled=false;
+      btn.style.opacity='';
+      txt.textContent='Στείλε ξανά';
+    }else{
+      txt.textContent='Στείλε ξανά ('+s+'s)';
+    }
+  },1000);
+}
+
+async function _doResendForgotEmail(){
+  var email=(document.getElementById('sent-email')?.textContent||'').trim();
+  if(!email||email==='—')return;
+  try{
+    var redirectTo=window.location.origin+window.location.pathname.replace(/[^\/]*$/,'login.html');
+    await _sb.auth.resetPasswordForEmail(email,{redirectTo:redirectTo});
+    _startResendCooldown();
+  }catch(e){console.error(e);}
+}
+
+// ── Toggle password visibility (new style)
+function _tvPassNew(inputId,btnId){
+  var inp=document.getElementById(inputId);
+  var btn=document.getElementById(btnId);
+  if(!inp||!btn)return;
+  if(inp.type==='password'){inp.type='text';btn.classList.add('active');}
+  else{inp.type='password';btn.classList.remove('active');}
 }
 
 // ── Reset Password ───────────────────────────────────────────────
@@ -737,6 +1103,207 @@ async function _doResetPassword(){
   }catch(e){
     msg.textContent=e.message||'Σφάλμα — δοκίμασε ξανά';
     msg.style.display='block';
+  }
+}
+
+// ════════════════════════════════════════════
+// NEW: V2 reset password + PIN management
+// ════════════════════════════════════════════
+
+function _checkResetStrengthV2(v){
+  var r={len:v.length>=8,upper:/[A-Z]/.test(v),num:/[0-9]/.test(v),sym:/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v)};
+  var score=Object.values(r).filter(Boolean).length;
+  var rMap={len:'rr-len',upper:'rr-upper',num:'rr-num',sym:'rr-sym'};
+  Object.keys(rMap).forEach(function(k){
+    var el=document.getElementById(rMap[k]);
+    if(el)el.classList.toggle('met',r[k]);
+  });
+  var tier='';
+  var label='—';
+  if(score===1){tier='weak';label='ΑΔΥΝΑΜΟΣ';}
+  else if(score===2){tier='medium';label='ΜΕΤΡΙΟΣ';}
+  else if(score===3){tier='good';label='ΚΑΛΟΣ';}
+  else if(score===4){tier='strong';label='ΙΣΧΥΡΟΣ';}
+  var segs=document.querySelectorAll('#reset-sbars .auth-strength-seg');
+  segs.forEach(function(s,i){
+    s.classList.remove('weak','medium','good','strong','on');
+    if(i<score){s.classList.add('on');if(tier)s.classList.add(tier);}
+  });
+  var lbl=document.getElementById('reset-slabel');
+  if(lbl){lbl.className='auth-strength-label '+tier;lbl.textContent=label;}
+  _checkResetMatchV2();
+  return r;
+}
+
+function _checkResetMatchV2(){
+  var p1=document.getElementById('reset-pass1')?.value||'';
+  var p2=document.getElementById('reset-pass2')?.value||'';
+  var p2el=document.getElementById('reset-pass2');
+  var helper=document.getElementById('reset-match');
+  var btn=document.getElementById('reset-btn');
+  var rules=_checkResetStrengthRules(p1);
+  var allMet=Object.values(rules).every(Boolean);
+  // Match check
+  if(p2.length===0){
+    p2el.classList.remove('error','success');
+    if(helper)helper.style.display='none';
+  }else if(p1===p2){
+    p2el.classList.remove('error');p2el.classList.add('success');
+    if(helper){helper.style.display='block';helper.className='auth-helper success';helper.textContent='✓ Οι κωδικοί ταιριάζουν.';}
+  }else{
+    p2el.classList.remove('success');p2el.classList.add('error');
+    if(helper){helper.style.display='block';helper.className='auth-helper error';helper.textContent='✕ Οι κωδικοί δεν ταιριάζουν.';}
+  }
+  // Button
+  if(btn)btn.disabled=!(allMet && p1===p2 && p1.length>0);
+}
+
+function _checkResetStrengthRules(v){
+  return {len:v.length>=8,upper:/[A-Z]/.test(v),num:/[0-9]/.test(v),sym:/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v)};
+}
+
+async function _doResetPasswordV2(){
+  var p1=document.getElementById('reset-pass1').value;
+  var p2=document.getElementById('reset-pass2').value;
+  var msg=document.getElementById('reset-msg');
+  var btn=document.getElementById('reset-btn');
+  msg.style.display='none';
+  var rules=_checkResetStrengthRules(p1||'');
+  if(!Object.values(rules).every(Boolean) || p1!==p2){return;}
+  if(btn){btn.disabled=true;btn.classList.add('loading');btn.innerHTML='<div class="auth-spinner"></div><span>Αποθήκευση...</span>';}
+  try{
+    var r=await _sb.auth.updateUser({password:p1});
+    if(r.error)throw r.error;
+    _showScreen('password-done');
+  }catch(e){
+    msg.textContent=e.message||'Σφάλμα — δοκίμασε ξανά';
+    msg.style.display='block';
+    if(btn){btn.disabled=false;btn.classList.remove('loading');btn.innerHTML='<span>Αποθήκευση Κωδικού</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="20,6 9,17 4,12"/></svg>';}
+  }
+}
+
+// ── Forgot PIN flow (re-auth) ──────────────────────────────────
+async function _doForgotPinAuth(){
+  var email=(document.getElementById('fpin-email')?.value||'').trim().toLowerCase();
+  var pass=document.getElementById('fpin-pass')?.value||'';
+  var err=document.getElementById('fpin-err');
+  var btn=document.getElementById('fpin-btn');
+  err.style.display='none';
+  if(!email||!pass){err.textContent='Συμπλήρωσε όλα τα πεδία.';err.style.display='block';return;}
+  if(btn){btn.disabled=true;btn.classList.add('loading');btn.innerHTML='<div class="auth-spinner"></div><span>Σύνδεση...</span>';}
+  try{
+    var r=await _sb.auth.signInWithPassword({email:email,password:pass});
+    if(r.error)throw r.error;
+    // Auth success → άνοιξε το set-pin screen σε "reset" mode
+    _setPinMode='reset';
+    _setPinUserCloud=await _loadCloudUser(r.data.user.id, r.data.session?.access_token);
+    document.getElementById('setpin-eyebrow').textContent='Επαναφορά PIN';
+    document.getElementById('setpin-subtitle').textContent='Όρισε νέο 4ψήφιο PIN. Τα παλιά λάθη μηδενίζονται.';
+    _resetSetPinForm();
+    _showScreen('set-pin');
+    setTimeout(function(){document.getElementById('sp-input')?.focus();},100);
+  }catch(e){
+    err.textContent='✕ '+(e.message==='Invalid login credentials'?'Λάθος email ή κωδικός':e.message);
+    err.style.display='block';
+    if(btn){btn.disabled=false;btn.classList.remove('loading');btn.innerHTML='<span>Συνέχεια</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>';}
+  }
+}
+
+// ── Set PIN screen logic ──────────────────────────────────────
+var _setPinMode='initial'; // 'initial' (post-login) | 'reset' (after re-auth)
+var _setPinValue='';
+var _setPinConfirm='';
+var _setPinUserCloud=null;
+
+function _resetSetPinForm(){
+  _setPinValue='';_setPinConfirm='';
+  ['sp-c0','sp-c1','sp-c2','sp-c3','spc-c0','spc-c1','spc-c2','spc-c3'].forEach(function(id){
+    var el=document.getElementById(id);if(el){el.textContent='';el.classList.remove('filled','warn');}
+  });
+  var i1=document.getElementById('sp-input');if(i1)i1.value='';
+  var i2=document.getElementById('spc-input');if(i2)i2.value='';
+  document.getElementById('setpin-confirm-section').style.display='none';
+  document.getElementById('setpin-helper').textContent='Πάτα στα κουτάκια ή πληκτρολόγησε';
+  document.getElementById('setpin-helper').className='auth-helper';
+  document.getElementById('setpin-match-helper').textContent='Πληκτρολόγησε ξανά το PIN';
+  document.getElementById('setpin-match-helper').className='auth-helper';
+  document.getElementById('setpin-btn').disabled=true;
+  document.getElementById('setpin-err').style.display='none';
+}
+
+function _setPinDigit(val){
+  val=String(val||'').replace(/\D/g,'').slice(0,4);
+  document.getElementById('sp-input').value=val;
+  _setPinValue=val;
+  for(var i=0;i<4;i++){
+    var el=document.getElementById('sp-c'+i);
+    if(el){el.textContent=val[i]||'';el.classList.toggle('filled',!!val[i]);}
+  }
+  if(val.length===4){
+    document.getElementById('setpin-confirm-section').style.display='block';
+    setTimeout(function(){document.getElementById('spc-input')?.focus();},100);
+  }
+  _checkPinSetReady();
+}
+
+function _setPinConfirmDigit(val){
+  val=String(val||'').replace(/\D/g,'').slice(0,4);
+  document.getElementById('spc-input').value=val;
+  _setPinConfirm=val;
+  for(var i=0;i<4;i++){
+    var el=document.getElementById('spc-c'+i);
+    if(el){el.textContent=val[i]||'';el.classList.toggle('filled',!!val[i]);}
+  }
+  var helper=document.getElementById('setpin-match-helper');
+  if(val.length===4){
+    if(val===_setPinValue){helper.className='auth-helper success';helper.textContent='✓ Το PIN ταιριάζει';}
+    else{helper.className='auth-helper error';helper.textContent='✕ Το PIN δεν ταιριάζει';}
+  }else{
+    helper.className='auth-helper';helper.textContent='Πληκτρολόγησε ξανά το PIN';
+  }
+  _checkPinSetReady();
+}
+
+function _checkPinSetReady(){
+  var btn=document.getElementById('setpin-btn');
+  if(!btn)return;
+  btn.disabled=!(_setPinValue.length===4 && _setPinValue===_setPinConfirm);
+}
+
+async function _doSetPin(){
+  var btn=document.getElementById('setpin-btn');
+  var err=document.getElementById('setpin-err');
+  err.style.display='none';
+  if(_setPinValue.length!==4 || _setPinValue!==_setPinConfirm)return;
+  if(btn){btn.disabled=true;btn.classList.add('loading');btn.innerHTML='<div class="auth-spinner"></div><span>Αποθήκευση...</span>';}
+  try{
+    // Get JWT from current session
+    var sess=await _sb.auth.getSession();
+    var token=sess?.data?.session?.access_token;
+    if(!token)throw new Error('No session');
+    // Call set_user_pin RPC
+    var r=await fetch(_SB_URL+'/rest/v1/rpc/set_user_pin',{
+      method:'POST',
+      headers:{'apikey':_SB_ANON,'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({new_pin:_setPinValue})
+    });
+    var data=await r.json();
+    if(!data?.ok)throw new Error(data?.error||'Σφάλμα αποθήκευσης');
+    // Success
+    _showScreen('pin-done');
+  }catch(e){
+    err.textContent='✕ '+(e.message||'Σφάλμα');
+    err.style.display='block';
+    if(btn){btn.disabled=false;btn.classList.remove('loading');btn.innerHTML='<span>Αποθήκευση PIN</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="20,6 9,17 4,12"/></svg>';}
+  }
+}
+
+function _pinDoneContinue(){
+  // After set-pin success, advance to dashboard
+  if(_setPinUserCloud){
+    _loginSuccess(_setPinUserCloud);
+  }else{
+    window.location.replace('index.html');
   }
 }
 
@@ -1030,33 +1597,24 @@ function _welcomeGo(){
 // ── Lockout system ────────────────────────────────────────────────
 var _failCount=0,_lockoutInt=null,_lockoutUntil=0,_MAX_ATTEMPTS=3;
 function _registerFailedAttempt(){
+  // Client-side UI feedback ONLY — actual lockout is server-side (5 attempts via RPC).
+  // We just track up to 3 to update the visual dots above the keypad.
   _failCount++;
-  // Update attempt dots
   for(var i=0;i<_MAX_ATTEMPTS;i++){
     var a=document.getElementById('att'+i);
     if(!a)continue;
     a.classList.remove('warn','used');
-    if(i<_failCount)a.classList.add(_failCount>=_MAX_ATTEMPTS?'used':'warn');
+    if(i<_failCount)a.classList.add('warn');
   }
-  // Update label
-  var rem=_MAX_ATTEMPTS-_failCount;
+  // Update label (cosmetic only — server enforces real lock)
   var lbl=document.getElementById('att-label');
-  if(lbl)lbl.textContent=rem>0?(rem+' προσπάθει'+(rem===1?'α':'ες')+' πριν το κλείδωμα'):'Κλείδωμα...';
-  if(_failCount>=_MAX_ATTEMPTS){
-    _lockoutUntil=Date.now()+30*60*1000;
-    localStorage.setItem('ggwall_lockout',String(_lockoutUntil));
-    setTimeout(function(){_showScreen('lockout');_startLockoutTimer();},1400);
-  }
+  if(lbl)lbl.textContent=_failCount>=_MAX_ATTEMPTS?'⚠ Προσοχή — προσέγγιση κλειδώματος':(3-_failCount)+' προσπάθει'+(3-_failCount===1?'α':'ες')+' (warning)';
 }
 function _startLockoutTimer(){
-  if(_lockoutInt)clearInterval(_lockoutInt);
-  _lockoutInt=setInterval(function(){
-    var rem=Math.max(0,_lockoutUntil-Date.now());
-    var m=Math.floor(rem/60000);var s=Math.floor((rem%60000)/1000);
-    var el=document.getElementById('lockout-timer');
-    if(el)el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
-    if(rem<=0){clearInterval(_lockoutInt);_failCount=0;localStorage.removeItem('ggwall_lockout');_showScreen('returning');}
-  },1000);
+  // Lockout screen no longer has client-side timer.
+  // Admin must manually unlock via admin_unlock_pin RPC.
+  var el=document.getElementById('lockout-timer');
+  if(el)el.textContent='—';
 }
 
 // ── Eye state machine ─────────────────────────────────────────────
@@ -1147,8 +1705,20 @@ async function _doLogin(){
     var cu = await _loadCloudUser(data.user.id, data.session?.access_token);
     if(!cu){if(errEl)errEl.textContent='⚠ Ο λογαριασμός δεν βρέθηκε στη βάση';return;}
     if(errEl)errEl.textContent='';
-    // Show PIN card
-    _showPinCard(cu);
+    // Check if user has PIN set
+    if(!cu.pin_hash){
+      // First login or after migration → show set-pin screen
+      _setPinMode='initial';
+      _setPinUserCloud=cu;
+      document.getElementById('setpin-eyebrow').textContent='Πρώτη Σύνδεση';
+      document.getElementById('setpin-subtitle').textContent='Όρισε ένα 4ψήφιο PIN για γρήγορη σύνδεση από εδώ και πέρα.';
+      _resetSetPinForm();
+      _showScreen('set-pin');
+      setTimeout(function(){document.getElementById('sp-input')?.focus();},100);
+    }else{
+      // Has PIN → show PIN entry
+      _showPinCard(cu);
+    }
   }catch(e){
     if(errEl)errEl.textContent='⚠ '+(e.message==='Invalid login credentials'?'Λάθος email ή κωδικός':e.message);
   }
@@ -1295,14 +1865,57 @@ function _updatePinDots(containerId){
   var dots=document.querySelectorAll('#'+containerId+' .pin-dot');
   dots.forEach(function(d,i){d.classList.toggle('filled',i<_pinInput.length);d.classList.remove('error');});
 }
-function _checkPin(){
+async function _checkPin(){
   var users=getUsers();
   var u=_selectedUserId?users.find(function(x){return x.id===_selectedUserId;}):users[0];
   if(!u)return;
-  var sp=_deobfuscatePin(u.pin)||u.pin||DEFAULT_PIN;
-  if(_pinInput===sp||_pinInput===u.pin){
-    _loginSuccess(u);
-  }else{
+  // Verify με Supabase RPC
+  try{
+    var sess=await _sb.auth.getSession();
+    var token=sess?.data?.session?.access_token;
+    if(!token){
+      // No session — should not happen but fallback to legacy localStorage
+      var sp=_deobfuscatePin(u.pin)||u.pin||DEFAULT_PIN;
+      if(_pinInput===sp){_loginSuccess(u);return;}
+      _eyeFail();return;
+    }
+    var r=await fetch(_SB_URL+'/rest/v1/rpc/verify_user_pin',{
+      method:'POST',
+      headers:{'apikey':_SB_ANON,'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({input_pin:_pinInput})
+    });
+    var data=await r.json();
+    if(data?.ok){
+      // Success — reset failed attempts UI + login
+      _failCount=0;
+      for(var _i=0;_i<3;_i++){var _a=document.getElementById('att'+_i);if(_a)_a.classList.remove('warn','used');}
+      _loginSuccess(u);
+    }else if(data?.error==='locked'){
+      // Account locked
+      _showScreen('lockout');
+    }else if(data?.error==='no_pin_set'){
+      // PIN missing → trigger set-pin flow
+      _setPinMode='initial';
+      _setPinUserCloud=u;
+      document.getElementById('setpin-eyebrow').textContent='Όρισε PIN';
+      document.getElementById('setpin-subtitle').textContent='Δεν υπάρχει PIN για τον λογαριασμό. Όρισε ένα τώρα.';
+      _resetSetPinForm();
+      _showScreen('set-pin');
+    }else{
+      // Wrong PIN — register attempt
+      document.querySelectorAll('#pin-dots .pin-dot').forEach(function(d){d.classList.add('error');});
+      _eyeFail();
+      var attemptsRemaining=data?.remaining;
+      if(attemptsRemaining!==undefined && attemptsRemaining<=0){
+        setTimeout(function(){_showScreen('lockout');},800);
+      }else if(attemptsRemaining!==undefined && attemptsRemaining<=2){
+        // Show warning animation
+        var hint=document.getElementById('pinHint');
+        if(hint){hint.textContent='⚠ '+attemptsRemaining+' προσπάθει'+(attemptsRemaining===1?'α':'ες')+' πριν το κλείδωμα';hint.style.color='#fb7185';}
+      }
+    }
+  }catch(e){
+    console.error('PIN verify error:',e);
     document.querySelectorAll('#pin-dots .pin-dot').forEach(function(d){d.classList.add('error');});
     _eyeFail();
   }
@@ -1326,20 +1939,32 @@ function setupPress(n){
   else{if(_setupPin.length>=4)return;_setupPin+=n;_updateSetupDots();if(_setupPin.length===4)_finishSetup();}
 }
 async function _finishSetup(){
-  var obf=_obfuscatePin(_setupPin);
-  // Save to local users
+  // Save PIN to Supabase via RPC (instead of localStorage)
+  try{
+    var sess=await _sb.auth.getSession();
+    var token=sess?.data?.session?.access_token;
+    if(token){
+      await fetch(_SB_URL+'/rest/v1/rpc/set_user_pin',{
+        method:'POST',
+        headers:{'apikey':_SB_ANON,'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({new_pin:_setupPin})
+      });
+    }
+  }catch(e){console.error('Set PIN failed:',e);}
+  // Save to local users (for UI session)
   var users=getUsers();
-  var u={id:_newUserId,name:_newUserName,email:_newUserEmail,role:'viewer',avatar:'🧑‍💻',color:'#a5b4fc',initials:_newUserName.slice(0,2).toUpperCase(),pin:obf,_fromCloud:true};
+  var u={id:_newUserId,name:_newUserName,email:_newUserEmail,role:'viewer',avatar:'🧑‍💻',color:'#a5b4fc',initials:_newUserName.slice(0,2).toUpperCase(),_fromCloud:true};
   var idx=users.findIndex(function(x){return x.id===_newUserId||x.name===_newUserName;});
   if(idx>=0)users[idx]=Object.assign(users[idx],u); else users.push(u);
   saveUsers(users);
-  // Seed and go to app
   _setupPin='';
   _loginSuccess(u);
 }
 function _skipPinSetup(){
+  // Skip is no longer recommended (PIN required for login)
+  // But for backward compat, allow it
   var users=getUsers();
-  var u={id:_newUserId,name:_newUserName,email:_newUserEmail,role:'viewer',avatar:'🧑‍💻',color:'#a5b4fc',initials:_newUserName.slice(0,2).toUpperCase(),pin:DEFAULT_PIN,_fromCloud:true};
+  var u={id:_newUserId,name:_newUserName,email:_newUserEmail,role:'viewer',avatar:'🧑‍💻',color:'#a5b4fc',initials:_newUserName.slice(0,2).toUpperCase(),_fromCloud:true};
   var idx=users.findIndex(function(x){return x.id===_newUserId||x.name===_newUserName;});
   if(idx>=0)users[idx]=Object.assign(users[idx],u); else users.push(u);
   saveUsers(users);_loginSuccess(u);
