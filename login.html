@@ -1143,8 +1143,8 @@ async function _doLogin(){
   try{
     const {data,error} = await _sb.auth.signInWithPassword({email,password});
     if(error)throw error;
-    // Load cloud_users record
-    var cu = await _loadCloudUser(data.user.id);
+    // Load cloud_users record (pass JWT for RLS)
+    var cu = await _loadCloudUser(data.user.id, data.session?.access_token);
     if(!cu){if(errEl)errEl.textContent='⚠ Ο λογαριασμός δεν βρέθηκε στη βάση';return;}
     if(errEl)errEl.textContent='';
     // Show PIN card
@@ -1191,13 +1191,18 @@ async function _doRegister(){
 }
 
 // ── Load cloud_users ──────────────────────────────────────────────
-async function _loadCloudUser(authId){
+async function _loadCloudUser(authId, jwtToken){
   try{
-    var r=await fetch(_SB_URL+'/rest/v1/cloud_users?auth_id=eq.'+authId+'&app_id=eq.ggwall&limit=1',{headers:_SB_HDR});
+    // Build headers with JWT (for RLS) instead of just anon key
+    var hdr = Object.assign({}, _SB_HDR);
+    if(jwtToken){
+      hdr = {'apikey': _SB_ANON, 'Authorization': 'Bearer ' + jwtToken, 'Content-Type': 'application/json'};
+    }
+    var r=await fetch(_SB_URL+'/rest/v1/cloud_users?auth_id=eq.'+authId+'&app_id=eq.ggwall&limit=1',{headers:hdr});
     var d=await r.json();
     if(d&&d[0])return d[0];
     // Fallback: match by id (legacy users without auth_id)
-    r=await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+authId+'&app_id=eq.ggwall&limit=1',{headers:_SB_HDR});
+    r=await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+authId+'&app_id=eq.ggwall&limit=1',{headers:hdr});
     d=await r.json();
     return d&&d[0]?d[0]:null;
   }catch(e){return null;}
