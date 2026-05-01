@@ -122,13 +122,16 @@ body{visibility:hidden;}
   border-right:1px solid var(--border);
   overflow-y:auto;display:flex;flex-direction:column;padding:14px 0;
 }
-.nav-section{padding:0 10px;margin-bottom:18px;}
-.nav-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,194,74,.3);padding:0 6px;margin-bottom:5px;font-family:"JetBrains Mono",monospace;}
-.nav-item{display:flex;align-items:center;gap:9px;padding:8px 8px;border-radius:7px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .15s;text-decoration:none;margin-bottom:1px;}
-.nav-item:hover{background:rgba(245,194,74,.07);color:var(--text);}
-.nav-item.active{background:rgba(245,194,74,.12);color:var(--gold);}
+.nav-section{padding:0 0;margin-bottom:18px;}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#5a5963;padding:0 14px;margin-bottom:5px;font-family:"JetBrains Mono",monospace;}
+.nav-item{display:flex;align-items:center;gap:10px;margin:0 8px;padding:8px 10px;border-radius:9px;cursor:pointer;color:#d8d6df;font-size:12px;font-weight:500;text-decoration:none;margin-bottom:2px;border:1px solid transparent;background:transparent;transition:all .2s;}
+.nav-item:hover{background:rgba(232,184,74,.06);}
+.nav-item.active{background:rgba(232,184,74,.12);border-color:rgba(232,184,74,.28);color:#E8B84A;font-weight:600;}
+.nav-item .nav-svg{width:17px;height:17px;flex-shrink:0;color:#6a6973;transition:color .2s;}
+.nav-item:hover .nav-svg{color:#d8d6df;}
+.nav-item.active .nav-svg{color:#E8B84A;}
 .nav-icon{width:18px;text-align:center;font-size:14px;flex-shrink:0;}
-.nav-badge{margin-left:auto;padding:1px 6px;border-radius:99px;background:rgba(125,214,125,.15);color:var(--green);font-size:9px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+.nav-badge{margin-left:auto;padding:1px 5px;border-radius:4px;background:rgba(62,207,107,.15);color:#3ECF6B;font-size:8.5px;font-weight:700;font-family:"JetBrains Mono",monospace;}
 
 /* ── Main col ── */
 #main-col{overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:10px;}
@@ -140,11 +143,11 @@ body{visibility:hidden;}
 @media(max-width:1023px) and (min-width:768px){
   #app-layout{grid-template-columns:52px 1fr;}
   #right-col{display:none;}
-  .nav-item span:not(.nav-icon){display:none;}
+  .nav-item span:not(.nav-icon):not(.nav-svg){display:none;}
   .nav-label{display:none;}
   .nav-badge{display:none;}
-  .nav-item{justify-content:center;padding:10px;}
-  #sidebar{padding:10px 4px;}
+  .nav-item{justify-content:center;padding:10px;margin:0 4px 2px;}
+  #sidebar{padding:10px 0;}
 }
 
 /* ═══ MOBILE: 1-col ═══ */
@@ -155,28 +158,49 @@ body{visibility:hidden;}
   #main-col{padding:10px 10px calc(80px + env(safe-area-inset-bottom,0px) + 16px);}
 }
 
-/* ── Bottom nav (mobile only) ── */
+/* ── Bottom nav V4 — Floating Dock ── */
 #bottom-nav{
   display:none;
   position:fixed;bottom:0;left:0;right:0;
-  height:calc(56px + env(safe-area-inset-bottom,0px));
-  padding-bottom:env(safe-area-inset-bottom,0px);
-  background:rgba(11,13,18,.97);backdrop-filter:blur(14px);
-  border-top:1px solid var(--border);z-index:300;
+  padding:8px 12px calc(12px + env(safe-area-inset-bottom,0px));
+  background:transparent;
+  z-index:300;
+  pointer-events:none;
 }
-#bottom-nav::after{
-  content:'';
-  position:absolute;
-  bottom:calc(-1 * env(safe-area-inset-bottom,0px));
-  left:0;right:0;
-  height:env(safe-area-inset-bottom,0px);
-  background:rgba(11,13,18,.97);
+.bnav-inner{
+  pointer-events:auto;
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,rgba(40,38,52,.95),rgba(20,18,28,.95));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  padding:6px 8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);
 }
-.bnav-inner{display:flex;height:56px;}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--muted);transition:color .15s;font-size:9px;font-weight:600;letter-spacing:.03em;border:none;background:transparent;font-family:"Space Grotesk",sans-serif;}
-.bnav-item.active{color:var(--gold);}
-.bnav-icon{font-size:18px;}
-@media(max-width:767px){#bottom-nav{display:flex;flex-direction:column;}}
+.bnav-item{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 10px;
+  border-radius:16px;
+  border:1px solid transparent;
+  background:transparent;
+  cursor:pointer;text-decoration:none;
+  color:#5a5963;
+  font-family:-apple-system,BlinkMacSystemFont,"Space Grotesk",sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:.2px;
+  transition:all .2s;
+  white-space:nowrap;
+}
+.bnav-item .bnav-svg{width:20px;height:20px;flex-shrink:0;color:#5a5963;transition:color .2s;}
+.bnav-item .bnav-label{display:none;color:#E8B84A;}
+.bnav-item.active{
+  padding:8px 12px;
+  background:rgba(232,184,74,.13);
+  border-color:rgba(232,184,74,.3);
+  color:#E8B84A;
+}
+.bnav-item.active .bnav-svg{color:#E8B84A;}
+.bnav-item.active .bnav-label{display:inline;}
+@media(max-width:767px){#bottom-nav{display:block;}}
 
 /* ═══════════════════════════════════════════════════════
    WIDGETS
@@ -443,29 +467,36 @@ body{visibility:hidden;}
     <div class="nav-section">
       <div class="nav-label">Dashboard</div>
       <a class="nav-item active" id="nav-portfolio" onclick="navTo('portfolio');return false;" href="#">
-        <span class="nav-icon">&#127968;</span><span>Portfolio</span>
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12 a9 9 0 1 1 -9 -9"/><path d="M21 12 h-9 V3"/></svg>
+        <span>Portfolio</span>
       </a>
       <a class="nav-item" id="nav-markets" onclick="navTo('markets');return false;" href="#">
-        <span class="nav-icon">&#128202;</span><span>Markets</span>
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L9 11 L13 14 L21 5"/><polyline points="15,5 21,5 21,11"/></svg>
+        <span>Markets</span>
       </a>
       <a class="nav-item" id="nav-staking" onclick="navTo('staking');return false;" href="#">
-        <span class="nav-icon">&#11088;</span><span>Staking</span>
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 a4 4 0 0 1 8 0 v4"/><path d="M10 16 l2 -2 l2 2"/><path d="M12 14 v4"/></svg>
+        <span>Staking</span>
         <span class="nav-badge" id="stake-badge" style="display:none"></span>
       </a>
       <a class="nav-item" id="nav-allocations" onclick="navTo('allocations');return false;" href="#">
-        <span class="nav-icon">&#127849;</span><span>Allocations</span>
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="12"/><line x1="12" y1="12" x2="20.5" y2="9"/></svg>
+        <span>Allocations</span>
       </a>
       <a class="nav-item" id="nav-history" href="history.html">
-        <span class="nav-icon">&#128197;</span><span>History</span>
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12 a8.5 8.5 0 1 0 2.5 -6"/><polyline points="3.5,3 3.5,7 7.5,7"/><path d="M12 8 v4 l3 1.5"/></svg>
+        <span>History</span>
       </a>
     </div>
     <div class="nav-section">
       <div class="nav-label">Wallet</div>
       <a class="nav-item" id="nav-cosmos" onclick="navTo('cosmos');return false;" href="#">
-        <span class="nav-icon">&#127756;</span><span>Cosmos</span>
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+        <span>Cosmos</span>
       </a>
       <a class="nav-item" id="nav-cardano" onclick="navTo('cardano');return false;" href="#">
-        <span class="nav-icon">&#128309;</span><span>Cardano</span>
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="#3CC8C8" stroke="none"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="4.5" r="1.3"/><circle cx="12" cy="19.5" r="1.3"/><circle cx="5.5" cy="8.25" r="1.3"/><circle cx="18.5" cy="8.25" r="1.3"/><circle cx="5.5" cy="15.75" r="1.3"/><circle cx="18.5" cy="15.75" r="1.3"/><circle cx="3" cy="12" r="0.9" opacity="0.5"/><circle cx="21" cy="12" r="0.9" opacity="0.5"/></svg>
+        <span>Cardano</span>
       </a>
     </div>
   </nav>
@@ -486,11 +517,26 @@ body{visibility:hidden;}
 <!-- BOTTOM NAV (mobile) -->
 <div id="bottom-nav">
   <div class="bnav-inner">
-    <button class="bnav-item active" id="bn-portfolio" onclick="navTo('portfolio')"><span class="bnav-icon">&#127968;</span>Portfolio</button>
-    <button class="bnav-item" id="bn-markets" onclick="navTo('markets')"><span class="bnav-icon">&#128202;</span>Markets</button>
-    <button class="bnav-item" id="bn-staking" onclick="navTo('staking')"><span class="bnav-icon">&#11088;</span>Staking</button>
-    <a class="bnav-item" id="bn-history" href="history.html"><span class="bnav-icon">&#128197;</span>History</a>
-    <button class="bnav-item" id="bn-me" onclick="openUserOverlay()"><span class="bnav-icon">&#128100;</span>Εγώ</button>
+    <button class="bnav-item active" id="bn-portfolio" onclick="navTo('portfolio')">
+      <svg class="bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12 a9 9 0 1 1 -9 -9"/><path d="M21 12 h-9 V3"/></svg>
+      <span class="bnav-label">Portfolio</span>
+    </button>
+    <button class="bnav-item" id="bn-markets" onclick="navTo('markets')">
+      <svg class="bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L9 11 L13 14 L21 5"/><polyline points="15,5 21,5 21,11"/></svg>
+      <span class="bnav-label">Markets</span>
+    </button>
+    <button class="bnav-item" id="bn-staking" onclick="navTo('staking')">
+      <svg class="bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 a4 4 0 0 1 8 0 v4"/><path d="M12 14 v4"/><path d="M10 16 l2 -2 l2 2"/></svg>
+      <span class="bnav-label">Staking</span>
+    </button>
+    <a class="bnav-item" id="bn-history" href="history.html">
+      <svg class="bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/><path d="M16 14 l4 4 l-4 4"/><path d="M20 18 h-4"/></svg>
+      <span class="bnav-label">History</span>
+    </a>
+    <button class="bnav-item" id="bn-me" onclick="openUserOverlay()">
+      <svg class="bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21 a8 8 0 0 1 16 0"/></svg>
+      <span class="bnav-label">Εγώ</span>
+    </button>
   </div>
 </div>
 
