@@ -1812,16 +1812,16 @@ function _showPinCard(cloudUser){
   var av=cloudUser.avatar||'🧑‍💻',ph=null;
   if(av.startsWith('img:')){ph=av.slice(4);av='🧑‍💻';}
   if(cloudUser.photo_url)ph=cloudUser.photo_url;
-  var merged={id:cloudUser.id,name:cloudUser.name,role:cloudUser.role||'viewer',color:cloudUser.color||'#a5b4fc',avatar:av,photo:ph,email:cloudUser.email||'',initials:cloudUser.name.slice(0,2).toUpperCase(),pin:idx>=0?users[idx].pin:DEFAULT_PIN,_fromCloud:true,device_verified:true};
+  var merged={id:cloudUser.id,name:cloudUser.name,role:cloudUser.role||'viewer',color:cloudUser.color||'#a5b4fc',avatar:av,photo:ph,email:cloudUser.email||'',initials:(cloudUser.name||'??').slice(0,2).toUpperCase(),pin:idx>=0?users[idx].pin:DEFAULT_PIN,_fromCloud:true,device_verified:true};
   if(idx>=0)users[idx]=merged; else users.push(merged);
   saveUsers(users);
   _selectedUserId=merged.id;
   _lockUserIndex=users.indexOf(merged);
   // Show returning screen with PIN card
   _showScreen('returning');
-  document.getElementById('pin-card').style.display='';
+  var pc=document.getElementById('pin-card');
+  if(pc)pc.style.display='';
   _renderPinUser(merged);
-  // Only update THIS user's data from cloud (not all users)
   _renderPinUserList();
 }
 function _renderPinUser(u){
