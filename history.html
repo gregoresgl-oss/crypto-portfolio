@@ -1230,10 +1230,12 @@ function renderHeroChart(txs) {
   if (lastTs === firstTs) lastTs = firstTs + 864e5;
 
   // Coordinates (η y-θέση χρησιμοποιεί smoothCum, αλλά cum/daily κρατιούνται για tooltip)
+  // Guard against zero-range scenarios (e.g. wallet με μόνο delegate txs → όλα cum=0)
+  var rangeCum = (maxCum - minCum) || 1;
   var coords = points.map(function(p){
     var ts = new Date(p.day).getTime();
     var x = CHART_PAD_L + ((ts - firstTs) / (lastTs - firstTs)) * plotW;
-    var y = CHART_PAD_T + plotH - ((p.smoothCum - minCum) / (maxCum - minCum)) * plotH;
+    var y = CHART_PAD_T + plotH - ((p.smoothCum - minCum) / rangeCum) * plotH;
     return { x: x, y: y, cum: p.cum, daily: p.daily, day: p.day };
   });
 
@@ -1258,7 +1260,7 @@ function renderHeroChart(txs) {
       var ts = new Date(b.day).getTime();
       var x = CHART_PAD_L + ((ts - firstTs) / (lastTs - firstTs)) * plotW;
       x = Math.max(CHART_PAD_L, Math.min(CHART_PAD_L + plotW, x));
-      var y = CHART_PAD_T + plotH - ((smoothedVals[i] - minCum) / (maxCum - minCum)) * plotH;
+      var y = CHART_PAD_T + plotH - ((smoothedVals[i] - minCum) / rangeCum) * plotH;
       return { x: x, y: y };
     });
     var valLine = catmullRomPath(valueCoords);
