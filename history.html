@@ -1163,6 +1163,13 @@ function renderHeroChart(txs) {
     return { day: d, cum: cum, daily: dayMap[d].net };
   });
 
+  // ── Adaptive smoothing για τη ροή (η raw cum διατηρείται για το tooltip) ──
+  var winFlow = smoothingWindow(points.length);
+  var smoothedCum = rollingAvg(points, winFlow, function(p){ return p.cum; });
+  points = points.map(function(p, i){
+    return { day: p.day, cum: p.cum, daily: p.daily, smoothCum: smoothedCum[i] };
+  });
+
   // Plot area
   var plotW = CHART_W - CHART_PAD_L - CHART_PAD_R;
   var plotH = CHART_H - CHART_PAD_T - CHART_PAD_B;
@@ -1179,8 +1186,8 @@ function renderHeroChart(txs) {
     return b.total_value_eur > 0;
   });
 
-  var minCum = Math.min.apply(null, points.map(function(p){return p.cum;}));
-  var maxCum = Math.max.apply(null, points.map(function(p){return p.cum;}));
+  var minCum = Math.min.apply(null, points.map(function(p){return p.smoothCum;}));
+  var maxCum = Math.max.apply(null, points.map(function(p){return p.smoothCum;}));
   // Expand range to include wallet value scale
   if (balSeries.length) {
     var minVal = Math.min.apply(null, balSeries.map(function(b){return b.total_value_eur;}));
@@ -1198,11 +1205,11 @@ function renderHeroChart(txs) {
   var lastTs = new Date(points[points.length-1].day).getTime();
   if (lastTs === firstTs) lastTs = firstTs + 864e5;
 
-  // Coordinates
+  // Coordinates (η y-θέση χρησιμοποιεί smoothCum, αλλά cum/daily κρατιούνται για tooltip)
   var coords = points.map(function(p){
     var ts = new Date(p.day).getTime();
     var x = CHART_PAD_L + ((ts - firstTs) / (lastTs - firstTs)) * plotW;
-    var y = CHART_PAD_T + plotH - ((p.cum - minCum) / (maxCum - minCum)) * plotH;
+    var y = CHART_PAD_T + plotH - ((p.smoothCum - minCum) / (maxCum - minCum)) * plotH;
     return { x: x, y: y, cum: p.cum, daily: p.daily, day: p.day };
   });
 
@@ -1220,12 +1227,14 @@ function renderHeroChart(txs) {
   var chipValueWrap = document.getElementById('chip-value-wrap');
   var chipValueEl = document.getElementById('chip-value');
   if (balSeries.length >= 2) {
-    var valueCoords = balSeries.map(function(b){
+    // Adaptive smoothing για την αξία (raw values διατηρούνται για το tooltip)
+    var winVal = smoothingWindow(balSeries.length);
+    var smoothedVals = rollingAvg(balSeries, winVal, function(b){ return b.total_value_eur; });
+    var valueCoords = balSeries.map(function(b, i){
       var ts = new Date(b.day).getTime();
       var x = CHART_PAD_L + ((ts - firstTs) / (lastTs - firstTs)) * plotW;
-      // Clamp x within plot area
       x = Math.max(CHART_PAD_L, Math.min(CHART_PAD_L + plotW, x));
-      var y = CHART_PAD_T + plotH - ((b.total_value_eur - minCum) / (maxCum - minCum)) * plotH;
+      var y = CHART_PAD_T + plotH - ((smoothedVals[i] - minCum) / (maxCum - minCum)) * plotH;
       return { x: x, y: y };
     });
     var valLine = catmullRomPath(valueCoords);
@@ -1310,6 +1319,33 @@ function catmullRomPath(pts) {
     d += ' C ' + c1x.toFixed(1) + ',' + c1y.toFixed(1) + ' ' + c2x.toFixed(1) + ',' + c2y.toFixed(1) + ' ' + p2.x.toFixed(1) + ',' + p2.y.toFixed(1);
   }
   return d;
+}
+
+// Adaptive smoothing window βάσει αριθμού σημείων.
+// Πάντα soft καμπύλες, χωρίς να χάνουμε λεπτομέρεια σε μικρά ranges.
+function smoothingWindow(pointCount) {
+  if (pointCount > 800) return 14;
+  if (pointCount > 500) return 10;
+  if (pointCount > 200) return 7;
+  if (pointCount > 60)  return 4;
+  if (pointCount > 20)  return 2;
+  return 1;
+}
+
+// Centered rolling average — διατηρεί την κορυφή (όχι "delay") σε σχέση με trailing.
+function rollingAvg(arr, win, accessor) {
+  if (win <= 1) return arr.slice();
+  var get = accessor || function(x){ return x; };
+  var half = Math.floor(win / 2);
+  var out = [];
+  for (var i = 0; i < arr.length; i++) {
+    var s = Math.max(0, i - half);
+    var e = Math.min(arr.length - 1, i + half);
+    var sum = 0, cnt = 0;
+    for (var j = s; j <= e; j++) { sum += get(arr[j]); cnt++; }
+    out.push(sum / cnt);
+  }
+  return out;
 }
 
 function formatShort(v) {
