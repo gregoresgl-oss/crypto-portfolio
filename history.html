@@ -218,6 +218,8 @@ body::before{
 .wpill:hover{border-color:rgba(245,194,74,.3);}
 .wpill.on{background:rgba(245,194,74,.1);border-color:rgba(245,194,74,.4);color:var(--gold);}
 .wdot{width:8px;height:8px;border-radius:50%;}
+.wnew-dot{position:absolute;top:-2px;right:-2px;width:9px;height:9px;background:#E8B84A;border:2px solid var(--bg,#0a0a0d);border-radius:50%;box-shadow:0 0 8px rgba(232,184,74,0.7);animation:wnewPulse 2s ease-in-out infinite;pointer-events:none;}
+@keyframes wnewPulse{0%,100%{box-shadow:0 0 6px rgba(232,184,74,0.6);}50%{box-shadow:0 0 12px rgba(232,184,74,0.95);}}
 .wcount{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);padding-left:6px;border-left:1px solid var(--line);margin-left:2px;}
 .wpill.on .wcount{color:inherit;border-left-color:currentColor;opacity:.7;}
 .wpill .wedit{display:none;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.06);align-items:center;justify-content:center;font-size:9px;color:var(--muted);margin-left:4px;border:none;cursor:pointer;}
@@ -951,13 +953,45 @@ async function loadTransactions() {
     state.transactions = rows || [];
     console.log('[history] loaded txs:', state.transactions.length);
 
-    // Update wallet counts
+    // Φέρε το last_seen_tx_at για να υπολογίσουμε νέες tx ανά wallet
+    var lastSeen = null;
+    try {
+      var ur = await fetch(SB_URL + '/rest/v1/cloud_users?id=eq.' + encodeURIComponent(state.user.id) + '&select=last_seen_tx_at', {headers: SB_H});
+      if (ur.ok) {
+        var ud = await ur.json();
+        if (ud && ud[0]) lastSeen = ud[0].last_seen_tx_at;
+      }
+    } catch(e) {}
+    state.lastSeenTxAt = lastSeen;
+
+    // Update wallet counts (total + new since last seen)
     state.wallets.forEach(function(w) {
-      w.count = state.transactions.filter(function(t){return w.addrs.indexOf(t.wallet_addr) >= 0;}).length;
+      var walletTxs = state.transactions.filter(function(t){return w.addrs.indexOf(t.wallet_addr) >= 0;});
+      w.count = walletTxs.length;
+      w.newCount = lastSeen
+        ? walletTxs.filter(function(t){return t.created_at && t.created_at > lastSeen;}).length
+        : 0;
     });
+
+    // Mark all as seen → update last_seen_tx_at = NOW()
+    // Done in background so it doesn't block render. Dots παραμένουν για αυτό το page view
+    // και θα εξαφανιστούν στην επόμενη φόρτωση.
+    _updateLastSeenTxAt();
   } catch(e) {
     console.error('[history] loadTransactions:', e);
     state.transactions = [];
+  }
+}
+
+async function _updateLastSeenTxAt(){
+  try {
+    await fetch(SB_URL + '/rest/v1/cloud_users?id=eq.' + encodeURIComponent(state.user.id), {
+      method: 'PATCH',
+      headers: Object.assign({}, SB_H, {'Prefer':'return=minimal'}),
+      body: JSON.stringify({ last_seen_tx_at: new Date().toISOString() })
+    });
+  } catch(e) {
+    console.warn('[last-seen-update]', e.message);
   }
 }
 
@@ -1509,11 +1543,14 @@ function renderWallets() {
   state.wallets.forEach(function(w) {
     var isOn = state.filters.wallet === w.id;
     var st = isOn ? 'border-color:' + w.color + '66;background:' + w.color + '1a;color:' + w.color + ';' : '';
-    html += '<button class="wpill ' + (isOn ? 'on' : '') + '" data-wallet="' + w.id + '" style="' + st + '">';
+    html += '<button class="wpill ' + (isOn ? 'on' : '') + '" data-wallet="' + w.id + '" style="position:relative;' + st + '">';
     html += '<span class="wdot" style="background:' + w.color + ';"></span>';
     html += '<span>' + escapeHtml(w.name) + '</span>';
     html += '<span class="wcount">' + w.count + '</span>';
     html += '<button class="wedit" data-edit="' + w.id + '" title="Μετονομασία">✎</button>';
+    if (w.newCount > 0) {
+      html += '<span class="wnew-dot" title="' + w.newCount + ' νέες"></span>';
+    }
     html += '</button>';
   });
 

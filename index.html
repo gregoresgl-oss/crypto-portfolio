@@ -129,6 +129,10 @@ body{visibility:hidden;}
 .nav-item.active{background:rgba(232,184,74,.12);border-color:rgba(232,184,74,.28);color:#E8B84A;font-weight:600;}
 .nav-item .nav-svg{width:17px;height:17px;flex-shrink:0;color:#6a6973;transition:color .2s;}
 .nav-item:hover .nav-svg{color:#d8d6df;}
+/* New TX indicator dot */
+.new-tx-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#E8B84A;box-shadow:0 0 8px rgba(232,184,74,0.7);margin-left:auto;flex-shrink:0;animation:dotPulse 2s ease-in-out infinite;}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 8px rgba(232,184,74,0.7);}50%{box-shadow:0 0 12px rgba(232,184,74,0.95);}}
+.bnav-dot{position:absolute;top:6px;right:calc(50% - 18px);width:7px;height:7px;border:1.5px solid #0a0a0d;}
 .nav-item.active .nav-svg{color:#E8B84A;}
 .nav-icon{width:18px;text-align:center;font-size:14px;flex-shrink:0;}
 .nav-badge{margin-left:auto;padding:1px 5px;border-radius:4px;background:rgba(62,207,107,.15);color:#3ECF6B;font-size:8.5px;font-weight:700;font-family:"JetBrains Mono",monospace;}
@@ -486,6 +490,7 @@ body{visibility:hidden;}
       <a class="nav-item" id="nav-history" href="history.html">
         <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12 a8.5 8.5 0 1 0 2.5 -6"/><polyline points="3.5,3 3.5,7 7.5,7"/><path d="M12 8 v4 l3 1.5"/></svg>
         <span>History</span>
+        <span class="new-tx-dot" id="nav-history-dot" style="display:none;"></span>
       </a>
     </div>
     <div class="nav-section">
@@ -532,6 +537,7 @@ body{visibility:hidden;}
     <a class="bnav-item" id="bn-history" href="history.html">
       <svg class="bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/><path d="M16 14 l4 4 l-4 4"/><path d="M20 18 h-4"/></svg>
       <span class="bnav-label">History</span>
+      <span class="new-tx-dot bnav-dot" id="bn-history-dot" style="display:none;"></span>
     </a>
     <button class="bnav-item" id="bn-me" onclick="openUserOverlay()">
       <svg class="bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21 a8 8 0 0 1 16 0"/></svg>
@@ -841,6 +847,48 @@ function applyActiveUser(user){
   _populateOverlay(user);
   // Staking badge
   _refreshStakeBadge();
+  _checkNewTransactions();
+}
+
+// ─── New TX dot indicator ─────────────────────────────────────────
+// Δείχνει gold dot στο nav-history αν υπάρχουν txs μετά το last_seen_tx_at.
+async function _checkNewTransactions(){
+  if(!_user||!_user.id)return;
+  try{
+    // Φέρε last_seen_tx_at από cloud_users (έχει sync μέσω _fetchAndApplyCloudUser)
+    var lastSeen = _user.last_seen_tx_at;
+    if(!lastSeen){
+      // fetch fresh
+      var ur = await fetch(_SB_URL+"/rest/v1/cloud_users?id=eq."+_user.id+"&select=last_seen_tx_at",{headers:_SB_H});
+      if(ur.ok){
+        var ud = await ur.json();
+        if(ud&&ud[0])lastSeen = ud[0].last_seen_tx_at;
+      }
+    }
+    if(!lastSeen)return;
+
+    // Count txs created after lastSeen
+    var url = _SB_URL+"/rest/v1/transactions?user_id=eq."+_user.id
+            +"&created_at=gt."+encodeURIComponent(lastSeen)
+            +"&select=id&limit=1";
+    var r = await fetch(url, {
+      headers: Object.assign({}, _SB_H, {"Prefer":"count=exact"})
+    });
+    if(!r.ok)return;
+
+    // PostgREST returns count στο Content-Range header: "0-0/N"
+    var range = r.headers.get('Content-Range') || '';
+    var totalMatch = range.match(/\/(\d+)$/);
+    var total = totalMatch ? parseInt(totalMatch[1]) : 0;
+
+    var navDot = document.getElementById('nav-history-dot');
+    var bnDot = document.getElementById('bn-history-dot');
+    var show = total > 0 ? '' : 'none';
+    if(navDot) navDot.style.display = show;
+    if(bnDot) bnDot.style.display = show;
+  }catch(e){
+    console.warn('[new-tx-dot]', e.message);
+  }
 }
 
 function _populateOverlay(user){
