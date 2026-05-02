@@ -1183,40 +1183,20 @@ function _renderAllocations(main,right){
 }
 
 function _renderCosmos(main,right){
-  if(!main)return;main.innerHTML="";
-  var el=document.createElement("div");el.className="card";
-  el.innerHTML='<div class="card-head"><span class="card-title">&#127756; COSMOS WALLET</span></div><div id="cosmos-detail" style="font-size:11px;color:var(--muted);padding:8px 0;">Φόρτωση...</div>';
-  main.appendChild(el);if(right)right.innerHTML="";fetchUnclaimedRewards();
+  if(!main)return;
+  main.innerHTML='<div class="card"><div class="card-head"><span class="card-title">&#127756; COSMOS WALLET</span></div><div style="font-size:11px;color:var(--muted);padding:8px 0;">Coming soon...</div></div>';
+  if(right)right.innerHTML="";
 }
 
 function _renderCardano(main,right){
-  if(!main)return;main.innerHTML='<div class="card"><div class="card-head"><span class="card-title">&#128309; CARDANO WALLET</span></div><div style="font-size:11px;color:var(--muted);padding:8px 0;">Coming soon...</div></div>';
+  if(!main)return;
+  main.innerHTML='<div class="card"><div class="card-head"><span class="card-title">&#128309; CARDANO WALLET</span></div><div style="font-size:11px;color:var(--muted);padding:8px 0;">Coming soon...</div></div>';
   if(right)right.innerHTML="";
 }
 
 // ─── Fear & Greed ─────────────────────────────────────────────────
 async function fetchFearGreed(){
   try{var r=await fetch("https://api.alternative.me/fng/?limit=1",{signal:AbortSignal.timeout(6000)});if(!r.ok)return;var d=await r.json();var val=parseInt(d?.data?.[0]?.value||50),cls=d?.data?.[0]?.value_classification||"Neutral";var n=document.getElementById("fg-needle"),l=document.getElementById("fg-lbl");if(n)n.style.left=val+"%";if(l){l.textContent=cls+" ("+val+")";l.className="card-title "+(val<30?"text-red":val>70?"text-green":"text-gold");}}catch(e){}
-}
-
-// ─── Unclaimed Rewards ────────────────────────────────────────────
-async function fetchUnclaimedRewards(){
-  var el=document.getElementById("cosmos-detail");if(!el)return;
-  var cosmosStr=(_user?.cosmos_addrs||"").trim();
-  if(!cosmosStr){el.innerHTML='Δεν έχεις ορίσει Cosmos διευθύνσεις. <button onclick="openUserOverlay()" class="btn btn-ghost" style="margin-top:6px;font-size:10px;">Πρόσθεσε</button>';return;}
-  var cosmosAddrs=cosmosStr.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s.startsWith("cosmos1"));
-  if(!cosmosAddrs.length){el.innerHTML="Δεν βρέθηκαν cosmos1... διευθύνσεις.";return;}
-  el.innerHTML="Φόρτωση αμοιβών...";
-  try{
-    var total=0,rows=[];
-    for(var addr of cosmosAddrs.slice(0,3)){
-      var r=await fetch("https://rest.cosmos.directory/cosmoshub/cosmos/distribution/v1beta1/delegators/"+addr+"/rewards",{signal:AbortSignal.timeout(8000)});
-      if(!r.ok)continue;var d=await r.json();
-      (d.rewards||[]).forEach(vr=>{(vr.reward||[]).forEach(rw=>{if(rw.denom==="uatom"){var amt=parseInt(rw.amount)/1e6;total+=amt;rows.push({addr:addr.slice(0,10)+"...",amt,eur:amt*(prices["cosmos"]||0)});}});});
-    }
-    if(!rows.length){el.innerHTML="Δεν βρέθηκαν pending rewards.";return;}
-    el.innerHTML='<div style="font-size:12px;margin-bottom:7px;color:var(--gold);">📦 Pending: <b>'+total.toFixed(4)+" ATOM</b> ("+_fmt(total*(prices["cosmos"]||0))+')</div>'+rows.map(r=>'<div style="font-size:9px;color:var(--muted);padding:2px 0;">'+r.addr+": "+r.amt.toFixed(4)+" ATOM ("+_fmt(r.eur)+")</div>").join("");
-  }catch(e){el.innerHTML='<span style="color:var(--red);">⚠ '+e.message+"</span>";}
 }
 
 // ─── Prices ───────────────────────────────────────────────────────
@@ -1323,6 +1303,10 @@ async function _loadFromCache(userId){
       userdata[row.chain_id].liquid=(userdata[row.chain_id].liquid||0)+parseFloat(row.liquid||0);
       userdata[row.chain_id].staked=(userdata[row.chain_id].staked||0)+parseFloat(row.staked||0);
       userdata[row.chain_id].rewards=(userdata[row.chain_id].rewards||0)+parseFloat(row.rewards||0);
+      // Track address (deduplicated)
+      if(row.address && userdata[row.chain_id].addrs.indexOf(row.address)===-1){
+        userdata[row.chain_id].addrs.push(row.address);
+      }
       // Add to activeCoinIds if not already there
       if(!activeCoinIds.includes(row.chain_id))activeCoinIds.push(row.chain_id);
     });
