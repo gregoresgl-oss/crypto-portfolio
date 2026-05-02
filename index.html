@@ -792,7 +792,17 @@ async function syncUsersFromCloud(){
     var av=c.avatar||ex?.avatar||"🧑‍💻",ph=null;
     if(av.startsWith("img:")){ph=av.slice(4);av="🧑‍💻";}
     if(c.photo_url)ph=c.photo_url;if(!ph&&ex?.photo)ph=ex.photo;
-    var merged=[{id:c.id,name:c.name,role:c.role||"viewer",color:c.color||"#a5b4fc",avatar:av,photo:ph,photo_url:c.photo_url||null,email:c.email||ex?.email||"",initials:(c.name||"").slice(0,2).toUpperCase(),pin:ex?.pin||DEF_PIN,_fromCloud:true,device_verified:ex?.device_verified||true}];
+    var merged=[{id:c.id,name:c.name,role:c.role||"viewer",color:c.color||"#a5b4fc",avatar:av,photo:ph,photo_url:c.photo_url||null,email:c.email||ex?.email||"",initials:(c.name||"").slice(0,2).toUpperCase(),pin:ex?.pin||DEF_PIN,_fromCloud:true,device_verified:ex?.device_verified||true,cosmos_addrs:c.cosmos_addrs||"",cardano_addrs:c.cardano_addrs||""}];
+    // Επίσης ενημέρωση του cached active_user στο sessionStorage ώστε να
+    // βλέπουν οι σελίδες (cosmos/cardano) τις διευθύνσεις άμεσα.
+    try {
+      var cur = JSON.parse(sessionStorage.getItem("active_user") || "null");
+      if (cur && cur.id === c.id) {
+        cur.cosmos_addrs = c.cosmos_addrs || "";
+        cur.cardano_addrs = c.cardano_addrs || "";
+        sessionStorage.setItem("active_user", JSON.stringify(cur));
+      }
+    } catch(e) {}
     saveUsers(merged);return true;
   }catch(e){return false;}
 }
