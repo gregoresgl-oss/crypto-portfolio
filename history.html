@@ -987,7 +987,7 @@ async function _updateLastSeenTxAt(){
   try {
     await fetch(SB_URL + '/rest/v1/cloud_users?id=eq.' + encodeURIComponent(state.user.id), {
       method: 'PATCH',
-      headers: Object.assign({}, SB_H, {'Prefer':'return=minimal'}),
+      headers: Object.assign({}, SB_H, {'Prefer':'return=minimal','Content-Type':'application/json'}),
       body: JSON.stringify({ last_seen_tx_at: new Date().toISOString() })
     });
   } catch(e) {
