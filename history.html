@@ -509,15 +509,16 @@ body::before{
                     <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
                   </linearGradient>
                   <linearGradient id="heroValueAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#34d399" stop-opacity="0.18"/>
+                    <stop offset="0%" stop-color="#34d399" stop-opacity="0.32"/>
+                    <stop offset="60%" stop-color="#34d399" stop-opacity="0.10"/>
                     <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
                   </linearGradient>
                   <filter id="heroLineGlow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                 </defs>
                 <g id="hero-grid"></g>
                 <g id="hero-yaxis"></g>
-                <path id="hero-value-area" d="" fill="url(#heroValueAreaGrad)" opacity="0.5"/>
-                <path id="hero-value-line" d="" fill="none" stroke="rgba(52,211,153,0.42)" stroke-width="1.2" stroke-linecap="round"/>
+                <path id="hero-value-area" d="" fill="url(#heroValueAreaGrad)" opacity="0.85"/>
+                <path id="hero-value-line" d="" fill="none" stroke="rgba(52,211,153,0.75)" stroke-width="1.6" stroke-linecap="round"/>
                 <path id="hero-area" d="" fill="url(#heroAreaGrad)"/>
                 <g id="hero-line-glow" filter="url(#heroLineGlow)" opacity="0.6">
                   <path id="hero-line-blur" d="" fill="none" stroke="url(#heroLineGrad)" stroke-width="2.5" stroke-linecap="round"/>
@@ -540,6 +541,7 @@ body::before{
                 <div class="ht-date" id="ht-date">—</div>
                 <div class="ht-val" id="ht-cum">+€0</div>
                 <div class="ht-pct" id="ht-pct">▲ 0%</div>
+                <div class="ht-value" id="ht-value" style="display:none;color:rgba(52,211,153,0.85);font-size:10px;margin-top:4px;padding-top:4px;border-top:0.5px solid rgba(255,255,255,0.07);">€0</div>
               </div>
             </div>
             <div class="hero-hint">
@@ -1354,6 +1356,31 @@ function bindHeroChartHover() {
     } else {
       dailyEl.textContent = '▼ −€' + Math.abs(Math.round(closest.daily)).toLocaleString('el-GR') + ' ημέρα';
       dailyEl.classList.add('dn');
+    }
+
+    // ── Wallet value στο ίδιο day (από state.balanceSeries) ──
+    var htValue = document.getElementById('ht-value');
+    if (htValue) {
+      var bs = state.balanceSeries || [];
+      if (bs.length) {
+        // Find closest day in balance series (≤ closest.day)
+        var closestDay = closest.day;
+        var matchedVal = null;
+        for (var bi = bs.length - 1; bi >= 0; bi--) {
+          if (bs[bi].day <= closestDay) {
+            matchedVal = bs[bi].total_value_eur;
+            break;
+          }
+        }
+        if (matchedVal != null && matchedVal > 0) {
+          htValue.textContent = 'αξία €' + Math.round(matchedVal).toLocaleString('el-GR');
+          htValue.style.display = 'block';
+        } else {
+          htValue.style.display = 'none';
+        }
+      } else {
+        htValue.style.display = 'none';
+      }
     }
 
     // Position tooltip (clamp to chart bounds)
