@@ -168,6 +168,7 @@ body::before{
 .chip-dot.in{background:#34d399;box-shadow:0 0 8px #34d399;}
 .chip-dot.out{background:#fb7185;box-shadow:0 0 8px #fb7185;}
 .chip-dot.rew{background:#fbbf24;box-shadow:0 0 8px #fbbf24;}
+.chip-dot.val{background:rgba(52,211,153,0.45);box-shadow:0 0 6px rgba(52,211,153,0.35);}
 
 /* Chart */
 .hero-chart-wrap{margin-top:8px;margin-left:-8px;margin-right:-8px;}
@@ -489,6 +490,7 @@ body::before{
               <div class="chip chip-legend"><span class="chip-dot in"></span>In <b id="chip-in">€0</b></div>
               <div class="chip chip-legend"><span class="chip-dot out"></span>Out <b id="chip-out">€0</b></div>
               <div class="chip chip-legend"><span class="chip-dot rew"></span>Rewards <b id="chip-rew">€0</b></div>
+              <div class="chip chip-legend" id="chip-value-wrap" style="display:none;"><span class="chip-dot val"></span>Αξία <b id="chip-value">€0</b></div>
             </div>
           </div>
 
@@ -506,10 +508,16 @@ body::before{
                     <stop offset="55%" stop-color="#34d399" stop-opacity="0.12"/>
                     <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
                   </linearGradient>
+                  <linearGradient id="heroValueAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#34d399" stop-opacity="0.18"/>
+                    <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+                  </linearGradient>
                   <filter id="heroLineGlow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                 </defs>
                 <g id="hero-grid"></g>
                 <g id="hero-yaxis"></g>
+                <path id="hero-value-area" d="" fill="url(#heroValueAreaGrad)" opacity="0.5"/>
+                <path id="hero-value-line" d="" fill="none" stroke="rgba(52,211,153,0.42)" stroke-width="1.2" stroke-linecap="round"/>
                 <path id="hero-area" d="" fill="url(#heroAreaGrad)"/>
                 <g id="hero-line-glow" filter="url(#heroLineGlow)" opacity="0.6">
                   <path id="hero-line-blur" d="" fill="none" stroke="url(#heroLineGrad)" stroke-width="2.5" stroke-linecap="round"/>
@@ -741,6 +749,7 @@ var state = {
   validators: {},       // {address: {moniker, logo_url, color}}
   transactions: [],     // raw tx list
   customNames: {},      // {base_id: {custom_name, color}}
+  balanceSeries: [],    // [{day, total_value_eur}] — daily wallet value (filled-forward client-side)
   filters: {
     wallet: 'all',
     type: 'all',
@@ -774,8 +783,94 @@ async function init() {
   await loadCustomNames();
   await loadWallets();
   await loadTransactions();
+  await loadBalanceHistory();
   render();
   bindFilters();
+}
+
+// ──────────── Load Balance History ────────────
+// Φέρνει sparse rows από το view daily_balance_history,
+// τα ομαδοποιεί ανά chain, fill-forward balance & price ανά μέρα,
+// και ενοποιεί σε μία daily total value series.
+async function loadBalanceHistory() {
+  try {
+    var res = await fetch(SB_URL + '/rest/v1/daily_balance_history?select=chain_id,day,coin_balance,avg_price_eur&order=day.asc', {headers: SB_H});
+    if (!res.ok) {
+      console.warn('[history] balance view fetch failed:', res.status);
+      state.balanceSeries = [];
+      return;
+    }
+    var rows = await res.json();
+    if (!rows || !rows.length) {
+      state.balanceSeries = [];
+      console.log('[history] balance series empty');
+      return;
+    }
+
+    // Group by chain
+    var byChain = {};
+    rows.forEach(function(r){
+      if (!byChain[r.chain_id]) byChain[r.chain_id] = [];
+      byChain[r.chain_id].push({
+        day: r.day,
+        balance: parseFloat(r.coin_balance) || 0,
+        price: r.avg_price_eur != null ? parseFloat(r.avg_price_eur) : null
+      });
+    });
+
+    // Build full date series from earliest day to today
+    var firstDayStr = rows[0].day;
+    var firstDay = new Date(firstDayStr);
+    var today = new Date();
+    today.setHours(0,0,0,0);
+
+    var allDays = [];
+    for (var d = new Date(firstDay); d <= today; d.setDate(d.getDate() + 1)) {
+      allDays.push(d.toISOString().slice(0, 10));
+    }
+
+    // For each chain, fill-forward balance & price
+    var chainSeries = {};
+    Object.keys(byChain).forEach(function(chainId){
+      var pts = byChain[chainId];
+      var ptMap = {};
+      pts.forEach(function(p){ ptMap[p.day] = p; });
+
+      var lastBalance = 0;
+      var lastPrice = null;
+      var filled = [];
+      allDays.forEach(function(day){
+        if (ptMap[day]) {
+          lastBalance = ptMap[day].balance;
+          if (ptMap[day].price != null) lastPrice = ptMap[day].price;
+        }
+        filled.push({ day: day, balance: lastBalance, price: lastPrice });
+      });
+      chainSeries[chainId] = filled;
+    });
+
+    // Sum across chains per day
+    var totalSeries = allDays.map(function(day, idx){
+      var total = 0;
+      Object.keys(chainSeries).forEach(function(chainId){
+        var pt = chainSeries[chainId][idx];
+        if (pt && pt.price != null) {
+          total += pt.balance * pt.price;
+        }
+      });
+      return { day: day, total_value_eur: total };
+    });
+
+    // Drop leading days where total is 0 (no data yet)
+    var firstNonZero = totalSeries.findIndex(function(p){ return p.total_value_eur > 0; });
+    if (firstNonZero > 0) totalSeries = totalSeries.slice(firstNonZero);
+
+    state.balanceSeries = totalSeries;
+    console.log('[history] balance series built:', totalSeries.length, 'days, latest €' + (totalSeries[totalSeries.length-1] || {}).total_value_eur);
+  } catch(e) {
+    console.error('[history] loadBalanceHistory:', e);
+    state.balanceSeries = [];
+  }
 }
 
 // ──────────── Load wallets ────────────
@@ -1047,9 +1142,13 @@ function renderHeroChart(txs) {
     document.getElementById('hero-area').setAttribute('d', '');
     document.getElementById('hero-line').setAttribute('d', '');
     document.getElementById('hero-line-blur').setAttribute('d', '');
+    document.getElementById('hero-value-line').setAttribute('d', '');
+    document.getElementById('hero-value-area').setAttribute('d', '');
     document.getElementById('hero-yaxis').innerHTML = '';
     document.getElementById('hero-xaxis-svg').innerHTML = '';
     document.getElementById('hero-grid').innerHTML = '';
+    var cvw = document.getElementById('chip-value-wrap');
+    if (cvw) cvw.style.display = 'none';
     if (endDotGroup) endDotGroup.style.display = 'none';
     return;
   }
@@ -1066,8 +1165,27 @@ function renderHeroChart(txs) {
   var plotW = CHART_W - CHART_PAD_L - CHART_PAD_R;
   var plotH = CHART_H - CHART_PAD_T - CHART_PAD_B;
 
+  // ── Filter balance series to current view range ────────────
+  var balSeriesAll = state.balanceSeries || [];
+  var firstFlowTs = new Date(points[0].day).getTime();
+  var lastFlowTs = new Date(points[points.length-1].day).getTime();
+  var balSeries = balSeriesAll.filter(function(b){
+    var ts = new Date(b.day).getTime();
+    if (rangeMs && ts < (now - rangeMs)) return false;
+    if (ts < firstFlowTs - 864e5) return false;
+    if (ts > lastFlowTs + 864e5) return false;
+    return b.total_value_eur > 0;
+  });
+
   var minCum = Math.min.apply(null, points.map(function(p){return p.cum;}));
   var maxCum = Math.max.apply(null, points.map(function(p){return p.cum;}));
+  // Expand range to include wallet value scale
+  if (balSeries.length) {
+    var minVal = Math.min.apply(null, balSeries.map(function(b){return b.total_value_eur;}));
+    var maxVal = Math.max.apply(null, balSeries.map(function(b){return b.total_value_eur;}));
+    if (minVal < minCum) minCum = minVal;
+    if (maxVal > maxCum) maxCum = maxVal;
+  }
   if (maxCum === minCum) maxCum = minCum + 1;
   // Add padding to range
   var pad = (maxCum - minCum) * 0.1;
@@ -1093,6 +1211,35 @@ function renderHeroChart(txs) {
   document.getElementById('hero-line').setAttribute('d', linePath);
   document.getElementById('hero-line-blur').setAttribute('d', linePath);
   document.getElementById('hero-area').setAttribute('d', areaPath);
+
+  // ── Value series (wallet value over time) ─────────────────
+  var valueLineEl = document.getElementById('hero-value-line');
+  var valueAreaEl = document.getElementById('hero-value-area');
+  var chipValueWrap = document.getElementById('chip-value-wrap');
+  var chipValueEl = document.getElementById('chip-value');
+  if (balSeries.length >= 2) {
+    var valueCoords = balSeries.map(function(b){
+      var ts = new Date(b.day).getTime();
+      var x = CHART_PAD_L + ((ts - firstTs) / (lastTs - firstTs)) * plotW;
+      // Clamp x within plot area
+      x = Math.max(CHART_PAD_L, Math.min(CHART_PAD_L + plotW, x));
+      var y = CHART_PAD_T + plotH - ((b.total_value_eur - minCum) / (maxCum - minCum)) * plotH;
+      return { x: x, y: y };
+    });
+    var valLine = catmullRomPath(valueCoords);
+    var valArea = valLine + ' L ' + valueCoords[valueCoords.length-1].x + ',' + (CHART_PAD_T + plotH) + ' L ' + valueCoords[0].x + ',' + (CHART_PAD_T + plotH) + ' Z';
+    valueLineEl.setAttribute('d', valLine);
+    valueAreaEl.setAttribute('d', valArea);
+    if (chipValueWrap && chipValueEl) {
+      var latestVal = balSeries[balSeries.length - 1].total_value_eur;
+      chipValueEl.textContent = '€' + Math.round(latestVal).toLocaleString('el-GR');
+      chipValueWrap.style.display = '';
+    }
+  } else {
+    valueLineEl.setAttribute('d', '');
+    valueAreaEl.setAttribute('d', '');
+    if (chipValueWrap) chipValueWrap.style.display = 'none';
+  }
 
   var endC = coords[coords.length-1];
   document.getElementById('hero-end-dot').setAttribute('cx', endC.x);
