@@ -1360,8 +1360,8 @@ function smoothingWindow(pointCount) {
 
 // Centered rolling average — διατηρεί την κορυφή (όχι "delay") σε σχέση με trailing.
 function rollingAvg(arr, win, accessor) {
-  if (win <= 1) return arr.slice();
   var get = accessor || function(x){ return x; };
+  if (win <= 1) return arr.map(get);
   var half = Math.floor(win / 2);
   var out = [];
   for (var i = 0; i < arr.length; i++) {
