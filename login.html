@@ -980,7 +980,14 @@ const _SB_ANON     = 'sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A';
 const _SB_HDR      = {'apikey':_SB_ANON,'Authorization':'Bearer '+_SB_ANON,'Content-Type':'application/json'};
 
 // ── Supabase client ───────────────────────────────────────────────
-const _sb = supabase.createClient(_SB_URL, _SB_ANON);
+const _sb = supabase.createClient(_SB_URL, _SB_ANON, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+    storage: window.localStorage
+  }
+});
 
 // ── User helpers ──────────────────────────────────────────────────
 function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]');}catch(e){return[];}}
@@ -1878,10 +1885,21 @@ async function _checkPin(){
     var sess=await _sb.auth.getSession();
     var token=sess?.data?.session?.access_token;
     if(!token){
-      // No session — should not happen but fallback to legacy localStorage
-      var sp=_deobfuscatePin(u.pin)||u.pin||DEFAULT_PIN;
-      if(_pinInput===sp){_loginSuccess(u);return;}
-      _eyeFail();return;
+      // Session εκπνεύσε ή χάθηκε → δεν μπορούμε να επαληθεύσουμε PIN χωρίς JWT.
+      // Ζητάμε από τον user να ξαναμπεί με email+password.
+      var hint=document.getElementById('pinHint');
+      if(hint){
+        hint.textContent='⚠ Η σύνδεση εκπνεύσε. Ξαναμπείτε με email.';
+        hint.style.color='#fb7185';
+      }
+      _eyeFail();
+      // Καθάρισε state και γύρνα στο auth screen (email+password) μετά από λίγο
+      setTimeout(function(){
+        sessionStorage.removeItem('pin_ok');
+        sessionStorage.removeItem('login_pin');
+        _showScreen('auth');
+      }, 1500);
+      return;
     }
     var r=await fetch(_SB_URL+'/rest/v1/rpc/verify_user_pin',{
       method:'POST',

@@ -695,7 +695,7 @@ function _getAuthHeaders() {
   return headers;
 }
 const _SB_H    = _getAuthHeaders();
-const _sb      = supabase.createClient(_SB_URL, _SB_ANON);
+const _sb      = supabase.createClient(_SB_URL, _SB_ANON, {auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:false,storage:window.localStorage}});
 const _VAPID   = "BE4W6HzwVX4WXVoL-gRo7XULnlajvew5zctuMgHQRkNuURrDUMiA0iy8bg2xdGa6IXllmEpg_gGuHUvUonKYPJA";
 
 // ─── Coin Data ────────────────────────────────────────────────────
