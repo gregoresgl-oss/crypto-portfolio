@@ -435,7 +435,13 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 
       <div class="auth-banner teal" style="text-align:left;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        <div>Tip: Αν χρησιμοποιείς <b>Gmail</b>, αναζήτησε <code style="background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:3px;font-size:11px;">from:noreply</code></div>
+        <div style="line-height:1.55;">
+          Αν χρησιμοποιείς <b>Gmail</b>, αναζήτησε
+          <code style="background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px;font-size:11px;">from:notifications@ggwall.org</code>
+          <div style="margin-top:6px;color:rgba(231,228,216,.5);font-size:11px;">
+            ⚠️ Έλεγξε και τον <b>Spam</b> φάκελο — νέα domain, μπορεί να πάει εκεί την πρώτη φορά.
+          </div>
+        </div>
       </div>
 
       <button type="button" class="auth-btn-ghost" id="resend-btn" onclick="_doResendForgotEmail()" style="margin-top:14px;">
