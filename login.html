@@ -9,6 +9,36 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GGWALL">
 <title>GGWALL — Login</title>
+
+<!-- ═══ MAINTENANCE CHECK (auto-redirect if active) ═══ -->
+<script>
+(function(){
+  if (location.pathname.endsWith('/maintenance.html')) return;
+  if (location.search.indexOf('bypass=GGWALL2026') > -1) {
+    sessionStorage.setItem('ggwall_maint_bypass', '1');
+    return;
+  }
+  if (sessionStorage.getItem('ggwall_maint_bypass') === '1') return;
+  
+  var SB_URL = 'https://rzrxulubttnjtxziodib.supabase.co';
+  var SB_ANON = 'sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A';
+  
+  fetch(SB_URL + '/rest/v1/app_status?id=eq.1&select=maintenance_active,estimated_end', {
+    headers: { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON }
+  })
+  .then(function(r){ return r.ok ? r.json() : null; })
+  .then(function(data){
+    if (!data || !data[0]) return;
+    var s = data[0];
+    if (s.maintenance_active) {
+      if (s.estimated_end && new Date(s.estimated_end) <= new Date()) return;
+      window.location.href = 'maintenance.html';
+    }
+  })
+  .catch(function(){});
+})();
+</script>
+<!-- ═══ /MAINTENANCE CHECK ═══ -->
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
