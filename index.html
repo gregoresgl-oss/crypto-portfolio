@@ -1044,7 +1044,7 @@ function _buildWidget(id,ctx){
     var title='<div class="card-head"><span class="card-title">'+(slot.name||'Custom')+'</span></div>';
     if(slot.mode==='iframe'){
       var ifr=document.createElement('iframe');
-      ifr.sandbox='allow-scripts allow-same-origin';
+      ifr.sandbox='allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox';
       // Inject JWT token από local storage (set by login.html via Supabase Auth)
       var _jwt=_SB_ANON;
       try{
