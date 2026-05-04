@@ -1056,7 +1056,7 @@ function _buildWidget(id,ctx){
         .replace(/__JWT_TOKEN__/g,_jwt)
         +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
       ifr.srcdoc=sc;
-      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:800px;";
+      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:120px;";
       ifr.id='slot-iframe-'+slotIdx;
       wrap.innerHTML=title;wrap.appendChild(ifr);
     } else {
@@ -2120,10 +2120,11 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   // Periodic refresh
   // Listen for iframe resize messages
   window.addEventListener('message',function(e){
-    if(e.data&&e.data.type==='iframeResize'){
+    if(e.data&&e.data.type==='iframeResize'&&e.data.h&&e.data.h>50){
       document.querySelectorAll('iframe[id^="slot-iframe-"]').forEach(function(ifr){
-        try{var h=ifr.contentWindow.document.body.scrollHeight;if(h>50)ifr.style.height=(h+20)+'px';}
-        catch(err){if(e.data.h)ifr.style.height=(e.data.h+20)+'px';}
+        if(ifr.contentWindow===e.source){
+          ifr.style.height=(e.data.h+20)+'px';
+        }
       });
     }
   });
