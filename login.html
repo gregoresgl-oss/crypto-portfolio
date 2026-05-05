@@ -187,9 +187,14 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 /* ══ NEW SCREENS ══ */
 .screen{display:none;width:100%;}
 .screen.active{display:block;}
-.choice-btn{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:var(--surface2);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .15s;text-align:left;margin-bottom:10px;}
-.choice-btn:hover{border-color:rgba(245,194,74,.25);background:rgba(245,194,74,.04);}
-.choice-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.new-choice{display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);border-radius:14px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;}
+.new-choice:hover{border-color:rgba(245,194,74,0.4);background:rgba(245,194,74,0.04);transform:translateY(-1px);}
+.new-choice-icon{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,rgba(245,194,74,0.15),rgba(245,194,74,0.05));border:1px solid rgba(245,194,74,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.new-choice-icon svg{width:20px;height:20px;color:var(--gold);}
+.new-choice-text{flex:1;}
+.new-choice-title{font-size:14px;font-weight:600;color:var(--cream);margin-bottom:2px;}
+.new-choice-sub{font-size:11px;color:var(--muted);}
+.new-choice-arrow{color:rgba(220,214,255,0.4);flex-shrink:0;}
 .pbar-wrap{height:2px;background:rgba(255,255,255,.06);border-radius:99px;margin-bottom:14px;overflow:hidden;}
 .pbar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#d4af5a,#f7e7b8);transition:width .4s ease;}
 .pdots{display:flex;gap:5px;justify-content:center;margin:8px 0 12px;}
@@ -364,21 +369,42 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
         <div class="ring r3"><div class="planet"></div></div>
         <div class="pupil"></div>
       </div>
-      <div style="margin-top:8px;">
-        <div style="font-size:20px;font-weight:700;letter-spacing:3px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Space Grotesk',sans-serif;">GGWALL</div>
-        <div style="font-size:9px;color:rgba(245,194,74,.45);letter-spacing:.2em;text-transform:uppercase;margin-top:2px;font-family:'JetBrains Mono',monospace;">Ασφαλές Πορτοφόλι</div>
+      <div style="margin-top:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;letter-spacing:0.18em;background:linear-gradient(135deg,#f5c24a 0%,#e8a92e 50%,#f5c24a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;filter:drop-shadow(0 4px 20px rgba(245,194,74,0.3));">GGWALL</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--muted);text-transform:uppercase;margin-top:4px;">Personal Cosmos Wallet</div>
       </div>
     </div>
     <div class="card">
-      <div class="choice-btn" onclick="_showScreen('auth')">
-        <div class="choice-ico" style="background:rgba(245,194,74,.08);">🔐</div>
-        <div><div style="font-size:13px;font-weight:600;color:var(--text);">Έχω ήδη λογαριασμό</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Σύνδεση με email & κωδικό</div></div>
+      <div class="auth-eyebrow">Welcome</div>
+      <div class="auth-title">Καλωσήρθες</div>
+      <div class="auth-subtitle">Διάλεξε τρόπο σύνδεσης για να συνεχίσεις.</div>
+
+      <div class="new-choice" onclick="_showScreen('auth')">
+        <div class="new-choice-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="new-choice-text">
+          <div class="new-choice-title">Έχω ήδη λογαριασμό</div>
+          <div class="new-choice-sub">Σύνδεση με email &amp; κωδικό</div>
+        </div>
+        <svg class="new-choice-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      <div class="choice-btn" onclick="_showScreen('inv-code')">
-        <div class="choice-ico" style="background:rgba(96,165,250,.08);">📨</div>
-        <div><div style="font-size:13px;font-weight:600;color:var(--text);">Έχω invitation code</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Δημιουργία νέου λογαριασμού</div></div>
+
+      <div class="new-choice" onclick="_showScreen('inv-code')">
+        <div class="new-choice-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+        </div>
+        <div class="new-choice-text">
+          <div class="new-choice-title">Έχω invitation code</div>
+          <div class="new-choice-sub">Δημιουργία νέου λογαριασμού</div>
+        </div>
+        <svg class="new-choice-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px;">Δεν έχεις κωδικό πρόσκλησης;<br>Επικοινώνησε με τον admin.</div>
+
+      <div class="auth-banner gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Δεν έχεις κωδικό πρόσκλησης; <b>Επικοινώνησε με τον admin.</b></span>
+      </div>
     </div>
   </div>
 
@@ -391,27 +417,49 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
         <div class="ring r3"><div class="planet"></div></div>
         <div class="pupil"></div>
       </div>
-      <div style="margin-top:8px;">
-        <div style="font-size:20px;font-weight:700;letter-spacing:3px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">GGWALL</div>
+      <div style="margin-top:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;letter-spacing:0.18em;background:linear-gradient(135deg,#f5c24a 0%,#e8a92e 50%,#f5c24a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;filter:drop-shadow(0 4px 20px rgba(245,194,74,0.3));">GGWALL</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--muted);text-transform:uppercase;margin-top:4px;">Personal Cosmos Wallet</div>
       </div>
     </div>
     <div class="card" id="auth-card">
-      <div style="font-size:13px;font-weight:700;color:var(--cream);margin-bottom:12px;">🔐 Σύνδεση</div>
-      <form onsubmit="event.preventDefault();_doLogin();" autocomplete="on" style="display:flex;flex-direction:column;gap:10px;">
-        <div class="iw">
-          <input class="inp" id="login-email" type="email" name="email" placeholder="Email" autocomplete="email" style="padding-right:14px;"/>
+      <div class="auth-eyebrow">Σύνδεση</div>
+      <div class="auth-title">Καλωσήρθες πίσω</div>
+      <div class="auth-subtitle">Συνδέσου με τον λογαριασμό σου.</div>
+
+      <form onsubmit="event.preventDefault();_doLogin();" autocomplete="on">
+        <div class="auth-field">
+          <div class="auth-label">Email</div>
+          <div class="auth-input-wrap">
+            <svg class="prefix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <input class="auth-input" id="login-email" type="email" name="email" placeholder="email@example.com" autocomplete="email"/>
+          </div>
         </div>
-        <div class="iw">
-          <input class="inp" id="login-password" type="password" name="password" placeholder="Κωδικός" autocomplete="current-password"/>
-          <span class="ie" onclick="_tvPass('login-password',this)">👁</span>
+
+        <div class="auth-field">
+          <div class="auth-label">Κωδικός</div>
+          <div class="auth-input-wrap">
+            <svg class="prefix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input class="auth-input" id="login-password" type="password" name="password" placeholder="Ο κωδικός σου" autocomplete="current-password" style="padding-right:42px;"/>
+            <button type="button" class="suffix" onclick="_tvPass('login-password',this)">👁</button>
+          </div>
         </div>
-        <button type="submit" class="btn-gold">Σύνδεση →</button>
-        <div id="login-err" class="err"></div>
+
+        <button type="submit" class="auth-btn">
+          <span>Σύνδεση</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+        </button>
+        <div id="login-err" class="auth-helper error" style="display:none;text-align:center;margin-top:8px;"></div>
       </form>
-      <div style="text-align:center;margin-top:8px;">
-        <button onclick="_showScreen('forgot-pass')" style="background:none;border:none;color:var(--gold);font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;text-decoration:underline;">Ξέχασες τον κωδικό;</button>
+
+      <div style="text-align:center;margin-top:14px;">
+        <a onclick="_showScreen('forgot-pass')" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:0.5px;cursor:pointer;text-decoration:none;">Ξέχασες τον κωδικό;</a>
       </div>
-      <button onclick="_showScreen('landing')" class="btn-ghost" style="margin-top:8px;">← Πίσω</button>
+
+      <button onclick="_showScreen('landing')" class="auth-btn-ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+        Πίσω
+      </button>
     </div>
   </div>
 
@@ -1090,36 +1138,46 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
         <span class="planet p3"></span>
         <div class="core"></div>
       </div>
-      <div class="pin-hint" id="pinHint" aria-live="polite">Η πρόσβαση στο πορτοφόλι</div>
+      <div style="text-align:center;margin-top:14px;margin-bottom:8px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;letter-spacing:0.18em;background:linear-gradient(135deg,#f5c24a 0%,#e8a92e 50%,#f5c24a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;filter:drop-shadow(0 4px 20px rgba(245,194,74,0.3));">GGWALL</div>
+        <div class="pin-hint" id="pinHint" aria-live="polite" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--muted);text-transform:uppercase;margin-top:4px;">Πρόσβαση στο πορτοφόλι</div>
+      </div>
     </div>
-    <!-- Attempt dots: 3 -->
-    <div class="attempt-wrap" id="ret-attempts" style="margin-bottom:6px;">
-      <div class="att" id="att0"></div>
-      <div class="att" id="att1"></div>
-      <div class="att" id="att2"></div>
-    </div>
-    <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;" id="att-label">3 προσπάθειες πριν το κλείδωμα</div>
     <div class="card" id="pin-card" style="">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;" onclick="_pinSwitchUser()" id="pin-user-row">
-        <div id="pin-avatar" style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(245,194,74,.5);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;"></div>
+      <!-- User card -->
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(13,10,28,0.5);border:1px solid rgba(167,139,250,0.15);border-radius:14px;margin-bottom:18px;cursor:pointer;transition:all 0.15s;" onclick="_pinSwitchUser()" id="pin-user-row" onmouseover="this.style.borderColor='rgba(245,194,74,0.3)'" onmouseout="this.style.borderColor='rgba(167,139,250,0.15)'">
+        <div id="pin-avatar" style="width:48px;height:48px;border-radius:50%;border:2px solid rgba(245,194,74,.5);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
-          <div id="pin-username" style="font-size:14px;font-weight:600;color:var(--cream);"></div>
-          <div id="pin-role" style="font-size:9px;color:rgba(245,194,74,.5);letter-spacing:.08em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-top:1px;"></div>
+          <div id="pin-username" style="font-size:15px;font-weight:600;color:var(--cream);margin-bottom:3px;"></div>
+          <div id="pin-role" style="font-size:9px;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:4px;"></div>
         </div>
         <div id="pin-user-dots" style="display:flex;flex-direction:column;gap:4px;"></div>
       </div>
-      <div id="pin-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:16px;">
+
+      <!-- Attempt dots -->
+      <div class="attempt-wrap" id="ret-attempts" style="margin-bottom:6px;display:flex;gap:6px;justify-content:center;">
+        <div class="att" id="att0"></div>
+        <div class="att" id="att1"></div>
+        <div class="att" id="att2"></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:18px;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;" id="att-label">3 προσπάθειες πριν το κλείδωμα</div>
+
+      <!-- PIN dots -->
+      <div id="pin-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:20px;">
         <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
       </div>
+
+      <!-- Keypad -->
       <div style="display:grid;grid-template-columns:repeat(3,68px);gap:12px;justify-content:center;">
         <button class="pin-btn" onclick="pinPress('1')">1</button><button class="pin-btn" onclick="pinPress('2')">2</button><button class="pin-btn" onclick="pinPress('3')">3</button>
         <button class="pin-btn" onclick="pinPress('4')">4</button><button class="pin-btn" onclick="pinPress('5')">5</button><button class="pin-btn" onclick="pinPress('6')">6</button>
         <button class="pin-btn" onclick="pinPress('7')">7</button><button class="pin-btn" onclick="pinPress('8')">8</button><button class="pin-btn" onclick="pinPress('9')">9</button>
         <button class="pin-btn sm" onclick="pinPress('C')">CLR</button><button class="pin-btn" onclick="pinPress('0')">0</button><button class="pin-btn sm" onclick="pinPress('D')">⌫</button>
       </div>
-      <div id="pin-err" class="err" style="margin-top:10px;"></div>
-      <button type="button" onclick="_showScreen('forgot-pin')" style="margin-top:14px;background:none;border:none;color:rgba(220,214,255,0.55);font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;letter-spacing:0.5px;text-decoration:underline;text-underline-offset:3px;">Ξέχασες το PIN;</button>
-      <!-- "Αλλαγή χρήστη" button removed: full logout now goes to email/password screen -->
+
+      <div id="pin-err" class="auth-helper error" style="margin-top:14px;text-align:center;display:none;"></div>
+
+      <a onclick="_showScreen('forgot-pin')" style="display:block;text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:0.5px;cursor:pointer;text-decoration:none;">Ξέχασες το PIN;</a>
     </div>
   </div>
 
