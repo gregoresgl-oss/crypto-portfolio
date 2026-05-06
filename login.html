@@ -1901,70 +1901,41 @@ async function _submitInvAccount(){
   _showErr('⏳ Δημιουργία λογαριασμού...');
   try{
     // ── Step 1: Supabase Auth signUp ──
-    const {data,error}=await _sb.auth.signUp({email,password:pass,options:{data:{username}}});
+    // With "Confirm email" = ON, signUp does NOT return an active session.
+    // Session becomes available ONLY after user clicks email confirmation link.
+    const {data,error}=await _sb.auth.signUp({
+      email,
+      password:pass,
+      options:{
+        data:{username},
+        emailRedirectTo: window.location.origin + window.location.pathname
+      }
+    });
     if(error)throw error;
     const userId=data.user.id;
 
-    // ── Step 2: Wait for session (JWT) to be ready ──
-    var authHdr = null;
-    for(var attempt=0; attempt<5; attempt++){
-      authHdr = await _getAuthHdr();
-      if(authHdr) break;
-      await new Promise(function(r){setTimeout(r, 200);});
-    }
-    if(!authHdr) throw new Error('Session not ready (email confirmation needed?)');
+    // ── Step 2: Save signup info in localStorage so we can recover it
+    //           after email confirmation reload (tab might close) ──
+    try{
+      localStorage.setItem('ggwall_pending_invite', JSON.stringify({
+        userId: userId,
+        username: username,
+        email: email,
+        invCode: window._invCode || null,
+        password: pass, // needed only for transient cloud_users insert
+        ts: Date.now()
+      }));
+    }catch(e){console.warn('[localStorage] err:',e);}
 
-    // ── Step 3: Create cloud_users record (WITH JWT) ──
-    var insertRes = await fetch(_SB_URL+'/rest/v1/cloud_users',{
-      method:'POST',
-      headers:Object.assign({},authHdr,{'Prefer':'resolution=merge-duplicates,return=representation'}),
-      body:JSON.stringify({
-        id:userId,
-        name:username,
-        email:email,
-        role:'viewer',
-        avatar:'🧑‍💻',
-        color:'#a5b4fc',
-        app_id:'ggwall',
-        auth_id:userId,
-        onboarding_step:'email',
-        updated_at:new Date().toISOString()
-      })
-    });
-    if(!insertRes.ok){
-      var errText = await insertRes.text();
-      throw new Error('cloud_users insert failed: HTTP '+insertRes.status+' '+errText.slice(0,150));
-    }
-
-    // ── Step 4: Mark invitation as used (WITH JWT) ──
-    if(window._invCode){
-      var invRes = await fetch(_SB_URL+'/rest/v1/invitations?code=eq.'+encodeURIComponent(window._invCode)+'&select=uses_count',{
-        headers:authHdr
-      });
-      var invData = invRes.ok ? await invRes.json() : null;
-      var currentUses = (invData && invData[0] && invData[0].uses_count) || 0;
-      await fetch(_SB_URL+'/rest/v1/invitations?code=eq.'+encodeURIComponent(window._invCode),{
-        method:'PATCH',
-        headers:Object.assign({},authHdr,{'Prefer':'return=minimal'}),
-        body:JSON.stringify({uses_count: currentUses + 1})
-      }).catch(function(e){console.warn('invitation update failed:',e);});
-    }
-
-    // ── Step 5: Seed dashboard ──
-    await fetch(_SB_URL+'/rest/v1/rpc/seed_user_dashboard',{
-      method:'POST',
-      headers:authHdr,
-      body:JSON.stringify({p_user_id:userId})
-    }).catch(function(e){console.warn('seed_user_dashboard failed:',e);});
-
-    // ── Step 6: Save state for subsequent screens ──
+    // ── Step 3: Save state for subsequent screens ──
     window._invUserId=userId;
     window._invUsername=username;
     window._invEmail=email;
+    window._invPassword=pass;  // kept in memory only
 
     _clearErr();
 
-    // ── Step 7: Show email-wait screen + start polling + countdown ──
+    // ── Step 4: Show email-wait screen + start polling + countdown ──
     var emailDisp = document.getElementById('inv-email-display');
     if(emailDisp) emailDisp.textContent = email;
     var emailDispS = document.getElementById('inv-email-display-success');
@@ -1975,8 +1946,125 @@ async function _submitInvAccount(){
     _startResendCooldown();
   }catch(e){
     console.error('[_submitInvAccount] error:',e);
-    _showErr('⚠ '+(e.message||'Σφάλμα'));
+    var msg = e.message || 'Σφάλμα';
+    if(msg.toLowerCase().includes('already registered')){
+      msg = '⚠ Το email υπάρχει ήδη. Πήγαινε σε "Έχω ήδη λογαριασμό".';
+    }
+    _showErr(msg);
   }
+}
+
+// ── Finalize account (called after email confirmation) ────────────
+// This runs AFTER user clicks confirm link and we have an active JWT session.
+// Creates the cloud_users record + marks invitation used + seeds dashboard.
+async function _finalizeAccountAfterConfirmation(){
+  // Get pending data (try memory first, then localStorage)
+  var pending = null;
+  try{
+    if(window._invUserId && window._invEmail){
+      pending = {
+        userId: window._invUserId,
+        username: window._invUsername,
+        email: window._invEmail,
+        invCode: window._invCode || null
+      };
+    } else {
+      var stored = localStorage.getItem('ggwall_pending_invite');
+      if(stored){
+        pending = JSON.parse(stored);
+        // Restore window state
+        window._invUserId = pending.userId;
+        window._invUsername = pending.username;
+        window._invEmail = pending.email;
+        window._invCode = pending.invCode;
+      }
+    }
+  }catch(e){console.warn('[finalize] read pending err:',e);}
+  if(!pending){console.warn('[finalize] no pending data');return false;}
+
+  // Get JWT (must be ready now)
+  var authHdr = await _getAuthHdr();
+  if(!authHdr){
+    console.error('[finalize] no JWT after confirmation');
+    return false;
+  }
+
+  // Check if cloud_users row already exists (idempotent)
+  try{
+    var checkRes = await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+pending.userId+'&select=id,onboarding_step',{
+      headers:authHdr
+    });
+    var existing = checkRes.ok ? await checkRes.json() : [];
+    if(existing && existing[0]){
+      console.log('[finalize] cloud_users already exists, skipping insert');
+      // Update onboarding_step to profile if still on email
+      if(existing[0].onboarding_step === 'email'){
+        await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+pending.userId,{
+          method:'PATCH',
+          headers:Object.assign({},authHdr,{'Prefer':'return=minimal'}),
+          body:JSON.stringify({onboarding_step:'profile'})
+        }).catch(function(e){console.warn('step update err:',e);});
+      }
+      // Clear localStorage pending data
+      try{localStorage.removeItem('ggwall_pending_invite');}catch(e){}
+      return true;
+    }
+  }catch(e){console.warn('[finalize] existence check err:',e);}
+
+  // Create cloud_users record
+  try{
+    var insertRes = await fetch(_SB_URL+'/rest/v1/cloud_users',{
+      method:'POST',
+      headers:Object.assign({},authHdr,{'Prefer':'resolution=merge-duplicates,return=representation'}),
+      body:JSON.stringify({
+        id:pending.userId,
+        name:pending.username,
+        email:pending.email,
+        role:'viewer',
+        avatar:'🧑‍💻',
+        color:'#a5b4fc',
+        app_id:'ggwall',
+        auth_id:pending.userId,
+        onboarding_step:'profile',
+        updated_at:new Date().toISOString()
+      })
+    });
+    if(!insertRes.ok){
+      var errText = await insertRes.text();
+      console.error('[finalize] cloud_users insert failed:',insertRes.status,errText);
+      return false;
+    }
+  }catch(e){console.error('[finalize] insert err:',e);return false;}
+
+  // Mark invitation as used
+  if(pending.invCode){
+    try{
+      var invRes = await fetch(_SB_URL+'/rest/v1/invitations?code=eq.'+encodeURIComponent(pending.invCode)+'&select=uses_count',{
+        headers:authHdr
+      });
+      var invData = invRes.ok ? await invRes.json() : null;
+      var currentUses = (invData && invData[0] && invData[0].uses_count) || 0;
+      await fetch(_SB_URL+'/rest/v1/invitations?code=eq.'+encodeURIComponent(pending.invCode),{
+        method:'PATCH',
+        headers:Object.assign({},authHdr,{'Prefer':'return=minimal'}),
+        body:JSON.stringify({uses_count: currentUses + 1})
+      }).catch(function(e){console.warn('invitation update failed:',e);});
+    }catch(e){console.warn('[finalize] inv mark err:',e);}
+  }
+
+  // Seed dashboard
+  try{
+    await fetch(_SB_URL+'/rest/v1/rpc/seed_user_dashboard',{
+      method:'POST',
+      headers:authHdr,
+      body:JSON.stringify({p_user_id:pending.userId})
+    });
+  }catch(e){console.warn('[finalize] seed err:',e);}
+
+  // Clear localStorage pending data
+  try{localStorage.removeItem('ggwall_pending_invite');}catch(e){}
+
+  return true;
 }
 
 // ── Email confirmation: check + polling + resend ──────────────────
@@ -1999,18 +2087,11 @@ async function _checkEmailConfirmation(){
       _showScreen('inv-email-error');
       return false;
     }
-    // Confirmed! Stop polling, show success, then advance
+    // Confirmed! Stop polling, finalize account, show success, advance
     _stopEmailPolling();
     _stopResendCooldown();
-    // Update onboarding_step to 'profile'
-    var authHdr = await _getAuthHdr();
-    if(authHdr && window._invUserId){
-      fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+window._invUserId,{
-        method:'PATCH',
-        headers:Object.assign({},authHdr,{'Prefer':'return=minimal'}),
-        body:JSON.stringify({onboarding_step:'profile'})
-      }).catch(function(e){console.warn('[_checkEmailConfirmation] step update err:',e);});
-    }
+    // ── Now we have JWT — create cloud_users + mark invitation ──
+    await _finalizeAccountAfterConfirmation();
     _showScreen('inv-email-success');
     setTimeout(function(){ _showScreen('inv-profile'); }, 1800);
     return true;
@@ -2033,14 +2114,8 @@ function _startEmailPolling(){
         clearInterval(_emailPollInterval);
         _emailPollInterval = null;
         _stopResendCooldown();
-        var authHdr = await _getAuthHdr();
-        if(authHdr && window._invUserId){
-          fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+window._invUserId,{
-            method:'PATCH',
-            headers:Object.assign({},authHdr,{'Prefer':'return=minimal'}),
-            body:JSON.stringify({onboarding_step:'profile'})
-          }).catch(function(e){});
-        }
+        // Finalize account now that we have JWT
+        await _finalizeAccountAfterConfirmation();
         _showScreen('inv-email-success');
         setTimeout(function(){ _showScreen('inv-profile'); }, 1800);
       }
@@ -2957,16 +3032,51 @@ async function _checkExistingSession(){
       _sb.auth.setSession({access_token:_token,refresh_token:_refresh}).then(async function(){
         var sess=await _sb.auth.getSession();
         if(sess.data&&sess.data.session){
-          var cu=await _loadCloudUser(sess.data.session.user.id);
-          if(cu){showToast('✅ Email επιβεβαιώθηκε!','gold');_showPinCard(cu);return;}
+          // Try to finalize a pending invite (creates cloud_users + marks invitation)
+          var finalized = await _finalizeAccountAfterConfirmation();
+          // Check if we have a cloud_users record now
+          var cu = await _loadCloudUser(sess.data.session.user.id);
+          if(cu){
+            // If onboarding still incomplete, resume the invitation flow
+            if(cu.onboarding_step && cu.onboarding_step !== 'complete'){
+              showToast('✅ Email επιβεβαιώθηκε!','gold');
+              window._invUserId = cu.id;
+              window._invUsername = cu.name;
+              window._invEmail = cu.email;
+              // Show success screen briefly, then continue to next pending step
+              _showScreen('inv-email-success');
+              var nextStep = ({email:'inv-profile', profile:'inv-profile', wallet:'inv-wallet', pin:'inv-pin'})[cu.onboarding_step] || 'inv-profile';
+              setTimeout(function(){ _showScreen(nextStep); }, 1800);
+              return;
+            }
+            // Onboarding complete — go to PIN entry
+            showToast('✅ Email επιβεβαιώθηκε!','gold');
+            _showPinCard(cu);
+            return;
+          }
         }
         _showScreen('landing');
       });
     } else if(_tokenHash){
       _sb.auth.verifyOtp({token_hash:_tokenHash,type:'email'}).then(async function(res){
         if(res.data&&res.data.session){
+          var finalized = await _finalizeAccountAfterConfirmation();
           var cu=await _loadCloudUser(res.data.session.user.id);
-          if(cu){showToast('✅ Email επιβεβαιώθηκε!','gold');_showPinCard(cu);return;}
+          if(cu){
+            if(cu.onboarding_step && cu.onboarding_step !== 'complete'){
+              showToast('✅ Email επιβεβαιώθηκε!','gold');
+              window._invUserId = cu.id;
+              window._invUsername = cu.name;
+              window._invEmail = cu.email;
+              _showScreen('inv-email-success');
+              var nextStep = ({email:'inv-profile', profile:'inv-profile', wallet:'inv-wallet', pin:'inv-pin'})[cu.onboarding_step] || 'inv-profile';
+              setTimeout(function(){ _showScreen(nextStep); }, 1800);
+              return;
+            }
+            showToast('✅ Email επιβεβαιώθηκε!','gold');
+            _showPinCard(cu);
+            return;
+          }
         }
         _showScreen('landing');
       });
