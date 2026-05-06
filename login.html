@@ -2972,7 +2972,45 @@ async function _checkPin(){
       // Account locked
       _showScreen('lockout');
     }else if(data?.error==='no_pin_set'){
-      // PIN missing → trigger set-pin flow
+      // PIN missing — but ALSO check that the user still exists in cloud_users
+      // (handles ghost session: user deleted from DB but session cached locally)
+      var stillExists=false;
+      try{
+        var checkR=await fetch(_SB_URL+'/rest/v1/cloud_users?id=eq.'+u.id+'&select=id&limit=1',{
+          headers:{'apikey':_SB_ANON,'Authorization':'Bearer '+token},
+          signal:AbortSignal.timeout(5000)
+        });
+        if(checkR.ok){
+          var checkData=await checkR.json();
+          stillExists=Array.isArray(checkData) && checkData.length>0;
+        }
+      }catch(e){console.warn('[ghost check]',e);}
+
+      if(!stillExists){
+        // Ghost session — user deleted but session cached
+        console.warn('[auth] Ghost session detected — clearing all state');
+        var hint=document.getElementById('pinHint');
+        if(hint){
+          hint.textContent='⚠ Ο λογαριασμός δεν υπάρχει πια. Επιστροφή σε σύνδεση.';
+          hint.style.color='#fb7185';
+        }
+        _eyeFail();
+        // Full cleanup
+        try{await _sb.auth.signOut();}catch(e){}
+        try{
+          // Remove this user from local list
+          var users=getUsers().filter(function(usr){return usr.id!==u.id;});
+          saveUsers(users);
+        }catch(e){}
+        sessionStorage.removeItem('pin_ok');
+        sessionStorage.removeItem('login_pin');
+        sessionStorage.removeItem('active_user');
+        sessionStorage.removeItem('login_ts');
+        setTimeout(function(){_showScreen('auth');}, 1800);
+        return;
+      }
+
+      // Real "no PIN" case — trigger set-pin flow
       _setPinMode='initial';
       _setPinUserCloud=u;
       document.getElementById('setpin-eyebrow').textContent='Όρισε PIN';
@@ -3178,6 +3216,57 @@ async function _checkExistingSession(){
 }
 
 // ── Init ──────────────────────────────────────────────────────────
+// Background ghost check — silently remove cached users that no longer exist in DB
+async function _validateCachedUsersAgainstDB(){
+  try{
+    var users=getVerifiedUsers();
+    if(!users.length)return;
+    var realUsers=users.filter(function(u){return u && u.id && !u.id.startsWith('__');});
+    if(!realUsers.length)return;
+    var ids=realUsers.map(function(u){return u.id;}).join(',');
+    var sess=await _sb.auth.getSession();
+    var token=sess?.data?.session?.access_token;
+    var headers=token
+      ? {'apikey':_SB_ANON,'Authorization':'Bearer '+token}
+      : {'apikey':_SB_ANON,'Authorization':'Bearer '+_SB_ANON};
+    var r=await fetch(_SB_URL+'/rest/v1/cloud_users?id=in.('+ids+')&select=id',{
+      headers:headers,
+      signal:AbortSignal.timeout(5000)
+    });
+    if(!r.ok)return;
+    var existing=await r.json();
+    if(!Array.isArray(existing))return;
+    var existingIds=new Set(existing.map(function(u){return u.id;}));
+    var allUsers=getUsers();
+    var cleaned=allUsers.filter(function(u){
+      if(!u||!u.id)return false;
+      if(u.id.startsWith('__'))return true;
+      return existingIds.has(u.id);
+    });
+    if(cleaned.length<allUsers.length){
+      var removed=allUsers.length-cleaned.length;
+      console.warn('[ghost check] Removing',removed,'deleted user(s) from local cache');
+      saveUsers(cleaned);
+      // If currently-shown user got deleted, force logout
+      var activeUser=null;
+      try{activeUser=JSON.parse(sessionStorage.getItem('active_user')||'null');}catch(e){}
+      var shownUser=window._currentPinUser||activeUser;
+      if(shownUser&&shownUser.id&&!existingIds.has(shownUser.id)&&!shownUser.id.startsWith('__')){
+        try{await _sb.auth.signOut();}catch(e){}
+        sessionStorage.clear();
+        var hint=document.getElementById('pinHint');
+        if(hint){
+          hint.textContent='⚠ Ο λογαριασμός δεν υπάρχει πια.';
+          hint.style.color='#fb7185';
+        }
+        setTimeout(function(){_showScreen('auth');},1500);
+      }
+    }
+  }catch(e){
+    console.warn('[_validateCachedUsersAgainstDB]',e);
+  }
+}
+
 (function(){
   document.body.style.visibility='visible';
 
@@ -3290,6 +3379,8 @@ async function _checkExistingSession(){
     _showPinCard(cached[0]);
     // Fetch app settings in background only
     setTimeout(function(){fetchAppSettings();},1500);
+    // Background ghost check: validate that cached user still exists in DB
+    setTimeout(function(){_validateCachedUsersAgainstDB();},2500);
     return;
   }
 
