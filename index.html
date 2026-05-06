@@ -330,6 +330,35 @@ body{visibility:hidden;}
 .up-tab{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:"Space Grotesk",sans-serif;white-space:nowrap;transition:all .15s;}
 .up-tab.active{background:rgba(245,194,74,.14);color:var(--gold);}
 .up-body{overflow-y:auto;flex:1;}
+/* IBC Chain Selection (profile wallet tab) */
+.chains-list{background:rgba(13,10,28,.4);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:5px;margin-top:8px;max-height:240px;overflow-y:auto;}
+.chain-row{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;transition:all .15s;cursor:pointer;}
+.chain-row:hover{background:rgba(245,194,74,.05);}
+.chain-row.disabled{opacity:.4;}
+.chain-check{width:17px;height:17px;border-radius:5px;border:1.5px solid rgba(167,139,250,.35);background:rgba(13,10,28,.6);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;position:relative;}
+.chain-check.checked{background:var(--gold);border-color:var(--gold);box-shadow:0 0 6px rgba(245,194,74,.4);}
+.chain-check.checked::after{content:'';width:9px;height:5px;border-left:2px solid #0b0d12;border-bottom:2px solid #0b0d12;transform:rotate(-45deg) translate(1px,-1px);}
+.chain-row.locked{opacity:.85;cursor:not-allowed;}
+.chain-row.locked .chain-check{background:rgba(245,194,74,.15);border-color:rgba(245,194,74,.4);}
+.chain-row.locked .chain-check::after{content:'';width:7px;height:4px;border-left:2px solid var(--gold);border-bottom:2px solid var(--gold);transform:rotate(-45deg) translate(1px,-1px);}
+.chain-ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+.chain-ico.cosmos{background:linear-gradient(135deg,#5e57b3,#3a3284);}
+.chain-ico.osmosis,.chain-ico.osmo{background:linear-gradient(135deg,#a060d0,#6f3da3);}
+.chain-ico.juno-network,.chain-ico.juno{background:linear-gradient(135deg,#f0827d,#e54e4e);}
+.chain-ico.saga-2,.chain-ico.saga{background:linear-gradient(135deg,#1a1a1a,#363636);border:1px solid #555;}
+.chain-ico.celestia,.chain-ico.tia{background:linear-gradient(135deg,#7c3aed,#5b21b6);}
+.chain-ico.stargaze,.chain-ico.stars{background:linear-gradient(135deg,#db2777,#9d174d);}
+.chain-ico.akash-network,.chain-ico.akt{background:linear-gradient(135deg,#dc2626,#991b1b);}
+.chain-ico.secret,.chain-ico.scrt{background:linear-gradient(135deg,#0f172a,#475569);border:1px solid #64748b;}
+.chain-ico.kava{background:linear-gradient(135deg,#ff564f,#d92e26);}
+.chain-meta{flex:1;min-width:0;}
+.chain-sym{font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;font-family:'JetBrains Mono',monospace;}
+.chain-addr{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chain-summary{display:flex;justify-content:space-between;align-items:center;padding:7px 11px;margin-top:8px;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.15);border-radius:9px;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.5px;}
+.chain-summary .count{color:var(--gold);font-weight:700;}
+.chain-actions{display:flex;gap:5px;margin-top:8px;}
+.chain-action-btn{flex:1;padding:5px 8px;background:rgba(13,10,28,.6);border:1px solid rgba(167,139,250,.18);border-radius:7px;color:var(--muted);font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .15s;text-align:center;}
+.chain-action-btn:hover{border-color:rgba(245,194,74,.4);color:var(--gold);}
 .up-content{padding:13px 15px;display:none;}
 .up-content.active{display:block;}
 
@@ -616,32 +645,56 @@ body{visibility:hidden;}
       <!-- Wallet -->
       <div class="up-content" id="ut-wallet">
         <div style="display:flex;flex-direction:column;gap:9px;">
-          <div>
-            <div style="font-size:9px;color:var(--muted);margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;">
-              Cosmos διευθύνσεις (μία ανά γραμμή)
+          <!-- Cosmos block -->
+          <div style="padding:11px;background:rgba(245,194,74,.04);border:1px solid rgba(245,194,74,.15);border-radius:11px;">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+              <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#f5c24a,#e8a92e);display:flex;align-items:center;justify-content:center;font-size:12px;">⚛️</div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--gold);text-transform:uppercase;font-family:'JetBrains Mono',monospace;">Cosmos Ecosystem</div>
             </div>
-            <textarea class="inp" id="wl-cosmos" rows="4" style="resize:vertical;min-height:78px;font-family:'JetBrains Mono',monospace;font-size:11px;" placeholder="cosmos1...&#10;cosmos1... (2ο πορτοφόλι)"></textarea>
-            <!-- Auto-derive button -->
+            <textarea class="inp" id="wl-cosmos" rows="3" style="resize:vertical;min-height:62px;font-family:'JetBrains Mono',monospace;font-size:11px;" placeholder="cosmos1...&#10;cosmos1... (2ο πορτοφόλι)"></textarea>
+
             <button class="btn btn-ghost" onclick="_autoDeriveChains()" id="derive-btn"
-              style="width:100%;margin-top:5px;font-size:11px;border-color:rgba(245,194,74,.25);color:var(--gold);">
-              &#10024; Auto-derive IBC chains από cosmos1 διευθύνσεις
+              style="width:100%;margin-top:6px;font-size:11px;border-color:rgba(245,194,74,.25);color:var(--gold);">
+              &#10024; Auto-derive 8 IBC chains
             </button>
-            <div id="derive-status" style="font-size:10px;color:var(--muted);min-height:13px;margin-top:3px;"></div>
-            <!-- Preview of derived addresses -->
-            <div id="derive-preview" style="display:none;margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px;max-height:160px;overflow-y:auto;">
-              <div style="font-size:9px;color:var(--muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;">Derived διευθύνσεις (preview)</div>
-              <div id="derive-preview-list" style="font-size:10px;font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column;gap:3px;"></div>
+            <div id="derive-status" style="font-size:10px;color:var(--muted);min-height:13px;margin-top:4px;"></div>
+
+            <!-- Chain selection (after auto-derive) -->
+            <div id="derive-wrap" style="display:none;">
+              <!-- Quick actions -->
+              <div class="chain-actions">
+                <div class="chain-action-btn" onclick="_chainsSelectAll(true)">✓ Όλες</div>
+                <div class="chain-action-btn" onclick="_chainsSelectAll(false)">✗ Καμία</div>
+                <div class="chain-action-btn" onclick="_autoDeriveChains()" style="color:var(--gold);border-color:rgba(245,194,74,0.4);">↻ Re-derive</div>
+              </div>
+              <div class="chains-list" id="derive-list"></div>
+              <div class="chain-summary" id="derive-summary">
+                <span><span class="count" id="derive-selected-count">0</span> από <span class="count" id="derive-total-count">0</span> επιλεγμένες</span>
+                <span id="derive-status-summary" style="color:var(--green);">✓ Έτοιμο</span>
+              </div>
               <div style="display:flex;gap:6px;margin-top:8px;">
-                <button class="btn btn-gold" onclick="_applyDerived()" style="flex:1;font-size:11px;">&#10003; Εφαρμογή</button>
+                <button class="btn btn-gold" onclick="_applyDerived()" style="flex:1;font-size:11px;">&#10003; Εφαρμογή στο textarea</button>
                 <button class="btn btn-ghost" onclick="_cancelDerived()" style="flex:1;font-size:11px;">&#10005; Ακύρωση</button>
               </div>
             </div>
           </div>
-          <div>
-            <div style="font-size:9px;color:var(--muted);margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;">Cardano</div>
-            <textarea class="inp" id="wl-cardano" rows="2" style="resize:vertical;min-height:48px;font-size:11px;" placeholder="addr1..."></textarea>
+
+          <!-- Cardano block -->
+          <div style="padding:11px;background:rgba(96,165,250,.04);border:1px solid rgba(96,165,250,.18);border-radius:11px;">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+              <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#60a5fa,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">₳</div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.5px;color:#60a5fa;text-transform:uppercase;font-family:'JetBrains Mono',monospace;">Cardano</div>
+            </div>
+            <textarea class="inp" id="wl-cardano" rows="2" style="resize:vertical;min-height:48px;font-size:11px;font-family:'JetBrains Mono',monospace;border-color:rgba(96,165,250,.2);" placeholder="addr1..."></textarea>
+            <div style="font-size:10px;color:rgba(96,165,250,.7);margin-top:5px;">📍 Stake address ή payment address δεκτές</div>
           </div>
-          <button class="btn btn-gold" onclick="_saveWallet()" style="width:100%;">&#128190; Αποθήκευση</button>
+
+          <!-- Save / Sync -->
+          <button class="btn btn-gold" onclick="_saveWallet()" style="width:100%;">&#128190; Αποθήκευση Wallets</button>
+          <div style="font-size:10px;color:var(--muted2);text-align:center;padding:4px 6px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:8px;line-height:1.4;">
+            🛡 <b style="color:var(--text);">100% Read-only:</b> Μόνο public addresses · <b style="color:var(--text);">Ποτέ</b> seed phrases ή private keys.
+          </div>
+
           <div style="height:1px;background:var(--border2);margin:4px 0;"></div>
           <div>
             <div style="font-size:9px;color:var(--muted);margin-bottom:5px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;">Min εμφάνιση coin (€)</div>
@@ -1044,7 +1097,7 @@ function _buildWidget(id,ctx){
     var title='<div class="card-head"><span class="card-title">'+(slot.name||'Custom')+'</span></div>';
     if(slot.mode==='iframe'){
       var ifr=document.createElement('iframe');
-      ifr.sandbox='allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox';
+      ifr.sandbox='allow-scripts allow-same-origin';
       // Inject JWT token από local storage (set by login.html via Supabase Auth)
       var _jwt=_SB_ANON;
       try{
@@ -1056,7 +1109,7 @@ function _buildWidget(id,ctx){
         .replace(/__JWT_TOKEN__/g,_jwt)
         +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
       ifr.srcdoc=sc;
-      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:120px;";
+      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:800px;";
       ifr.id='slot-iframe-'+slotIdx;
       wrap.innerHTML=title;wrap.appendChild(ifr);
     } else {
@@ -1748,12 +1801,23 @@ var _IBC_DERIVE_CHAINS=[
 var _EVM_CHAINS_NOTE=["dymension (dym1...)","injective-protocol (inj1...)","evmos (evmos1...)"];
 
 var _derivedAddrs=null; // preview buffer
+var _derivedSelections={}; // {chainPrefix: bool} — true if selected
+
+function _shortAddrIdx(a){
+  if(!a) return '';
+  if(a.length <= 18) return a;
+  return a.slice(0,10) + '...' + a.slice(-6);
+}
+
+function _chainIconChar(prefix){
+  return ({osmo:'O',juno:'J',saga:'S',celestia:'T',stars:'★',akash:'A',secret:'⊗',kava:'K'})[prefix] || '?';
+}
 
 async function _autoDeriveChains(){
   var btn=document.getElementById("derive-btn");
   var st=document.getElementById("derive-status");
-  var prev=document.getElementById("derive-preview");
-  var list=document.getElementById("derive-preview-list");
+  var wrap=document.getElementById("derive-wrap");
+  var list=document.getElementById("derive-list");
 
   // Get cosmos1 addresses from textarea
   var cosmosRaw=(document.getElementById("wl-cosmos")?.value||"").trim();
@@ -1762,12 +1826,12 @@ async function _autoDeriveChains(){
 
   if(!cosmosAddrs.length){
     if(st)st.innerHTML='<span style="color:var(--red);">⚠ Βάλε τουλάχιστον μία cosmos1... διεύθυνση πρώτα</span>';
+    if(wrap)wrap.style.display="none";
     return;
   }
 
   if(btn){btn.disabled=true;btn.textContent="⏳ Παραγωγή διευθύνσεων...";}
   if(st)st.textContent="";
-  if(prev)prev.style.display="none";
 
   // For each cosmos1 address, derive all IBC chains
   var allDerived={}; // {chainId: [addr1, addr2, ...]}
@@ -1782,42 +1846,122 @@ async function _autoDeriveChains(){
     });
   });
 
-  // Build preview HTML
-  var previewLines=[];
-  // Show original cosmos addresses
-  cosmosAddrs.forEach(function(a){
-    previewLines.push('<div style="color:var(--gold);padding:2px 0;">✓ '+_esc(a)+'</div>');
+  // Reset selections (all chains enabled by default)
+  _derivedSelections={cosmos:true};
+  _IBC_DERIVE_CHAINS.forEach(function(ch){
+    if(allDerived[ch.id])_derivedSelections[ch.prefix]=true;
   });
-  previewLines.push('<div style="height:4px;"></div>');
 
-  // Show derived
-  _IBC_DERIVE_CHAINS.forEach(function(chain){
-    var addrs=allDerived[chain.id]||[];
-    addrs.forEach(function(a){
-      previewLines.push(
-        '<div style="display:flex;gap:6px;align-items:center;padding:1px 0;">'
-        +'<span style="color:var(--muted);min-width:46px;">'+chain.sym+'</span>'
-        +'<span style="color:var(--text);word-break:break-all;">'+_esc(a)+'</span>'
-        +'</div>'
+  // Build rows
+  var rows=[];
+  // Cosmos source rows (locked)
+  cosmosAddrs.forEach(function(cAddr,idx){
+    rows.push(
+      '<div class="chain-row locked" title="Η αρχική διεύθυνση δεν αφαιρείται">'+
+        '<div class="chain-check"></div>'+
+        '<div class="chain-ico cosmos">⚛</div>'+
+        '<div class="chain-meta">'+
+          '<div class="chain-sym">COSMOS '+(cosmosAddrs.length>1?'#'+(idx+1)+' ':'')+'<span style="color:var(--gold);font-size:8px;letter-spacing:1px;font-weight:500;">· source</span></div>'+
+          '<div class="chain-addr">'+_shortAddrIdx(cAddr)+'</div>'+
+        '</div>'+
+      '</div>'
+    );
+  });
+  // IBC chain rows (checkboxes)
+  _IBC_DERIVE_CHAINS.forEach(function(ch){
+    var addrs=allDerived[ch.id]||[];
+    if(!addrs.length) return;
+    addrs.forEach(function(addr,idx){
+      var addrLabel = addrs.length>1 ? ' #'+(idx+1) : '';
+      rows.push(
+        '<div class="chain-row" data-prefix="'+ch.prefix+'" data-idx="'+idx+'" onclick="_chainsToggle(\''+ch.prefix+'\')">'+
+          '<div class="chain-check checked"></div>'+
+          '<div class="chain-ico '+ch.id+'">'+_chainIconChar(ch.prefix)+'</div>'+
+          '<div class="chain-meta">'+
+            '<div class="chain-sym">'+ch.sym+addrLabel+'</div>'+
+            '<div class="chain-addr">'+_shortAddrIdx(addr)+'</div>'+
+          '</div>'+
+        '</div>'
       );
     });
   });
 
-  // Note about EVM chains
-  previewLines.push(
-    '<div style="margin-top:6px;padding:5px 7px;background:rgba(245,194,74,.07);border-radius:5px;font-size:9px;color:rgba(245,194,74,.6);">'
-    +'⚠ EVM chains ('+_EVM_CHAINS_NOTE.join(", ")+') χρειάζονται χειροκίνητη εισαγωγή'
-    +'</div>'
-  );
+  if(list)list.innerHTML=rows.join("");
+  if(wrap)wrap.style.display="";
 
-  if(list)list.innerHTML=previewLines.join("");
-  if(prev)prev.style.display="";
-  if(st)st.innerHTML='<span style="color:var(--green);">✓ '+Object.keys(allDerived).length+' chains παρήχθησαν από '+cosmosAddrs.length+' πορτοφόλι'+( cosmosAddrs.length>1?"α":"")+'</span>';
-
-  // Store for apply
+  // Store buffer
   _derivedAddrs={cosmos:cosmosAddrs, derived:allDerived};
 
-  if(btn){btn.disabled=false;btn.textContent="✨ Auto-derive IBC chains από cosmos1 διευθύνσεις";}
+  _chainsUpdateSummary();
+
+  if(st)st.innerHTML='<span style="color:var(--green);">✓ '+Object.keys(allDerived).length+' chains παρήχθησαν — κλικ row για επιλογή</span>';
+
+  if(btn){btn.disabled=false;btn.textContent="✨ Auto-derive 8 IBC chains";}
+}
+
+function _chainsToggle(prefix){
+  if(prefix==='cosmos') return; // locked
+  _derivedSelections[prefix] = !_derivedSelections[prefix];
+  // Update DOM rows με αυτό το prefix
+  document.querySelectorAll('.chain-row[data-prefix="'+prefix+'"]').forEach(function(row){
+    var check = row.querySelector('.chain-check');
+    if(_derivedSelections[prefix]){
+      row.classList.remove('disabled');
+      if(check)check.classList.add('checked');
+    } else {
+      row.classList.add('disabled');
+      if(check)check.classList.remove('checked');
+    }
+  });
+  _chainsUpdateSummary();
+}
+
+function _chainsSelectAll(select){
+  Object.keys(_derivedSelections).forEach(function(prefix){
+    if(prefix==='cosmos') return;
+    _derivedSelections[prefix] = !!select;
+  });
+  document.querySelectorAll('.chain-row[data-prefix]').forEach(function(row){
+    var prefix = row.getAttribute('data-prefix');
+    var check = row.querySelector('.chain-check');
+    if(_derivedSelections[prefix]){
+      row.classList.remove('disabled');
+      if(check)check.classList.add('checked');
+    } else {
+      row.classList.add('disabled');
+      if(check)check.classList.remove('checked');
+    }
+  });
+  _chainsUpdateSummary();
+}
+
+function _chainsUpdateSummary(){
+  var total = Object.keys(_derivedSelections).length;
+  var selected = Object.keys(_derivedSelections).filter(function(k){return _derivedSelections[k];}).length;
+  var elSel = document.getElementById('derive-selected-count');
+  var elTot = document.getElementById('derive-total-count');
+  var elStatus = document.getElementById('derive-status-summary');
+  if(elSel) elSel.textContent = selected;
+  if(elTot) elTot.textContent = total;
+  if(elStatus){
+    if(selected === total){
+      elStatus.textContent = '✓ Όλες ενεργές';
+      elStatus.style.color = 'var(--green)';
+    } else if(selected === 1){
+      elStatus.textContent = '⚛ Μόνο COSMOS';
+      elStatus.style.color = 'var(--gold)';
+    } else {
+      var picked = [];
+      var symMap = {cosmos:'COSMOS',osmo:'OSMO',juno:'JUNO',saga:'SAGA',celestia:'TIA',stars:'STARS',akash:'AKT',secret:'SCRT',kava:'KAVA'};
+      Object.keys(_derivedSelections).forEach(function(k){
+        if(_derivedSelections[k] && symMap[k]) picked.push(symMap[k]);
+      });
+      var preview = picked.slice(0,3).join(', ');
+      if(picked.length > 3) preview += ' +'+(picked.length-3);
+      elStatus.textContent = preview;
+      elStatus.style.color = 'var(--gold)';
+    }
+  }
 }
 
 function _applyDerived(){
@@ -1825,9 +1969,10 @@ function _applyDerived(){
   var inp=document.getElementById("wl-cosmos");
   if(!inp)return;
 
-  // Build complete list: original cosmos1 + all derived
-  var allLines=_derivedAddrs.cosmos.slice(); // cosmos1... addresses
+  // Build complete list: original cosmos1 + ONLY selected derived chains
+  var allLines=_derivedAddrs.cosmos.slice(); // cosmos1... addresses (always included)
   _IBC_DERIVE_CHAINS.forEach(function(chain){
+    if(_derivedSelections[chain.prefix] === false) return; // user unchecked
     var addrs=_derivedAddrs.derived[chain.id]||[];
     addrs.forEach(function(a){allLines.push(a);});
   });
@@ -1839,9 +1984,10 @@ function _applyDerived(){
 }
 
 function _cancelDerived(){
-  var prev=document.getElementById("derive-preview");
-  if(prev)prev.style.display="none";
+  var wrap=document.getElementById("derive-wrap");
+  if(wrap)wrap.style.display="none";
   _derivedAddrs=null;
+  _derivedSelections={};
 }
 
 async function _syncWalletNow(){
@@ -2120,11 +2266,10 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   // Periodic refresh
   // Listen for iframe resize messages
   window.addEventListener('message',function(e){
-    if(e.data&&e.data.type==='iframeResize'&&e.data.h&&e.data.h>50){
+    if(e.data&&e.data.type==='iframeResize'){
       document.querySelectorAll('iframe[id^="slot-iframe-"]').forEach(function(ifr){
-        if(ifr.contentWindow===e.source){
-          ifr.style.height=(e.data.h+20)+'px';
-        }
+        try{var h=ifr.contentWindow.document.body.scrollHeight;if(h>50)ifr.style.height=(h+20)+'px';}
+        catch(err){if(e.data.h)ifr.style.height=(e.data.h+20)+'px';}
       });
     }
   });
