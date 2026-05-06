@@ -159,7 +159,14 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 .ow.visible{opacity:1!important;}
 
 /* ══ STARS ══ */
-@keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.9}}
+@keyframes twinkle{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes cosmos-spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce){
+  #cosmos-bg .star,
+  #cosmos-ringed-planet{animation:none !important;}
+}
 
 /* ══ UI ══ */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
@@ -375,14 +382,25 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 </head>
 <body>
 
-<!-- Stars -->
-<div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
-  <div style="position:absolute;width:1px;height:1px;background:#fff;border-radius:50%;top:7%;left:14%;animation:twinkle 2.1s infinite;"></div>
-  <div style="position:absolute;width:2px;height:2px;background:rgba(245,194,74,.6);border-radius:50%;top:18%;left:82%;animation:twinkle 1.7s .3s infinite;"></div>
-  <div style="position:absolute;width:1px;height:1px;background:#fff;border-radius:50%;top:76%;left:91%;animation:twinkle 2.4s .8s infinite;"></div>
-  <div style="position:absolute;width:2px;height:2px;background:rgba(245,194,74,.4);border-radius:50%;top:88%;left:16%;animation:twinkle 1.9s 1s infinite;"></div>
-  <div style="position:absolute;width:1px;height:1px;background:#fff;border-radius:50%;top:32%;left:95%;animation:twinkle 2.6s .5s infinite;"></div>
-  <div style="position:absolute;width:200px;height:200px;background:radial-gradient(ellipse,rgba(245,194,74,.06),transparent 70%);top:-60px;left:50%;transform:translateX(-50%);"></div>
+<!-- ══ COSMIC BACKGROUND (Variant 6 — Dust & Planets, no gas giant) ══ -->
+<div id="cosmos-bg" style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;background:linear-gradient(180deg,#07051a 0%,#020108 100%);">
+  <!-- Star field (200 stars, deterministic placement) -->
+  <div id="cosmos-stars" style="position:absolute;inset:0;"></div>
+
+  <!-- Ringed planet (bottom-right) -->
+  <div id="cosmos-ringed-planet" style="position:absolute;right:12%;bottom:18%;width:60px;height:60px;animation:cosmos-spin-slow 200s linear infinite;">
+    <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0d28a,#b88a2a 60%,#3a2a05 100%);box-shadow:0 0 20px rgba(240,210,138,0.3);"></div>
+    <div style="position:absolute;left:-30px;top:22px;width:120px;height:16px;border-radius:50%;border:2px solid rgba(245,184,46,0.5);border-top-color:transparent;transform:rotate(-20deg);"></div>
+  </div>
+
+  <!-- Distant moon (top-right) -->
+  <div style="position:absolute;right:25%;top:20%;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#c0c0c0,#404040);opacity:0.7;"></div>
+
+  <!-- Cosmic dust band (diagonal) -->
+  <div style="position:absolute;left:0;right:0;top:55%;height:200px;background:linear-gradient(180deg,transparent,rgba(140,80,200,0.12),rgba(245,184,46,0.08),transparent);filter:blur(30px);transform:rotate(-8deg);"></div>
+
+  <!-- Vignette overlay -->
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,0.5) 100%);pointer-events:none;"></div>
 </div>
 
 <!-- Page -->
@@ -1472,6 +1490,27 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 
 <script>
 'use strict';
+
+// ── Cosmic background: deterministic star field generation ──
+(function generateStars(){
+  var container = document.getElementById('cosmos-stars');
+  if(!container) return;
+  var seed = 13; // Fixed seed — stars don't reshuffle on re-render
+  var rnd = function(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  var count = 200;
+  var html = '';
+  for(var i = 0; i < count; i++){
+    var x = rnd() * 100;
+    var y = rnd() * 100;
+    var size = rnd() * 2 + 0.4;
+    var delay = rnd() * 6;
+    var dur = 2 + rnd() * 5;
+    var op = 0.3 + rnd() * 0.7;
+    var glow = size > 1.5 ? 'box-shadow:0 0 ' + (size * 3) + 'px rgba(255,255,255,0.6);' : '';
+    html += '<div class="star" style="position:absolute;left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;width:' + size.toFixed(2) + 'px;height:' + size.toFixed(2) + 'px;border-radius:50%;background:#fff;opacity:' + op.toFixed(2) + ';' + glow + 'animation:twinkle ' + dur.toFixed(2) + 's ease-in-out ' + delay.toFixed(2) + 's infinite;"></div>';
+  }
+  container.innerHTML = html;
+})();
 // ── Constants ─────────────────────────────────────────────────────
 const APP_URL      = 'index.html';
 const USERS_KEY    = 'ggwall_users_v1';
