@@ -313,22 +313,118 @@ body{visibility:hidden;}
    ═══════════════════════════════════════════════════════ */
 #user-overlay{
   display:none;position:fixed;inset:0;z-index:500;
-  background:rgba(0,0,0,.65);backdrop-filter:blur(5px);
-  align-items:flex-end;justify-content:center;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+  padding:20px;
 }
 #user-overlay.open{display:flex;}
 #user-panel{
-  width:min(420px,100%);max-height:82vh;
-  background:var(--surface);border-radius:16px 16px 0 0;
-  border:1px solid var(--border);border-bottom:none;
+  width:min(440px,100%);max-height:90vh;
+  background:linear-gradient(135deg,#12151d 0%,#0e1118 100%);
+  border-radius:20px;
+  border:1px solid rgba(167,139,250,0.18);
+  box-shadow:0 30px 80px -20px rgba(0,0,0,0.7),0 0 60px -20px rgba(245,194,74,0.15),inset 0 1px 0 rgba(255,255,255,0.05);
   overflow:hidden;display:flex;flex-direction:column;
-  animation:slide-up .22s ease;
+  animation:up-fade-in .25s ease;
+  position:relative;
 }
-@keyframes slide-up{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
-.up-head{padding:13px 15px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.up-tabs{display:flex;gap:2px;padding:7px 10px;border-bottom:1px solid var(--border2);overflow-x:auto;flex-shrink:0;}
-.up-tab{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:"Space Grotesk",sans-serif;white-space:nowrap;transition:all .15s;}
-.up-tab.active{background:rgba(245,194,74,.14);color:var(--gold);}
+@keyframes up-fade-in{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Close button absolute top-right */
+.up-close{
+  position:absolute;top:14px;right:14px;
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(13,10,28,0.6);
+  border:1px solid rgba(167,139,250,0.18);
+  color:rgba(220,214,255,0.55);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;z-index:10;transition:all 0.15s;
+}
+.up-close:hover{border-color:rgba(251,113,133,0.4);color:#fb7185;}
+
+/* Hero section (avatar + name + email + role) */
+.up-hero{
+  padding:30px 24px 16px;text-align:center;
+  background:radial-gradient(ellipse at top,rgba(245,194,74,0.06),transparent 70%);
+  border-bottom:1px solid rgba(167,139,250,0.08);
+}
+.up-hero-orbit{
+  position:relative;width:100px;height:100px;
+  margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.up-hero-disk{
+  position:relative;width:60px;height:60px;border-radius:50%;
+  background:linear-gradient(135deg,#f5c24a,#e8a92e);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 40px -10px rgba(245,194,74,0.55),inset 0 1px 0 rgba(255,255,255,0.5);
+  z-index:2;animation:hero-float 4s ease-in-out infinite;
+  font-size:24px;overflow:hidden;cursor:pointer;
+}
+.up-hero-disk img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.up-hero-ring{
+  position:absolute;top:50%;left:50%;
+  border:1px solid rgba(245,194,74,0.4);border-radius:50%;
+  animation:ring-pulse 3s ease-out infinite;pointer-events:none;
+}
+.up-hero-ring.r1{width:78px;height:78px;margin:-39px 0 0 -39px;}
+.up-hero-ring.r2{width:100px;height:100px;margin:-50px 0 0 -50px;animation-delay:0.6s;}
+@keyframes hero-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
+@keyframes ring-pulse{0%{transform:scale(0.95);opacity:0.6;}50%{transform:scale(1);opacity:0.3;}100%{transform:scale(0.95);opacity:0.6;}}
+.up-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.3em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:5px;
+}
+.up-name-big{
+  font-size:21px;font-weight:600;color:var(--cream);
+  margin-bottom:3px;letter-spacing:-0.01em;
+}
+.up-email-mono{
+  font-size:11px;color:rgba(220,214,255,0.55);
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.3px;
+}
+.up-role-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:99px;
+  font-size:9px;font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.15em;text-transform:uppercase;margin-top:8px;
+}
+.up-role-badge.admin{
+  background:rgba(245,194,74,0.12);
+  border:1px solid rgba(245,194,74,0.3);color:var(--gold);
+}
+.up-role-badge.viewer{
+  background:rgba(167,139,250,0.12);
+  border:1px solid rgba(167,139,250,0.3);color:#a78bfa;
+}
+
+/* Tabs (auth-style) */
+.up-head{display:none;}
+.up-tabs{
+  display:flex;border-bottom:1px solid rgba(167,139,250,0.08);
+  padding:0 24px;gap:24px;flex-shrink:0;
+}
+.up-tab{
+  padding:14px 0;background:none;border:none;
+  color:rgba(220,214,255,0.55);
+  font-size:11px;font-weight:500;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.5px;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;position:relative;
+  transition:color 0.15s;
+}
+.up-tab.active{color:var(--gold);background:none;}
+.up-tab.active::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;
+  height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.up-tab .tab-count-badge{
+  background:rgba(251,113,133,0.15);color:#fb7185;
+  font-size:8px;padding:2px 6px;border-radius:99px;
+  margin-left:2px;border:1px solid rgba(251,113,133,0.25);
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.3px;
+}
 .up-body{overflow-y:auto;flex:1;}
 /* Cosmic Notifications (profile notif tab) */
 .notif-master{position:relative;background:linear-gradient(135deg,rgba(245,194,74,.06),rgba(167,139,250,.04));border:1px solid rgba(245,194,74,.2);border-radius:14px;padding:14px;overflow:hidden;margin-bottom:14px;}
@@ -640,36 +736,50 @@ body{visibility:hidden;}
 <!-- USER OVERLAY -->
 <div id="user-overlay">
   <div id="user-panel">
-    <div class="up-head">
-      <div style="display:flex;align-items:center;gap:9px;">
-        <div id="ov-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:17px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;"></div>
-        <div>
-          <div id="ov-name" style="font-size:13px;font-weight:600;"></div>
-          <div id="ov-role" style="font-size:9px;color:rgba(245,194,74,.45);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;"></div>
-        </div>
+    <button class="up-close" onclick="closeUserOverlay()">&#10005;</button>
+
+    <!-- Hero section: avatar + name + email + role -->
+    <div class="up-hero">
+      <div class="up-hero-orbit">
+        <div class="up-hero-ring r1"></div>
+        <div class="up-hero-ring r2"></div>
+        <div id="ov-avatar" class="up-hero-disk" onclick="document.getElementById('pr-photo-inp').click()"></div>
       </div>
-      <button onclick="closeUserOverlay()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;">&#10005;</button>
+      <div class="up-eyebrow">Account</div>
+      <div id="ov-name" class="up-name-big"></div>
+      <div id="ov-email" class="up-email-mono"></div>
+      <div id="ov-role-badge"></div>
     </div>
+
     <div class="up-tabs">
       <button class="up-tab active" onclick="switchUpTab('profile')">&#128100; Προφίλ</button>
       <button class="up-tab" onclick="switchUpTab('wallet')">&#127974; Wallet</button>
-      <button class="up-tab" onclick="switchUpTab('notifications')">&#128276; Notif</button>
+      <button class="up-tab" onclick="switchUpTab('notifications')">&#128276; Notif<span id="notif-tab-badge"></span></button>
     </div>
     <div class="up-body">
 
       <!-- Profile -->
       <div class="up-content active" id="ut-profile">
-        <div style="display:flex;flex-direction:column;gap:9px;">
-          <div style="display:flex;align-items:center;gap:11px;padding:6px 0;">
-            <div id="pr-avatar-big" style="width:50px;height:50px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;cursor:pointer;flex-shrink:0;" onclick="document.getElementById('pr-photo-inp').click()"></div>
-            <div><div id="pr-name-disp" style="font-size:13px;font-weight:600;"></div><div id="pr-email-disp" style="font-size:10px;color:var(--muted);margin-top:1px;"></div></div>
-          </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
           <input type="file" id="pr-photo-inp" accept="image/*" style="display:none;" onchange="_onPhotoChange(this)"/>
-          <input class="inp" id="pr-name-inp" placeholder="Όνομα χρήστη"/>
-          <input class="inp" id="pr-pin-inp" type="text" inputmode="numeric" maxlength="4" placeholder="Νέο PIN (4 ψηφία, κενό = αμετάβλητο)" autocomplete="off"/>
-          <button class="btn btn-gold" onclick="_saveProfile()" style="width:100%;">&#128190; Αποθήκευση</button>
-          <hr style="border:none;border-top:1px solid var(--border2);"/>
-          <button class="btn btn-ghost" onclick="_doLogout()" style="width:100%;color:var(--red);border-color:rgba(255,95,109,.2);">&#128682; Αποσύνδεση</button>
+
+          <div>
+            <label style="display:block;font-size:10px;font-weight:600;letter-spacing:0.5px;color:rgba(220,214,255,0.7);margin-bottom:7px;text-transform:uppercase;">Όνομα Χρήστη</label>
+            <input class="inp" id="pr-name-inp" placeholder="Όνομα χρήστη" style="width:100%;padding:11px 13px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);border-radius:11px;color:var(--cream);font-size:13px;"/>
+            <div style="font-size:10px;color:rgba(220,214,255,0.4);margin-top:5px;">Εμφανίζεται στο dashboard και στους άλλους χρήστες.</div>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:10px;font-weight:600;letter-spacing:0.5px;color:rgba(220,214,255,0.7);margin-bottom:7px;text-transform:uppercase;">Νέο PIN <span style="text-transform:none;color:rgba(220,214,255,0.4);font-weight:400;">(προαιρετικά)</span></label>
+            <input class="inp" id="pr-pin-inp" type="text" inputmode="numeric" maxlength="4" placeholder="4 ψηφία · κενό = αμετάβλητο" autocomplete="off" style="width:100%;padding:11px 13px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);border-radius:11px;color:var(--cream);font-size:13px;font-family:'JetBrains Mono',monospace;letter-spacing:0.4em;"/>
+            <div style="font-size:10px;color:rgba(220,214,255,0.4);margin-top:5px;">Άφησε κενό για να μην αλλάξει.</div>
+          </div>
+
+          <button class="btn btn-gold" onclick="_saveProfile()" style="width:100%;margin-top:4px;">&#128190; Αποθήκευση</button>
+
+          <div style="height:1px;background:rgba(167,139,250,0.08);margin:6px 0;"></div>
+
+          <button class="btn btn-ghost" onclick="_doLogout()" style="width:100%;color:var(--red);border-color:rgba(255,95,109,.25);background:rgba(255,95,109,0.05);">&#128682; Αποσύνδεση</button>
         </div>
       </div>
 
@@ -1073,15 +1183,19 @@ async function _checkNewTransactions(){
 function _populateOverlay(user){
   if(!user)return;
   var ph=user.photo||(user.avatar?.startsWith("img:")?user.avatar.slice(4):null);
-  var avSmHtml=ph?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>':user.avatar&&!user.avatar.startsWith("img:")?'<span style="font-size:17px;">'+user.avatar+"</span>":'<span style="font-size:12px;font-weight:700;color:'+(user.color||"#f5c24a")+';">'+user.initials+"</span>";
-  var avBigHtml=ph?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>':user.avatar&&!user.avatar.startsWith("img:")?'<span style="font-size:22px;">'+user.avatar+"</span>":'<span style="font-size:16px;font-weight:700;color:'+(user.color||"#f5c24a")+';">'+user.initials+"</span>";
+  var heroHtml=ph?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>':user.avatar&&!user.avatar.startsWith("img:")?'<span style="font-size:28px;">'+user.avatar+"</span>":'<span style="font-size:18px;font-weight:700;color:#0b0d12;">'+user.initials+"</span>";
   var f=id=>document.getElementById(id);
-  if(f("ov-avatar"))f("ov-avatar").innerHTML=avSmHtml;
+  if(f("ov-avatar"))f("ov-avatar").innerHTML=heroHtml;
   if(f("ov-name"))f("ov-name").textContent=user.name;
-  if(f("ov-role"))f("ov-role").textContent=user.role==="admin"?"⚡ Admin":"👁 Viewer";
-  if(f("pr-avatar-big"))f("pr-avatar-big").innerHTML=avBigHtml;
-  if(f("pr-name-disp"))f("pr-name-disp").textContent=user.name;
-  if(f("pr-email-disp"))f("pr-email-disp").textContent=user.email||"—";
+  if(f("ov-email"))f("ov-email").textContent=user.email||"—";
+  if(f("ov-role-badge")){
+    var isAdmin=user.role==="admin";
+    f("ov-role-badge").innerHTML='<div class="up-role-badge '+(isAdmin?"admin":"viewer")+'">'
+      +(isAdmin
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:10px;height:10px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Admin'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:10px;height:10px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Viewer')
+      +'</div>';
+  }
   if(f("pr-name-inp"))f("pr-name-inp").value=user.name;
   // Pre-fill wallet — μόνο από DB
   if(f("wl-cosmos"))f("wl-cosmos").value=user.cosmos_addrs||"";
@@ -1748,7 +1862,7 @@ document.getElementById("user-overlay")?.addEventListener("click",e=>{if(e.targe
 function switchUpTab(tab){document.querySelectorAll(".up-tab").forEach((b,i)=>b.classList.toggle("active",["profile","wallet","notifications"][i]===tab));document.querySelectorAll(".up-content").forEach(el=>el.classList.toggle("active",el.id==="ut-"+tab));}
 
 var _newPhoto=null;
-function _onPhotoChange(inp){var file=inp.files[0];if(!file)return;var rd=new FileReader();rd.onload=e=>{_newPhoto=e.target.result;var av=document.getElementById("pr-avatar-big");if(av)av.innerHTML='<img src="'+_newPhoto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';};rd.readAsDataURL(file);}
+function _onPhotoChange(inp){var file=inp.files[0];if(!file)return;var rd=new FileReader();rd.onload=e=>{_newPhoto=e.target.result;var av=document.getElementById("ov-avatar");if(av)av.innerHTML='<img src="'+_newPhoto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';};rd.readAsDataURL(file);}
 
 async function _saveProfile(){
   var u=getActiveUser();if(!u)return;
@@ -2107,6 +2221,34 @@ async function _syncWalletNow(){
 // ── Galactic Watch (Cosmic-themed notifications) ────────────────────
 // Per-user notifications with read state in DB (not localStorage)
 // Type icon mapping aligned with new schema
+// Update Notif tab badge (red dot/count next to "Notif" tab text)
+function _updateNotifTabBadge(unread){
+  var el=document.getElementById('notif-tab-badge');
+  if(!el)return;
+  if(!unread||unread<=0){el.innerHTML='';return;}
+  el.innerHTML='<span class="tab-count-badge">'+(unread>99?'99+':unread)+'</span>';
+}
+
+// Lightweight check — fetches only count for tab badge (called on dashboard load)
+async function _checkUnreadNotifCount(){
+  if(!_user||!_user.id)return;
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/notifications?select=id&user_id=eq."+_user.id+"&app_id=eq.ggwall&read_at=is.null&limit=100",{
+      headers:Object.assign({},_SB_H,{'Prefer':'count=exact'}),
+      signal:AbortSignal.timeout(5000)
+    });
+    if(!r.ok)return;
+    // Use Content-Range header for count if available
+    var range=r.headers.get('content-range');
+    var count=range?parseInt(range.split('/')[1]||'0',10):0;
+    if(!count){
+      var d=await r.json().catch(function(){return [];});
+      count=Array.isArray(d)?d.length:0;
+    }
+    _updateNotifTabBadge(count);
+  }catch(e){console.warn('[_checkUnreadNotifCount]',e);}
+}
+
 async function _loadNotifHist(){
   var el=document.getElementById("notif-hist");if(!el)return;
   if(!_user||!_user.id){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:14px;">Δεν είσαι συνδεδεμένος</div>';return;}
@@ -2120,12 +2262,14 @@ async function _loadNotifHist(){
       el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:18px 12px;line-height:1.6;">Καθαρός ορίζοντας<br><span style="font-size:10px;color:rgba(220,214,255,.4);">Δεν υπάρχουν ενεργά σήματα</span></div>';
       var badge=document.getElementById("notif-unread-badge");
       if(badge)badge.innerHTML='';
+      _updateNotifTabBadge(0);
       return;
     }
     // Count unread (read_at IS NULL)
     var unread=d.filter(function(n){return !n.read_at;}).length;
     var badge=document.getElementById("notif-unread-badge");
     if(badge)badge.innerHTML=unread>0?('<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:8px;padding:2px 7px;border-radius:99px;font-family:\'JetBrains Mono\',monospace;letter-spacing:.5px;">'+unread+' ΝΕΑ</span>'):'';
+    _updateNotifTabBadge(unread);
     // Render rows
     el.innerHTML=d.map(function(n){
       var isRead=!!n.read_at;
@@ -2180,12 +2324,13 @@ async function _toggleNotif(id,uid){
       });
     }catch(e){console.warn('[_toggleNotif] mark read err:',e);}
     dot.style.display='none';
-    // Update badge count
+    // Update unread-badge inside modal
     var badge=document.getElementById('notif-unread-badge');
     var current=parseInt((badge?.textContent||'0').replace(/[^0-9]/g,''))||0;
     if(badge&&current>0){
       var newCount=current-1;
       badge.innerHTML=newCount>0?'<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:8px;padding:2px 7px;border-radius:99px;font-family:\'JetBrains Mono\',monospace;letter-spacing:.5px;">'+newCount+' ΝΕΑ</span>':'';
+      _updateNotifTabBadge(newCount);
     }
   }
 }
@@ -2461,6 +2606,9 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   setTimeout(()=>{_syncUserToCloud(au);},2000);
   setTimeout(()=>{_startPresence(au);_updateUserStats(au);},3000);
   setTimeout(()=>{checkUnbonding();},4000);
+  // Notif tab badge: initial + every 60s
+  setTimeout(()=>{_checkUnreadNotifCount();},5000);
+  setInterval(()=>{if(_user)_checkUnreadNotifCount();},60000);
 })();
 </script>
   <!-- PWA Install Banner -->
