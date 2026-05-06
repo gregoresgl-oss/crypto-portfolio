@@ -227,6 +227,35 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 .cp-pend{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted);padding:3px 7px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;}
 .ibox{background:rgba(245,194,74,.04);border:1px solid rgba(245,194,74,.1);border-radius:8px;padding:9px 11px;font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:10px;}
 .ibox b{color:rgba(245,194,74,.7);}
+/* ── IBC Chain Selection (invitation step 5) ─────────────── */
+.chains-list{background:rgba(13,10,28,0.4);border:1px solid rgba(167,139,250,0.15);border-radius:12px;padding:6px;margin-top:10px;max-height:280px;overflow-y:auto;}
+.chain-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;transition:all 0.15s;cursor:pointer;}
+.chain-row:hover{background:rgba(245,194,74,0.05);}
+.chain-row.disabled{opacity:0.4;}
+.chain-check{width:18px;height:18px;border-radius:5px;border:1.5px solid rgba(167,139,250,0.35);background:rgba(13,10,28,0.6);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;position:relative;}
+.chain-check.checked{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(245,194,74,0.4);}
+.chain-check.checked::after{content:'';width:10px;height:6px;border-left:2px solid #0b0d12;border-bottom:2px solid #0b0d12;transform:rotate(-45deg) translate(1px,-1px);}
+.chain-row.locked{opacity:0.85;cursor:not-allowed;}
+.chain-row.locked .chain-check{background:rgba(245,194,74,0.15);border-color:rgba(245,194,74,0.4);}
+.chain-row.locked .chain-check::after{content:'';width:8px;height:5px;border-left:2px solid var(--gold);border-bottom:2px solid var(--gold);transform:rotate(-45deg) translate(1px,-1px);}
+.chain-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.chain-ico.cosmos{background:linear-gradient(135deg,#5e57b3,#3a3284);}
+.chain-ico.osmo{background:linear-gradient(135deg,#a060d0,#6f3da3);}
+.chain-ico.juno{background:linear-gradient(135deg,#f0827d,#e54e4e);}
+.chain-ico.saga{background:linear-gradient(135deg,#1a1a1a,#363636);border:1px solid #555;}
+.chain-ico.tia{background:linear-gradient(135deg,#7c3aed,#5b21b6);}
+.chain-ico.stars{background:linear-gradient(135deg,#db2777,#9d174d);}
+.chain-ico.akt{background:linear-gradient(135deg,#dc2626,#991b1b);}
+.chain-ico.scrt{background:linear-gradient(135deg,#0f172a,#475569);border:1px solid #64748b;}
+.chain-ico.kava{background:linear-gradient(135deg,#ff564f,#d92e26);}
+.chain-meta{flex:1;min-width:0;}
+.chain-sym{font-size:12px;font-weight:700;color:var(--cream);letter-spacing:0.5px;font-family:'JetBrains Mono',monospace;}
+.chain-addr{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chain-summary{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin-top:10px;background:rgba(245,194,74,0.05);border:1px solid rgba(245,194,74,0.15);border-radius:10px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;}
+.chain-summary .count{color:var(--gold);font-weight:700;}
+.chain-actions{display:flex;gap:6px;margin-top:10px;}
+.chain-action-btn{flex:1;padding:6px 10px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);border-radius:8px;color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+.chain-action-btn:hover{border-color:rgba(245,194,74,0.4);color:var(--gold);}
 .gitem{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
 .gitem:last-child{border-bottom:none;}
 .gico{width:30px;height:30px;border-radius:8px;background:rgba(245,194,74,.08);border:1px solid rgba(245,194,74,.1);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
@@ -935,9 +964,22 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
           ✨ Auto-derive 8 IBC chains
         </button>
         <div id="inv-derive-status" style="font-size:10px;color:var(--muted);min-height:12px;margin-top:6px;"></div>
-        <div id="inv-derive-preview" style="display:none;background:rgba(13,10,28,0.4);border:1px solid var(--border);border-radius:8px;padding:9px;max-height:140px;overflow-y:auto;margin-top:6px;">
-          <div style="font-size:9px;color:var(--muted);margin-bottom:5px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;">Derived διευθύνσεις</div>
-          <div id="inv-derive-list" style="font-size:10px;font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column;gap:2px;"></div>
+
+        <!-- Chain selection UI (shown after derive) -->
+        <div id="inv-chains-wrap" style="display:none;">
+          <!-- Quick action buttons -->
+          <div class="chain-actions">
+            <div class="chain-action-btn" onclick="_invSelectAllChains(true)">✓ Όλες</div>
+            <div class="chain-action-btn" onclick="_invSelectAllChains(false)">✗ Καμία</div>
+            <div class="chain-action-btn" onclick="_invDeriveChains()" style="color:var(--gold);border-color:rgba(245,194,74,0.4);">↻ Re-derive</div>
+          </div>
+          <!-- Selectable chain rows (populated by JS) -->
+          <div class="chains-list" id="inv-chains-list"></div>
+          <!-- Live summary -->
+          <div class="chain-summary" id="inv-chains-summary">
+            <span><span class="count" id="inv-chains-selected">0</span> από <span class="count" id="inv-chains-total">0</span> επιλεγμένες</span>
+            <span id="inv-chains-status" style="color:var(--green);">✓ Έτοιμο</span>
+          </div>
         </div>
       </div>
 
@@ -960,7 +1002,7 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
       </div>
 
       <button class="auth-btn" onclick="_saveWalletInvite()">
-        <span>Αποθήκευση Wallets</span>
+        <span id="inv-wallet-save-text">Αποθήκευση Wallets</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
       </button>
       <button class="auth-btn-ghost" onclick="_showScreen('inv-pin')">Παράλειψη — Θα τα προσθέσω αργότερα</button>
@@ -1502,7 +1544,7 @@ async function _doForgotPassword(){
     // Show sent screen
     document.getElementById('sent-email').textContent=email;
     _showScreen('forgot-sent');
-    _startResendCooldown();
+    _startForgotResendCooldown();
     // Reset btn
     if(btn){btn.disabled=false;btn.classList.remove('loading');btn.innerHTML='<span>Αποστολή Συνδέσμου</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>';}
   }catch(e){
@@ -1513,9 +1555,9 @@ async function _doForgotPassword(){
   }
 }
 
-// Resend cooldown
-var _resendInterval=null;
-function _startResendCooldown(){
+// Resend cooldown (forgot-password flow — 30 seconds)
+var _forgotResendInterval=null;
+function _startForgotResendCooldown(){
   var btn=document.getElementById('resend-btn');
   var txt=document.getElementById('resend-text');
   if(!btn)return;
@@ -1523,11 +1565,11 @@ function _startResendCooldown(){
   btn.disabled=true;
   btn.style.opacity='0.5';
   txt.textContent='Στείλε ξανά ('+s+'s)';
-  if(_resendInterval)clearInterval(_resendInterval);
-  _resendInterval=setInterval(function(){
+  if(_forgotResendInterval)clearInterval(_forgotResendInterval);
+  _forgotResendInterval=setInterval(function(){
     s--;
     if(s<=0){
-      clearInterval(_resendInterval);
+      clearInterval(_forgotResendInterval);
       btn.disabled=false;
       btn.style.opacity='';
       txt.textContent='Στείλε ξανά';
@@ -1543,7 +1585,7 @@ async function _doResendForgotEmail(){
   try{
     var redirectTo=window.location.origin+window.location.pathname.replace(/[^\/]*$/,'login.html');
     await _sb.auth.resetPasswordForEmail(email,{redirectTo:redirectTo});
-    _startResendCooldown();
+    _startForgotResendCooldown();
   }catch(e){console.error(e);}
 }
 
@@ -2257,30 +2299,161 @@ function _invDeriveAddr(cosmosAddr,prefix){
   return _invBech32Encode(prefix,dec.data);
 }
 
+// IBC chain class map for icons
+var _INV_IBC_CSS_CLASS = {
+  cosmos:'cosmos', osmo:'osmo', juno:'juno', saga:'saga',
+  celestia:'tia', stars:'stars', akash:'akt', secret:'scrt', kava:'kava'
+};
+
+// State: which chains are selected (default ALL after derive)
+var _invChainSelections = {};
+
+function _shortAddr(a){
+  if(!a) return '';
+  if(a.length <= 18) return a;
+  return a.slice(0,10) + '...' + a.slice(-6);
+}
+
 function _invDeriveChains(){
   var cosmos=(document.getElementById('inv-cosmos')?.value||'').trim();
   var st=document.getElementById('inv-derive-status');
-  var prev=document.getElementById('inv-derive-preview');
-  var list=document.getElementById('inv-derive-list');
+  var wrap=document.getElementById('inv-chains-wrap');
+  var list=document.getElementById('inv-chains-list');
   var btn=document.getElementById('inv-derive-btn');
   if(!cosmos.startsWith('cosmos1')){
-    if(st){st.textContent='⚠ Βάλε πρώτα cosmos1 διεύθυνση';st.style.color='var(--red)';}return;
+    if(st){st.textContent='⚠ Βάλε πρώτα cosmos1 διεύθυνση';st.style.color='var(--red)';}
+    if(wrap)wrap.style.display='none';
+    return;
   }
   if(st){st.textContent='⏳ Παραγωγή...';st.style.color='var(--muted)';}
-  var derived={cosmos};
-  var lines=['<div style="color:var(--gold);padding:1px 0;">✓ '+cosmos+'</div>'];
+  var derived={cosmos:cosmos};
+  _invChainSelections = {cosmos:true}; // cosmos always selected (locked)
   _INV_IBC_CHAINS.forEach(function(ch){
     var a=_invDeriveAddr(cosmos,ch.prefix);
     if(a){
       derived[ch.prefix]=a;
-      lines.push('<div style="display:flex;gap:6px;padding:1px 0;"><span style="color:var(--muted);min-width:50px;">'+ch.sym+'</span><span style="word-break:break-all;">'+a+'</span></div>');
+      _invChainSelections[ch.prefix] = true; // all enabled by default
     }
   });
   _invDerived=derived;
-  if(list)list.innerHTML=lines.join('');
-  if(prev)prev.style.display='';
-  if(st){st.textContent='✓ '+Object.keys(derived).length+' διευθύνσεις παράχθηκαν';st.style.color='var(--green)';}
+
+  // Build rows
+  var rows = [];
+  // Cosmos row (locked source)
+  rows.push(
+    '<div class="chain-row locked" title="Η αρχική διεύθυνση δεν αφαιρείται">'+
+      '<div class="chain-check"></div>'+
+      '<div class="chain-ico cosmos">⚛</div>'+
+      '<div class="chain-meta">'+
+        '<div class="chain-sym">COSMOS <span style="color:var(--gold);font-size:8px;letter-spacing:1px;font-weight:500;">· source</span></div>'+
+        '<div class="chain-addr">'+_shortAddr(cosmos)+'</div>'+
+      '</div>'+
+    '</div>'
+  );
+  // IBC chains
+  _INV_IBC_CHAINS.forEach(function(ch){
+    var a=derived[ch.prefix];
+    if(!a) return;
+    var cls = _INV_IBC_CSS_CLASS[ch.prefix] || 'cosmos';
+    var iconChar = ch.sym.charAt(0);
+    if(ch.prefix==='osmo')iconChar='O';
+    else if(ch.prefix==='juno')iconChar='J';
+    else if(ch.prefix==='saga')iconChar='S';
+    else if(ch.prefix==='celestia')iconChar='T';
+    else if(ch.prefix==='stars')iconChar='★';
+    else if(ch.prefix==='akash')iconChar='A';
+    else if(ch.prefix==='secret')iconChar='⊗';
+    else if(ch.prefix==='kava')iconChar='K';
+    rows.push(
+      '<div class="chain-row" data-prefix="'+ch.prefix+'" onclick="_invToggleChain(\''+ch.prefix+'\')">'+
+        '<div class="chain-check checked"></div>'+
+        '<div class="chain-ico '+cls+'">'+iconChar+'</div>'+
+        '<div class="chain-meta">'+
+          '<div class="chain-sym">'+ch.sym+'</div>'+
+          '<div class="chain-addr">'+_shortAddr(a)+'</div>'+
+        '</div>'+
+      '</div>'
+    );
+  });
+  if(list)list.innerHTML = rows.join('');
+  if(wrap)wrap.style.display='';
+  _invUpdateChainsSummary();
+
+  if(st){st.textContent='✓ '+Object.keys(derived).length+' διευθύνσεις παράχθηκαν — κλικ για επιλογή';st.style.color='var(--green)';}
   if(btn)btn.textContent='✓ Derived!';
+}
+
+function _invToggleChain(prefix){
+  if(prefix==='cosmos') return; // locked
+  _invChainSelections[prefix] = !_invChainSelections[prefix];
+  // Update DOM
+  var row = document.querySelector('.chain-row[data-prefix="'+prefix+'"]');
+  if(row){
+    var check = row.querySelector('.chain-check');
+    if(_invChainSelections[prefix]){
+      row.classList.remove('disabled');
+      if(check)check.classList.add('checked');
+    } else {
+      row.classList.add('disabled');
+      if(check)check.classList.remove('checked');
+    }
+  }
+  _invUpdateChainsSummary();
+}
+
+function _invSelectAllChains(select){
+  Object.keys(_invChainSelections).forEach(function(prefix){
+    if(prefix==='cosmos') return; // always locked on
+    _invChainSelections[prefix] = !!select;
+  });
+  // Update all rows
+  document.querySelectorAll('.chain-row[data-prefix]').forEach(function(row){
+    var prefix = row.getAttribute('data-prefix');
+    var check = row.querySelector('.chain-check');
+    if(_invChainSelections[prefix]){
+      row.classList.remove('disabled');
+      if(check)check.classList.add('checked');
+    } else {
+      row.classList.add('disabled');
+      if(check)check.classList.remove('checked');
+    }
+  });
+  _invUpdateChainsSummary();
+}
+
+function _invUpdateChainsSummary(){
+  var total = Object.keys(_invChainSelections).length;
+  var selected = Object.keys(_invChainSelections).filter(function(k){return _invChainSelections[k];}).length;
+  var elSel = document.getElementById('inv-chains-selected');
+  var elTot = document.getElementById('inv-chains-total');
+  var elStatus = document.getElementById('inv-chains-status');
+  if(elSel) elSel.textContent = selected;
+  if(elTot) elTot.textContent = total;
+  // Update status text
+  if(elStatus){
+    if(selected === total){
+      elStatus.textContent = '✓ Όλες ενεργές';
+      elStatus.style.color = 'var(--green)';
+    } else if(selected === 1){
+      elStatus.textContent = '⚛ Μόνο COSMOS';
+      elStatus.style.color = 'var(--gold)';
+    } else {
+      var pickedSyms = [];
+      var symMap = {cosmos:'COSMOS', osmo:'OSMO', juno:'JUNO', saga:'SAGA', celestia:'TIA', stars:'STARS', akash:'AKT', secret:'SCRT', kava:'KAVA'};
+      Object.keys(_invChainSelections).forEach(function(k){
+        if(_invChainSelections[k] && symMap[k]) pickedSyms.push(symMap[k]);
+      });
+      var preview = pickedSyms.slice(0,3).join(', ');
+      if(pickedSyms.length > 3) preview += ' +'+(pickedSyms.length-3);
+      elStatus.textContent = preview;
+      elStatus.style.color = 'var(--gold)';
+    }
+  }
+  // Update save button text
+  var saveBtnText = document.getElementById('inv-wallet-save-text');
+  if(saveBtnText){
+    saveBtnText.textContent = 'Αποθήκευση '+selected+' Wallets';
+  }
 }
 
 async function _saveWalletInvite(){
@@ -2296,14 +2469,18 @@ async function _saveWalletInvite(){
       return;
     }
     var patchBody = {updated_at:new Date().toISOString()};
-    // Cosmos: include all derived IBC addresses
+    // Cosmos: include only SELECTED IBC addresses
     if(cosmos){
-      var allAddrs=cosmos;
-      if(_invDerived){
-        var extras=Object.values(_invDerived).filter(function(a){return a!==cosmos;});
-        if(extras.length)allAddrs=[cosmos].concat(extras).join('\n');
+      var addrs = [cosmos];
+      if(_invDerived && _invChainSelections){
+        Object.keys(_invDerived).forEach(function(prefix){
+          if(prefix === 'cosmos') return; // already added
+          if(_invChainSelections[prefix] === false) return; // user unchecked
+          var addr = _invDerived[prefix];
+          if(addr && addr !== cosmos) addrs.push(addr);
+        });
       }
-      patchBody.cosmos_addrs = allAddrs;
+      patchBody.cosmos_addrs = addrs.join('\n');
     }
     // Cardano (single address)
     if(cardano){
