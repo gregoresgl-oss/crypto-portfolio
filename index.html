@@ -330,6 +330,37 @@ body{visibility:hidden;}
 .up-tab{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:"Space Grotesk",sans-serif;white-space:nowrap;transition:all .15s;}
 .up-tab.active{background:rgba(245,194,74,.14);color:var(--gold);}
 .up-body{overflow-y:auto;flex:1;}
+/* Cosmic Notifications (profile notif tab) */
+.notif-master{position:relative;background:linear-gradient(135deg,rgba(245,194,74,.06),rgba(167,139,250,.04));border:1px solid rgba(245,194,74,.2);border-radius:14px;padding:14px;overflow:hidden;margin-bottom:14px;}
+.notif-master-content{position:relative;display:flex;align-items:center;gap:11px;}
+.notif-master-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#34d399,#10b981);display:flex;align-items:center;justify-content:center;color:#0b0d12;flex-shrink:0;box-shadow:0 6px 16px -6px rgba(52,211,153,.6);}
+.notif-master-icon svg{width:18px;height:18px;}
+.notif-master-text{flex:1;}
+.notif-master-title{font-size:14px;font-weight:600;color:var(--cream);margin-bottom:2px;letter-spacing:-0.01em;}
+.notif-master-status{display:flex;align-items:center;gap:5px;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;color:var(--green);text-transform:uppercase;}
+.notif-master-status .status-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px rgba(52,211,153,.6);animation:notif-pulse 2s ease-in-out infinite;}
+.notif-master.off .notif-master-icon{background:rgba(167,139,250,.1);color:var(--muted);box-shadow:none;}
+.notif-master.off .notif-master-status{color:var(--muted);}
+.notif-master.off .notif-master-status .status-dot{background:var(--muted);box-shadow:none;animation:none;}
+@keyframes notif-pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.toggle{width:36px;height:20px;background:rgba(13,10,28,.6);border:1px solid rgba(167,139,250,.2);border-radius:99px;position:relative;flex-shrink:0;cursor:pointer;transition:all .2s;}
+.toggle::after{content:'';position:absolute;top:1px;left:1px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:all .2s;}
+.toggle.on{background:rgba(52,211,153,.25);border-color:var(--green);}
+.toggle.on::after{left:17px;background:var(--green);}
+.notif-channels{display:flex;gap:6px;margin-top:11px;padding-top:11px;border-top:1px solid rgba(167,139,250,.1);}
+.notif-channel{flex:1;display:flex;align-items:center;gap:5px;padding:6px 8px;background:rgba(13,10,28,.5);border:1px solid rgba(167,139,250,.15);border-radius:8px;font-size:10px;color:var(--cream);}
+.notif-channel .ch-status{margin-left:auto;font-size:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;color:var(--green);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);padding:1px 5px;border-radius:99px;}
+.notif-channel .ch-status.off{color:var(--muted);background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.18);}
+.notif-section-label{display:block;font-size:10px;font-weight:600;letter-spacing:.5px;color:rgba(220,214,255,.7);margin:14px 0 8px;text-transform:uppercase;}
+.notif-types-compact{background:rgba(13,10,28,.4);border:1px solid rgba(167,139,250,.1);border-radius:10px;padding:4px 8px;}
+.notif-type-c{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid rgba(167,139,250,.05);}
+.notif-type-c:last-child{border-bottom:none;}
+.notif-type-c-ico{width:22px;height:22px;border-radius:6px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+.notif-type-c-text{flex:1;min-width:0;display:flex;align-items:baseline;gap:7px;}
+.notif-type-c-title{font-size:10px;font-weight:600;color:var(--cream);white-space:nowrap;}
+.notif-type-c-desc{font-size:9px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.notif-recent-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+
 /* IBC Chain Selection (profile wallet tab) */
 .chains-list{background:rgba(13,10,28,.4);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:5px;margin-top:8px;max-height:240px;overflow-y:auto;}
 .chain-row{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;transition:all .15s;cursor:pointer;}
@@ -711,16 +742,81 @@ body{visibility:hidden;}
 
       <!-- Notifications -->
       <div class="up-content" id="ut-notifications">
-        <div style="display:flex;flex-direction:column;gap:9px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border2);">
-            <div><div style="font-size:12px;font-weight:600;">Push Notifications</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">Alerts &amp; τιμές</div></div>
-            <button id="push-btn" onclick="_togglePush()" class="btn btn-ghost" style="font-size:10px;">Ενεργοποίηση</button>
+        <!-- Master toggle card -->
+        <div class="notif-master">
+          <div class="notif-master-content">
+            <div class="notif-master-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2c0 0 4 4 4 10s-4 10-4 10"/>
+                <path d="M12 2c0 0-4 4-4 10s4 10 4 10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+              </svg>
+            </div>
+            <div class="notif-master-text">
+              <div class="notif-master-title">Galactic Watch</div>
+              <div class="notif-master-status" id="notif-master-status">
+                <span class="status-dot"></span>
+                <span id="notif-master-status-text">Σε τροχιά</span>
+              </div>
+            </div>
+            <div class="toggle on" id="notif-master-toggle" onclick="_toggleNotifMaster()"></div>
           </div>
-          <div style="margin-bottom:4px;">
-            <div style="font-size:10px;color:var(--muted);" id="notif-unread-badge"></div>
+          <div class="notif-channels">
+            <div class="notif-channel">
+              <span style="font-size:11px;">📱</span>
+              <span>Push</span>
+              <div class="ch-status" id="ch-push-status">ON</div>
+            </div>
+            <div class="notif-channel">
+              <span style="font-size:11px;">📧</span>
+              <span>Email</span>
+              <div class="ch-status">ON</div>
+            </div>
           </div>
-          <div id="notif-hist"></div>
         </div>
+
+        <!-- What's monitored -->
+        <div class="notif-section-label">Σαρώνει συνεχώς</div>
+        <div class="notif-types-compact">
+          <div class="notif-type-c">
+            <div class="notif-type-c-ico" style="background:rgba(251,113,133,0.1);border-color:rgba(251,113,133,0.3);">⚠️</div>
+            <div class="notif-type-c-text">
+              <span class="notif-type-c-title">Διαρροή τροχιάς</span>
+              <span class="notif-type-c-desc">Coins αποχωρούν χωρίς εσένα</span>
+            </div>
+          </div>
+          <div class="notif-type-c">
+            <div class="notif-type-c-ico" style="background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);">🚨</div>
+            <div class="notif-type-c-text">
+              <span class="notif-type-c-title">Σήμα κινδύνου</span>
+              <span class="notif-type-c-desc">Validator εκτός λειτουργίας</span>
+            </div>
+          </div>
+          <div class="notif-type-c">
+            <div class="notif-type-c-ico" style="background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.3);">✅</div>
+            <div class="notif-type-c-text">
+              <span class="notif-type-c-title">Σήμα ζωής</span>
+              <span class="notif-type-c-desc">Validator επανέρχεται online</span>
+            </div>
+          </div>
+          <div class="notif-type-c">
+            <div class="notif-type-c-ico" style="background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.3);">🪙</div>
+            <div class="notif-type-c-text">
+              <span class="notif-type-c-title">Νέο σήμα</span>
+              <span class="notif-type-c-desc">Άγνωστο token στο wallet</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:rgba(167,139,250,0.08);margin:14px 0 11px;"></div>
+
+        <!-- Recent notifications -->
+        <div class="notif-recent-header">
+          <span class="notif-section-label" style="margin:0;">Σήματα από το δίκτυο</span>
+          <span id="notif-unread-badge"></span>
+        </div>
+        <div id="notif-hist" style="background:rgba(13,10,28,0.4);border:1px solid rgba(167,139,250,0.1);border-radius:9px;padding:4px 10px;max-height:240px;overflow-y:auto;"></div>
       </div>
 
     </div>
@@ -2008,46 +2104,126 @@ async function _syncWalletNow(){
   }catch(e){if(st)st.textContent="⚠ "+e.message;}
   if(btn){btn.disabled=false;btn.textContent="↻ Συγχρονισμός";}
 }
+// ── Galactic Watch (Cosmic-themed notifications) ────────────────────
+// Per-user notifications with read state in DB (not localStorage)
+// Type icon mapping aligned with new schema
 async function _loadNotifHist(){
   var el=document.getElementById("notif-hist");if(!el)return;
+  if(!_user||!_user.id){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:14px;">Δεν είσαι συνδεδεμένος</div>';return;}
   try{
-    var readIds=JSON.parse(localStorage.getItem("ggwall_read_notifs")||"[]");
-    var r=await fetch(_SB_URL+"/rest/v1/notifications?order=created_at.desc",{headers:_SB_H,signal:AbortSignal.timeout(5000)});
-    if(!r.ok){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:10px;">—</div>';return;}
+    // Per-user query with new schema (user_id filter + 50 latest)
+    var url=_SB_URL+"/rest/v1/notifications?select=id,type,severity,title,body,detail,chain_id,validator_id,read_at,created_at&user_id=eq."+_user.id+"&app_id=eq.ggwall&order=created_at.desc&limit=50";
+    var r=await fetch(url,{headers:_SB_H,signal:AbortSignal.timeout(5000)});
+    if(!r.ok){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:14px;">— σφάλμα φόρτωσης —</div>';return;}
     var d=await r.json();
-    if(!d||!d.length){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:10px;">Δεν υπάρχουν ειδοποιήσεις</div>';return;}
-    var unread=d.filter(function(n){return !readIds.includes(n.id);}).length;
+    if(!d||!d.length){
+      el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:18px 12px;line-height:1.6;">Καθαρός ορίζοντας<br><span style="font-size:10px;color:rgba(220,214,255,.4);">Δεν υπάρχουν ενεργά σήματα</span></div>';
+      var badge=document.getElementById("notif-unread-badge");
+      if(badge)badge.innerHTML='';
+      return;
+    }
+    // Count unread (read_at IS NULL)
+    var unread=d.filter(function(n){return !n.read_at;}).length;
     var badge=document.getElementById("notif-unread-badge");
-    if(badge)badge.innerHTML=unread>0?('<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:9px;padding:2px 8px;border-radius:99px;">'+unread+' νέα</span>'):'';
+    if(badge)badge.innerHTML=unread>0?('<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:8px;padding:2px 7px;border-radius:99px;font-family:\'JetBrains Mono\',monospace;letter-spacing:.5px;">'+unread+' ΝΕΑ</span>'):'';
+    // Render rows
     el.innerHTML=d.map(function(n){
-      var isRead=readIds.includes(n.id);
-      var ico=n.type==='new_token'?'📥':n.type==='broadcast'?'📢':n.type==='staking'?'🔔':'⚡';
+      var isRead=!!n.read_at;
+      // Map type → icon (aligned with new schema)
+      var typeIcons={
+        unbonding:'⚠️',
+        validator_jailed:'🚨',
+        validator_unjailed:'✅',
+        new_token:'🪙',
+        system:'⚡'
+      };
+      var typeColors={
+        unbonding:{bg:'rgba(251,113,133,.1)',bd:'rgba(251,113,133,.25)'},
+        validator_jailed:{bg:'rgba(251,191,36,.1)',bd:'rgba(251,191,36,.25)'},
+        validator_unjailed:{bg:'rgba(52,211,153,.1)',bd:'rgba(52,211,153,.25)'},
+        new_token:{bg:'rgba(167,139,250,.12)',bd:'rgba(167,139,250,.25)'},
+        system:{bg:'rgba(245,194,74,.1)',bd:'rgba(245,194,74,.25)'}
+      };
+      var ico=typeIcons[n.type]||'⚡';
+      var col=typeColors[n.type]||typeColors.system;
       var dt=new Date(n.created_at).toLocaleString('el-GR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       var uid='nh-'+n.id;
-      return '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border2);cursor:pointer;" onclick="_toggleNotif('+JSON.stringify(n.id)+',\''+uid+'\')"">'        +(!isRead?'<div id="dot-'+n.id+'" style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px;"></div>':'<div style="width:6px;flex-shrink:0;"></div>')        +'<div style="width:28px;height:28px;border-radius:7px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">'+ico+'</div>'        +'<div style="flex:1;min-width:0;">'          +'<div style="font-size:11px;font-weight:600;color:'+(isRead?'var(--muted)':'var(--cream)')+';">'+_esc(n.title||'—')+'</div>'          +'<div style="font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_esc(n.body||'')+'</div>'          +(n.detail?'<div id="'+uid+'" style="display:none;font-size:10px;color:var(--muted);background:var(--surface2);border-radius:6px;padding:6px 8px;margin-top:5px;line-height:1.5;">'+_esc(n.detail||'')+'</div>':'')          +'<div style="font-size:9px;color:var(--muted);margin-top:2px;font-family:JetBrains Mono,monospace;">'+dt+(n.detail?' · <span id="arr-'+uid+'" style="font-size:9px;">▼</span>':'')+'</div>'        +'</div>'        +'</div>';
+      return '<div style="display:flex;gap:8px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(167,139,250,.06);cursor:pointer;" onclick="_toggleNotif('+JSON.stringify(n.id)+',\''+uid+'\')">'
+        +(!isRead?'<div id="dot-'+n.id+'" style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px;box-shadow:0 0 5px rgba(245,194,74,.5);"></div>':'<div style="width:6px;flex-shrink:0;"></div>')
+        +'<div style="width:28px;height:28px;border-radius:7px;background:'+col.bg+';border:1px solid '+col.bd+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">'+ico+'</div>'
+        +'<div style="flex:1;min-width:0;">'
+          +'<div style="font-size:11px;font-weight:600;color:'+(isRead?'var(--muted)':'var(--cream)')+';">'+_esc(n.title||'—')+'</div>'
+          +'<div style="font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_esc(n.body||'')+'</div>'
+          +(n.detail?'<div id="'+uid+'" style="display:none;font-size:10px;color:var(--muted);background:rgba(13,10,28,.5);border-radius:6px;padding:6px 8px;margin-top:5px;line-height:1.5;">'+_esc(n.detail||'')+'</div>':'')
+          +'<div style="font-size:9px;color:rgba(220,214,255,.4);margin-top:2px;font-family:\'JetBrains Mono\',monospace;">'+dt+(n.detail?' · <span id="arr-'+uid+'" style="font-size:9px;">▼</span>':'')+'</div>'
+        +'</div>'
+      +'</div>';
     }).join("");
-  }catch(e){}
+  }catch(e){console.warn('[_loadNotifHist] err:',e);}
 }
-function _toggleNotif(id,uid){
-  var readIds=JSON.parse(localStorage.getItem("ggwall_read_notifs")||"[]");
-  if(!readIds.includes(id)){readIds.push(id);localStorage.setItem("ggwall_read_notifs",JSON.stringify(readIds));}
-  // Toggle expand
+async function _toggleNotif(id,uid){
+  // Toggle expand UI
   var el=document.getElementById(uid);
   if(el)el.style.display=el.style.display==='block'?'none':'block';
-  // Update arrow
   var arr=document.getElementById('arr-'+uid);
   if(arr)arr.textContent=el&&el.style.display==='block'?'▲':'▼';
-  // Update unread dot without reloading
+  // Mark read in DB via RPC
   var dot=document.getElementById('dot-'+id);
-  if(dot)dot.style.display='none';
-  // Update badge count
-  var badge=document.getElementById('notif-unread-badge');
-  var current=parseInt((badge?.textContent||'0').replace(/[^0-9]/g,''))||0;
-  if(badge&&current>0)badge.innerHTML='<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:9px;padding:2px 8px;border-radius:99px;">'+(current-1)+' νέα</span>';
+  if(dot){
+    try{
+      var authHdr=await _getAuthHdr?.();
+      var hdrs=authHdr||_SB_H;
+      await fetch(_SB_URL+'/rest/v1/rpc/mark_notification_read',{
+        method:'POST',
+        headers:hdrs,
+        body:JSON.stringify({p_notif_id:id})
+      });
+    }catch(e){console.warn('[_toggleNotif] mark read err:',e);}
+    dot.style.display='none';
+    // Update badge count
+    var badge=document.getElementById('notif-unread-badge');
+    var current=parseInt((badge?.textContent||'0').replace(/[^0-9]/g,''))||0;
+    if(badge&&current>0){
+      var newCount=current-1;
+      badge.innerHTML=newCount>0?'<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:8px;padding:2px 7px;border-radius:99px;font-family:\'JetBrains Mono\',monospace;letter-spacing:.5px;">'+newCount+' ΝΕΑ</span>':'';
+    }
+  }
 }
-function _updatePushBtn(){var btn=document.getElementById("push-btn");if(!btn)return;var on=localStorage.getItem("ggwall_push_enabled")==="1";btn.textContent=on?"Απενεργοποίηση":"Ενεργοποίηση";btn.style.color=on?"var(--green)":"var(--muted)";}
+function _toggleNotifMaster(){
+  var t=document.getElementById('notif-master-toggle');
+  var statusText=document.getElementById('notif-master-status-text');
+  var card=document.querySelector('.notif-master');
+  var pushStatus=document.getElementById('ch-push-status');
+  if(!t)return;
+  var on=t.classList.toggle('on');
+  if(card)card.classList.toggle('off',!on);
+  if(statusText)statusText.textContent=on?'Σε τροχιά':'Εκτός τροχιάς';
+  if(pushStatus){
+    pushStatus.textContent=on?'ON':'OFF';
+    pushStatus.classList.toggle('off',!on);
+  }
+  // Subscribe / unsubscribe to push
+  if(on){_subscribePush();}
+  else{_unsubscribePush();}
+}
+function _updatePushBtn(){
+  // Sync master toggle state with localStorage
+  var t=document.getElementById('notif-master-toggle');
+  if(!t)return;
+  var on=localStorage.getItem("ggwall_push_enabled")==="1";
+  if(on){t.classList.add('on');}else{t.classList.remove('on');}
+  var card=document.querySelector('.notif-master');
+  if(card)card.classList.toggle('off',!on);
+  var statusText=document.getElementById('notif-master-status-text');
+  if(statusText)statusText.textContent=on?'Σε τροχιά':'Εκτός τροχιάς';
+  var pushStatus=document.getElementById('ch-push-status');
+  if(pushStatus){
+    pushStatus.textContent=on?'ON':'OFF';
+    pushStatus.classList.toggle('off',!on);
+  }
+}
 async function _togglePush(){if(localStorage.getItem("ggwall_push_enabled")==="1")await _unsubscribePush();else await _subscribePush();}
-async function _subscribePush(){try{if(!("serviceWorker"in navigator)||!("PushManager"in window))return showToast("⚠ Push δεν υποστηρίζεται","red");var perm=await Notification.requestPermission();if(perm!=="granted")return showToast("⚠ Δεν δόθηκε άδεια","red");var reg=await navigator.serviceWorker.ready;var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_b64ToUint8(_VAPID)});var p256=btoa(String.fromCharCode(...new Uint8Array(sub.getKey("p256dh"))));var auth=btoa(String.fromCharCode(...new Uint8Array(sub.getKey("auth"))));await fetch(_SB_URL+"/rest/v1/push_subscriptions",{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify({endpoint:sub.endpoint,p256dh:p256,auth,username:_user?.name||"unknown",app_id:"ggwall"})});localStorage.setItem("ggwall_push_enabled","1");showToast("✓ Push ενεργό","green");_updatePushBtn();}catch(e){showToast("⚠ "+e.message,"red");}}
+async function _subscribePush(){try{if(!("serviceWorker"in navigator)||!("PushManager"in window))return showToast("⚠ Push δεν υποστηρίζεται","red");var perm=await Notification.requestPermission();if(perm!=="granted")return showToast("⚠ Δεν δόθηκε άδεια","red");var reg=await navigator.serviceWorker.ready;var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_b64ToUint8(_VAPID)});var p256=btoa(String.fromCharCode(...new Uint8Array(sub.getKey("p256dh"))));var auth=btoa(String.fromCharCode(...new Uint8Array(sub.getKey("auth"))));await fetch(_SB_URL+"/rest/v1/push_subscriptions",{method:"POST",headers:Object.assign({},_SB_H,{"Prefer":"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify({endpoint:sub.endpoint,p256dh:p256,auth,username:_user?.name||"unknown",app_id:"ggwall"})});localStorage.setItem("ggwall_push_enabled","1");showToast("✓ Galactic Watch ενεργό","green");_updatePushBtn();}catch(e){showToast("⚠ "+e.message,"red");}}
 async function _unsubscribePush(){try{var reg=await navigator.serviceWorker.ready;var sub=await reg.pushManager.getSubscription();if(sub){await sub.unsubscribe();await fetch(_SB_URL+"/rest/v1/push_subscriptions?endpoint=eq."+encodeURIComponent(sub.endpoint),{method:"DELETE",headers:_SB_H});}localStorage.removeItem("ggwall_push_enabled");showToast("✓ Push απενεργοποιήθηκε","gold");_updatePushBtn();}catch(e){showToast("⚠ "+e.message,"red");}}
 
 // ─── Cloud Sync ───────────────────────────────────────────────────
