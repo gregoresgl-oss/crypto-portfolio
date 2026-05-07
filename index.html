@@ -1326,25 +1326,28 @@ function _buildWidget(id,ctx){
         +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
       ifr.srcdoc=sc;
       // Cache-based initial height: χρησιμοποίησε το τελευταίο γνωστό height
-      // για να αποφύγεις layout jump κατά το load
       var cachedHeight=0;
       try{
         var _h=localStorage.getItem('iframe-h-slot-'+slotIdx);
         if(_h){cachedHeight=parseInt(_h)||0;}
       }catch(e){}
       var initH=(cachedHeight>30 && cachedHeight<3000)?cachedHeight:200;
-      // Iframe ξεκινά με cached height + opacity:0
-      // Όταν φορτώσει → opacity:1 (smooth fade-in αν το height ταιριάζει)
-      // Αν διαφέρει → resize message το διορθώνει αλλά χωρίς ορατό jump
-      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:0;height:"+initH+"px;opacity:0;transition:opacity .25s ease;";
+      // Container με reserved height — iframe φορτώνει μέσα του
+      // Αυτό αποτρέπει 100% το layout shift
+      var ifrContainer=document.createElement('div');
+      ifrContainer.style.cssText='width:100%;height:'+initH+'px;position:relative;transition:height .3s ease;';
+      ifrContainer.id='slot-container-'+slotIdx;
+      // Iframe γεμίζει τον container, ξεκινάει invisible
+      ifr.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;border:none;overflow:hidden;display:block;min-height:0;opacity:0;transition:opacity .25s ease;';
       ifr.id='slot-iframe-'+slotIdx;
+      ifrContainer.appendChild(ifr);
       // Fallback: αν το widget έχει error και δεν στείλει ποτέ resize
       setTimeout(function(){
         if(ifr.style.opacity!=='1'){
           ifr.style.opacity='1';
         }
       },3000);
-      wrap.innerHTML=title;wrap.appendChild(ifr);
+      wrap.innerHTML=title;wrap.appendChild(ifrContainer);
     } else {
       var div=document.createElement('div');
       div.innerHTML=slot.content;
@@ -2617,18 +2620,23 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
         if(ifr.contentWindow===e.source)sourceIframe=ifr;
       });
       if(sourceIframe){
-        // Only resize THIS iframe — not all of them
         var h=parseInt(e.data.h)||0;
         if(h>30 && h<3000){
           var finalH=h+20;
-          sourceIframe.style.height=finalH+'px';
+          // Resize the CONTAINER, not the iframe (iframe fills container)
+          var slotMatch=sourceIframe.id.match(/slot-iframe-(\d+)/);
+          if(slotMatch){
+            var container=document.getElementById('slot-container-'+slotMatch[1]);
+            if(container){
+              container.style.height=finalH+'px';
+            }
+          }
           // Reveal iframe smoothly on first valid resize
           if(sourceIframe.style.opacity!=='1'){
             sourceIframe.style.opacity='1';
           }
-          // Cache height για το επόμενο load (σταθερότερη εμπειρία)
+          // Cache height για το επόμενο load
           try{
-            var slotMatch=sourceIframe.id.match(/slot-iframe-(\d+)/);
             if(slotMatch){
               localStorage.setItem('iframe-h-slot-'+slotMatch[1],finalH);
             }
