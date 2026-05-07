@@ -1323,8 +1323,11 @@ function _buildWidget(id,ctx){
       ifr.srcdoc=sc;
       // CRITICAL FIX: Some browser/extension/UA stylesheet sets min-height:800px on iframes
       // Force min-height:0 inline so resize message works correctly
-      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:0;height:200px;";
+      // BONUS: opacity:0 until first resize arrives (prevents brief scrollbar flash)
+      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:0;height:200px;opacity:0;transition:opacity .2s ease;";
       ifr.id='slot-iframe-'+slotIdx;
+      // Fallback: if resize message never arrives within 3s (widget error etc), reveal anyway
+      setTimeout(function(){if(ifr.style.opacity!=='1')ifr.style.opacity='1';},3000);
       wrap.innerHTML=title;wrap.appendChild(ifr);
     } else {
       var div=document.createElement('div');
@@ -2600,7 +2603,13 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
       if(sourceIframe){
         // Only resize THIS iframe — not all of them
         var h=parseInt(e.data.h)||0;
-        if(h>30 && h<3000){sourceIframe.style.height=(h+20)+'px';}
+        if(h>30 && h<3000){
+          sourceIframe.style.height=(h+20)+'px';
+          // Reveal iframe smoothly on first valid resize (prevents scrollbar flash)
+          if(sourceIframe.style.opacity!=='1'){
+            sourceIframe.style.opacity='1';
+          }
+        }
       }
     }
   });
