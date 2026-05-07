@@ -1323,31 +1323,26 @@ function _buildWidget(id,ctx){
       var sc=slot.content
         .replace('__USER_ID__',(_user&&_user.id)||'')
         .replace(/__JWT_TOKEN__/g,_jwt)
-        +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
+        +'<scr'+'ipt>(function(){var lastH=0;function _rsz(){var h=document.body.scrollHeight;if(h===lastH)return;lastH=h;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,1200);});})();<'+'/scr'+'ipt>';
       ifr.srcdoc=sc;
-      // Cache-based initial height: χρησιμοποίησε το τελευταίο γνωστό height
+      // Cache-based initial height για instant correct sizing
       var cachedHeight=0;
       try{
         var _h=localStorage.getItem('iframe-h-slot-'+slotIdx);
         if(_h){cachedHeight=parseInt(_h)||0;}
       }catch(e){}
       var initH=(cachedHeight>30 && cachedHeight<3000)?cachedHeight:200;
-      // Container με reserved height — iframe φορτώνει μέσα του
-      // Αυτό αποτρέπει 100% το layout shift
-      var ifrContainer=document.createElement('div');
-      ifrContainer.style.cssText='width:100%;height:'+initH+'px;position:relative;transition:height .3s ease;';
-      ifrContainer.id='slot-container-'+slotIdx;
-      // Iframe γεμίζει τον container, ξεκινάει invisible
-      ifr.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;border:none;overflow:hidden;display:block;min-height:0;opacity:0;transition:opacity .25s ease;';
+      // Iframe ξεκινά με cached height, OΧΙ transitions για το height
+      // Μόνο opacity transition για smooth reveal όταν content έτοιμο
+      ifr.style.cssText='width:100%;border:none;overflow:hidden;display:block;min-height:0;height:'+initH+'px;opacity:0;transition:opacity .2s ease;';
       ifr.id='slot-iframe-'+slotIdx;
-      ifrContainer.appendChild(ifr);
-      // Fallback: αν το widget έχει error και δεν στείλει ποτέ resize
+      // Fallback: αν error → reveal anyway
       setTimeout(function(){
         if(ifr.style.opacity!=='1'){
           ifr.style.opacity='1';
         }
       },3000);
-      wrap.innerHTML=title;wrap.appendChild(ifrContainer);
+      wrap.innerHTML=title;wrap.appendChild(ifr);
     } else {
       var div=document.createElement('div');
       div.innerHTML=slot.content;
@@ -2623,20 +2618,14 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
         var h=parseInt(e.data.h)||0;
         if(h>30 && h<3000){
           var finalH=h+20;
-          // Resize the CONTAINER, not the iframe (iframe fills container)
-          var slotMatch=sourceIframe.id.match(/slot-iframe-(\d+)/);
-          if(slotMatch){
-            var container=document.getElementById('slot-container-'+slotMatch[1]);
-            if(container){
-              container.style.height=finalH+'px';
-            }
-          }
-          // Reveal iframe smoothly on first valid resize
+          sourceIframe.style.height=finalH+'px';
+          // Reveal iframe smoothly όταν έτοιμο το content
           if(sourceIframe.style.opacity!=='1'){
             sourceIframe.style.opacity='1';
           }
-          // Cache height για το επόμενο load
+          // Cache για το επόμενο load
           try{
+            var slotMatch=sourceIframe.id.match(/slot-iframe-(\d+)/);
             if(slotMatch){
               localStorage.setItem('iframe-h-slot-'+slotMatch[1],finalH);
             }
