@@ -84,6 +84,8 @@ body{visibility:hidden;}
 
 /* ── Card ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;animation:card-in .3s ease both;}
+/* Ensure iframes never inherit any UA/extension min-height */
+iframe[id^="slot-iframe-"]{min-height:0 !important;max-height:none !important;}
 @keyframes card-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.08s}.card:nth-child(3){animation-delay:.12s}
 .card:nth-child(4){animation-delay:.16s}.card:nth-child(5){animation-delay:.20s}
@@ -1319,7 +1321,9 @@ function _buildWidget(id,ctx){
         .replace(/__JWT_TOKEN__/g,_jwt)
         +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
       ifr.srcdoc=sc;
-      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:800px;";
+      // CRITICAL FIX: Some browser/extension/UA stylesheet sets min-height:800px on iframes
+      // Force min-height:0 inline so resize message works correctly
+      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:0;height:200px;";
       ifr.id='slot-iframe-'+slotIdx;
       wrap.innerHTML=title;wrap.appendChild(ifr);
     } else {
@@ -2588,10 +2592,16 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   // Listen for iframe resize messages
   window.addEventListener('message',function(e){
     if(e.data&&e.data.type==='iframeResize'){
+      // Find the iframe that sent this message
+      var sourceIframe=null;
       document.querySelectorAll('iframe[id^="slot-iframe-"]').forEach(function(ifr){
-        try{var h=ifr.contentWindow.document.body.scrollHeight;if(h>50)ifr.style.height=(h+20)+'px';}
-        catch(err){if(e.data.h)ifr.style.height=(e.data.h+20)+'px';}
+        if(ifr.contentWindow===e.source)sourceIframe=ifr;
       });
+      if(sourceIframe){
+        // Only resize THIS iframe — not all of them
+        var h=parseInt(e.data.h)||0;
+        if(h>30 && h<3000){sourceIframe.style.height=(h+20)+'px';}
+      }
     }
   });
   setInterval(async function(){
