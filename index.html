@@ -84,8 +84,12 @@ body{visibility:hidden;}
 
 /* ── Card ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;animation:card-in .3s ease both;}
-/* Ensure iframes never inherit any UA/extension min-height */
-iframe[id^="slot-iframe-"]{min-height:0 !important;max-height:none !important;}
+/* Slot iframes: control height ourselves, prevent UA/extension overrides */
+iframe[id^="slot-iframe-"]{
+  min-height:0 !important;
+  max-height:none !important;
+  height:auto;
+}
 @keyframes card-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.08s}.card:nth-child(3){animation-delay:.12s}
 .card:nth-child(4){animation-delay:.16s}.card:nth-child(5){animation-delay:.20s}
@@ -1321,13 +1325,19 @@ function _buildWidget(id,ctx){
         .replace(/__JWT_TOKEN__/g,_jwt)
         +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
       ifr.srcdoc=sc;
-      // CRITICAL FIX: Some browser/extension/UA stylesheet sets min-height:800px on iframes
-      // Force min-height:0 inline so resize message works correctly
-      // BONUS: opacity:0 until first resize arrives (prevents brief scrollbar flash)
-      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:0;height:200px;opacity:0;transition:opacity .2s ease;";
+      // Iframe ξεκινά με 0 height — ΜΟΝΟ το resize message το μεγαλώνει
+      // Αυτό αποφεύγει το browser default + extension overrides
+      // Opacity transition για smooth fade-in όταν φορτώσει το content
+      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:0;height:0;opacity:0;transition:opacity .2s ease;";
       ifr.id='slot-iframe-'+slotIdx;
-      // Fallback: if resize message never arrives within 3s (widget error etc), reveal anyway
-      setTimeout(function(){if(ifr.style.opacity!=='1')ifr.style.opacity='1';},3000);
+      // Fallback: αν το widget έχει error και δεν στείλει ποτέ resize
+      // εμφάνισε το με ένα default 200px για να δει ο user error message
+      setTimeout(function(){
+        if(ifr.style.opacity!=='1'){
+          ifr.style.height='200px';
+          ifr.style.opacity='1';
+        }
+      },3000);
       wrap.innerHTML=title;wrap.appendChild(ifr);
     } else {
       var div=document.createElement('div');
