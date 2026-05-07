@@ -1325,16 +1325,22 @@ function _buildWidget(id,ctx){
         .replace(/__JWT_TOKEN__/g,_jwt)
         +'<scr'+'ipt>function _rsz(){var h=document.body.scrollHeight;window.parent.postMessage({type:"iframeResize",h:h},"*");}window.addEventListener("load",function(){_rsz();setTimeout(_rsz,500);setTimeout(_rsz,1500);});<'+'/scr'+'ipt>';
       ifr.srcdoc=sc;
-      // Iframe ξεκινά με 0 height — ΜΟΝΟ το resize message το μεγαλώνει
-      // Αυτό αποφεύγει το browser default + extension overrides
-      // Opacity transition για smooth fade-in όταν φορτώσει το content
-      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:0;height:0;opacity:0;transition:opacity .2s ease;";
+      // Cache-based initial height: χρησιμοποίησε το τελευταίο γνωστό height
+      // για να αποφύγεις layout jump κατά το load
+      var cachedHeight=0;
+      try{
+        var _h=localStorage.getItem('iframe-h-slot-'+slotIdx);
+        if(_h){cachedHeight=parseInt(_h)||0;}
+      }catch(e){}
+      var initH=(cachedHeight>30 && cachedHeight<3000)?cachedHeight:200;
+      // Iframe ξεκινά με cached height + opacity:0
+      // Όταν φορτώσει → opacity:1 (smooth fade-in αν το height ταιριάζει)
+      // Αν διαφέρει → resize message το διορθώνει αλλά χωρίς ορατό jump
+      ifr.style.cssText="width:100%;border:none;overflow:hidden;display:block;min-height:0;height:"+initH+"px;opacity:0;transition:opacity .25s ease;";
       ifr.id='slot-iframe-'+slotIdx;
       // Fallback: αν το widget έχει error και δεν στείλει ποτέ resize
-      // εμφάνισε το με ένα default 200px για να δει ο user error message
       setTimeout(function(){
         if(ifr.style.opacity!=='1'){
-          ifr.style.height='200px';
           ifr.style.opacity='1';
         }
       },3000);
@@ -2614,11 +2620,19 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
         // Only resize THIS iframe — not all of them
         var h=parseInt(e.data.h)||0;
         if(h>30 && h<3000){
-          sourceIframe.style.height=(h+20)+'px';
-          // Reveal iframe smoothly on first valid resize (prevents scrollbar flash)
+          var finalH=h+20;
+          sourceIframe.style.height=finalH+'px';
+          // Reveal iframe smoothly on first valid resize
           if(sourceIframe.style.opacity!=='1'){
             sourceIframe.style.opacity='1';
           }
+          // Cache height για το επόμενο load (σταθερότερη εμπειρία)
+          try{
+            var slotMatch=sourceIframe.id.match(/slot-iframe-(\d+)/);
+            if(slotMatch){
+              localStorage.setItem('iframe-h-slot-'+slotMatch[1],finalH);
+            }
+          }catch(e){}
         }
       }
     }
