@@ -1433,7 +1433,9 @@ function _wgtTopAssets(){
         +' <span style="font-size:8px;color:rgba(245,194,74,.85);background:rgba(245,194,74,.1);border:1px solid rgba(245,194,74,.2);padding:1px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;vertical-align:1px;">View</span>'
         +'</div><div class="asset-sym">'+_esc(a.name)+'</div></div>'
         +'<div class="asset-val"><div class="asset-eur mono">'+_fmtP(a.price)+'</div>'
-        +'<div class="asset-chg mono '+(a.ch>=0?"text-green":"text-red")+'">'+(a.ch>=0?"+":"")+a.ch.toFixed(2)+'%</div></div></div>';
+        +'<div class="asset-chg mono '+(a.ch>=0?"text-green":"text-red")+'">'+(a.ch>=0?"+":"")+a.ch.toFixed(2)+'%</div></div>'
+        +'<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="rgba(245,194,74,.5)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;flex-shrink:0;"><path d="M2 13 L2 3"/><path d="M2 13 L14 13"/><path d="M5 10 L8 6 L11 9 L13 5"/></svg>'
+        +'</div>';
     });
   }
   // Render user's own coins
@@ -1441,7 +1443,9 @@ function _wgtTopAssets(){
     inner+='<div class="asset-row" style="cursor:pointer;" onclick="_showCoinChart(\''+a.id+'\')"><div class="asset-logo">'+a.avHtml+'</div>'
       +'<div style="flex:1;min-width:0;"><div class="asset-name">'+_esc(a.sym)+'</div><div class="asset-sym">'+_esc(a.name)+'</div></div>'
       +'<div class="asset-val"><div class="asset-eur mono">'+_fmt(a.val)+'</div>'
-      +'<div class="asset-chg mono '+(a.ch>=0?"text-green":"text-red")+'">'+(a.ch>=0?"+":"")+a.ch.toFixed(2)+'%</div></div></div>';
+      +'<div class="asset-chg mono '+(a.ch>=0?"text-green":"text-red")+'">'+(a.ch>=0?"+":"")+a.ch.toFixed(2)+'%</div></div>'
+      +'<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="rgba(245,194,74,.5)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;flex-shrink:0;"><path d="M2 13 L2 3"/><path d="M2 13 L14 13"/><path d="M5 10 L8 6 L11 9 L13 5"/></svg>'
+      +'</div>';
   });
   el.innerHTML=inner;
   return el;
@@ -2631,42 +2635,42 @@ function _showCoinChart(coinId){
   var overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.className='coin-chart-overlay';
-  overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">'
+  overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:22px;width:100%;max-width:760px;max-height:92vh;overflow-y:auto;">'
     // ── Header ─────────────────────────────
-    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px;">'
-      +'<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">'
-        +'<div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;">'+avHtml+'</div>'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:14px;">'
+      +'<div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">'
+        +'<div style="width:46px;height:46px;border-radius:50%;flex-shrink:0;">'+avHtml+'</div>'
         +'<div style="min-width:0;">'
-          +'<div style="display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;">'
-            +'<span style="font-size:15px;font-weight:700;color:#f7e7b8;">'+_esc(sym)+'</span>'
-            +'<span style="font-size:11px;color:rgba(231,228,216,.4);">'+_esc(name)+'</span>'
+          +'<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">'
+            +'<span style="font-size:18px;font-weight:700;color:#f7e7b8;">'+_esc(sym)+'</span>'
+            +'<span style="font-size:12px;color:rgba(231,228,216,.4);">'+_esc(name)+'</span>'
           +'</div>'
-          +'<div style="display:flex;align-items:baseline;gap:6px;margin-top:3px;flex-wrap:wrap;">'
-            +'<span style="font-size:20px;font-weight:700;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;letter-spacing:-.4px;">'+_fmtP(price)+'</span>'
-            +'<span style="font-size:11px;font-weight:600;color:'+(ch>=0?'#7dd67d':'#ff5f6d')+';font-family:\'JetBrains Mono\',monospace;">'+(ch>=0?'+':'')+ch.toFixed(2)+'%</span>'
+          +'<div style="display:flex;align-items:baseline;gap:7px;margin-top:4px;flex-wrap:wrap;">'
+            +'<span style="font-size:24px;font-weight:700;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;letter-spacing:-.5px;">'+_fmtP(price)+'</span>'
+            +'<span style="font-size:12px;font-weight:600;color:'+(ch>=0?'#7dd67d':'#ff5f6d')+';font-family:\'JetBrains Mono\',monospace;">'+(ch>=0?'+':'')+ch.toFixed(2)+'%</span>'
             +'<span style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:.8px;">24h</span>'
           +'</div>'
         +'</div>'
       +'</div>'
       +(hasHoldings?'<div style="text-align:right;flex-shrink:0;">'
         +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Holdings</div>'
-        +'<div style="font-size:14px;font-weight:700;color:#7dd67d;font-family:\'JetBrains Mono\',monospace;">'+_fmtExact(val)+'</div>'
-        +'<div style="font-size:10px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+amt.toFixed(2)+' '+sym+'</div>'
+        +'<div style="font-size:16px;font-weight:700;color:#7dd67d;font-family:\'JetBrains Mono\',monospace;">'+_fmtExact(val)+'</div>'
+        +'<div style="font-size:11px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+amt.toFixed(2)+' '+sym+'</div>'
       +'</div>':'')
-      +'<button onclick="document.querySelectorAll(\'.coin-chart-overlay\').forEach(function(el){el.remove();});if(_coinChart){_coinChart.destroy();_coinChart=null;}" style="background:none;border:none;color:rgba(231,228,216,.5);font-size:18px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;flex-shrink:0;">✕</button>'
+      +'<button onclick="document.querySelectorAll(\'.coin-chart-overlay\').forEach(function(el){el.remove();});if(_coinChart){_coinChart.destroy();_coinChart=null;}" style="background:none;border:none;color:rgba(231,228,216,.5);font-size:20px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;flex-shrink:0;">✕</button>'
     +'</div>'
     // ── Time tabs ──────────────────────────
     +'<div id="coin-chart-tabs" style="display:flex;gap:4px;margin-bottom:14px;padding:3px;background:rgba(255,255,255,.03);border-radius:6px;width:fit-content;">'
       +[1,7,30,90,365].map(function(d){return '<button class="ccrange'+(d===365?' active':'')+'" data-d="'+d+'" onclick="_setCoinChartRange('+d+')" style="background:'+(d===365?'rgba(245,194,74,.15)':'none')+';border:'+(d===365?'1px solid rgba(245,194,74,.3)':'none')+';color:'+(d===365?'#f5c24a':'rgba(231,228,216,.5)')+';font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;'+(d===365?'font-weight:700;':'')+'">'+(d===1?'1D':d===7?'7D':d===30?'30D':d===90?'3M':'1Y')+'</button>';}).join('')
     +'</div>'
     // ── Chart canvas ───────────────────────
-    +'<div style="height:240px;position:relative;margin-bottom:14px;"><canvas id="coin-chart-canvas" style="width:100%;height:100%;"></canvas></div>'
+    +'<div style="height:340px;position:relative;margin-bottom:14px;"><canvas id="coin-chart-canvas" style="width:100%;height:100%;"></canvas></div>'
     // ── Footer stats ───────────────────────
-    +'<div id="coin-chart-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 0;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;">'
-      +'<div><div style="font-size:8px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Low</div><div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-low">—</div></div>'
-      +'<div><div style="font-size:8px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">High</div><div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-high">—</div></div>'
-      +'<div><div style="font-size:8px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Change</div><div style="font-size:11px;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-change">—</div></div>'
-      +'<div><div style="font-size:8px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Avg</div><div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-avg">—</div></div>'
+    +'<div id="coin-chart-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 0;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:14px;">'
+      +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Low</div><div style="font-size:13px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-low">—</div></div>'
+      +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">High</div><div style="font-size:13px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-high">—</div></div>'
+      +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Change</div><div style="font-size:13px;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-change">—</div></div>'
+      +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Avg</div><div style="font-size:13px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-avg">—</div></div>'
     +'</div>'
     // ── CoinGecko link ─────────────────────
     +'<div style="display:flex;justify-content:flex-end;">'
