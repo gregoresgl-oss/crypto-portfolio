@@ -2610,12 +2610,17 @@ function _showUnbondDetail(){
     }).catch(function(){showToast("Σφάλμα φόρτωσης","red");});
 }
 
-// ─── Support/Resistance algorithm (swing high/low + clustering) ──
+// ─── Support/Resistance algorithm (hybrid: ATH/ATL + swing clustering) ──
 // Επιστρέφει { resistance: [r1,r2], support: [s1,s2] }
-// Δουλεύει σε arrays τιμών. Threshold: 2+ touches, cluster ±2.5%, swing window 5.
+// Λογική:
+//   1. ATL/ATH του range είναι πάντα candidates (ψυχολογικά levels)
+//   2. Swing highs/lows με window 7 → cluster ±5% → 2+ touches
+//   3. Filter: ελάχιστη απόσταση 5% από τρέχουσα τιμή
+//   4. Filter: ελάχιστη απόσταση 8% μεταξύ levels (όχι duplicates)
+//   5. Strength weighting: levels με περισσότερα touches/βάρος προτιμώνται
 function _computeSR(prices,currentPrice){
-  if(!prices||prices.length<30)return{resistance:[],support:[]};
-  var W=5; // swing window
+  if(!prices||prices.length<30||!currentPrice)return{resistance:[],support:[]};
+  var W=7; // wider swing window για ποιο "πραγματικά" swings
   var swings=[];
   for(var i=W;i<prices.length-W;i++){
     var p=prices[i];
@@ -2631,25 +2636,73 @@ function _computeSR(prices,currentPrice){
     if(isHigh)swings.push({price:p,type:'H'});
     else if(isLow)swings.push({price:p,type:'L'});
   }
-  if(!swings.length)return{resistance:[],support:[]};
-  // Cluster με ±2.5% tolerance
+  // Cluster με ±5% tolerance
   function cluster(arr){
+    if(!arr.length)return[];
     var sorted=arr.slice().sort(function(a,b){return a-b;});
     var clusters=[];
     sorted.forEach(function(v){
-      var found=clusters.find(function(c){return Math.abs(v-c.avg)/c.avg<=0.025;});
+      var found=clusters.find(function(c){return Math.abs(v-c.avg)/c.avg<=0.05;});
       if(found){found.values.push(v);found.avg=found.values.reduce(function(a,b){return a+b;},0)/found.values.length;}
       else clusters.push({avg:v,values:[v]});
     });
-    return clusters.filter(function(c){return c.values.length>=2;}); // 2+ touches
+    // Strength = number of touches × normalized weight
+    return clusters.map(function(c){return{avg:c.avg,touches:c.values.length};});
   }
+  var validVals=prices.filter(function(v){return v!=null&&!isNaN(v);});
+  var ath=Math.max.apply(null,validVals);
+  var atl=Math.min.apply(null,validVals);
   var highClusters=cluster(swings.filter(function(s){return s.type==='H';}).map(function(s){return s.price;}));
   var lowClusters=cluster(swings.filter(function(s){return s.type==='L';}).map(function(s){return s.price;}));
-  // Resistance = clusters πάνω από currentPrice, διάλεξε 2 κοντινότερα
-  var resistance=highClusters.filter(function(c){return c.avg>currentPrice*1.005;}).sort(function(a,b){return a.avg-b.avg;}).slice(0,2).map(function(c){return c.avg;});
-  // Support = clusters κάτω από currentPrice, διάλεξε 2 κοντινότερα
-  var support=lowClusters.filter(function(c){return c.avg<currentPrice*0.995;}).sort(function(a,b){return b.avg-a.avg;}).slice(0,2).map(function(c){return c.avg;});
-  return{resistance:resistance,support:support};
+  // Build resistance candidates (πάνω από τρέχουσα τιμή)
+  var resCandidates=[];
+  // ATH guaranteed (αν >5% πάνω)
+  if(ath>currentPrice*1.05)resCandidates.push({avg:ath,touches:99,isAth:true});
+  // Swing highs με 2+ touches
+  highClusters.forEach(function(c){
+    if(c.touches>=2&&c.avg>currentPrice*1.05&&Math.abs(c.avg-ath)/ath>0.03){
+      resCandidates.push(c);
+    }
+  });
+  // Build support candidates (κάτω από τρέχουσα τιμή)
+  var supCandidates=[];
+  // ATL guaranteed (αν >5% κάτω)
+  if(atl<currentPrice*0.95)supCandidates.push({avg:atl,touches:99,isAtl:true});
+  // Swing lows με 2+ touches
+  lowClusters.forEach(function(c){
+    if(c.touches>=2&&c.avg<currentPrice*0.95&&Math.abs(c.avg-atl)/atl>0.03){
+      supCandidates.push(c);
+    }
+  });
+  // Sort by distance from current, prefer ATH/ATL + strength
+  // Resistance: closest first, but boost ATH and high-touch clusters
+  resCandidates.sort(function(a,b){
+    var distA=(a.avg-currentPrice)/currentPrice;
+    var distB=(b.avg-currentPrice)/currentPrice;
+    return distA-distB;
+  });
+  supCandidates.sort(function(a,b){
+    var distA=(currentPrice-a.avg)/currentPrice;
+    var distB=(currentPrice-b.avg)/currentPrice;
+    return distA-distB;
+  });
+  // Pick: 1st = closest, 2nd = next that is ≥8% away from 1st
+  function pickTwo(candidates){
+    if(!candidates.length)return[];
+    var first=candidates[0];
+    var second=null;
+    for(var j=1;j<candidates.length;j++){
+      var c=candidates[j];
+      if(Math.abs(c.avg-first.avg)/first.avg>=0.08){
+        second=c;break;
+      }
+    }
+    return second?[first.avg,second.avg]:[first.avg];
+  }
+  return{
+    resistance:pickTwo(resCandidates),
+    support:pickTwo(supCandidates)
+  };
 }
 
 // ─── Coin Chart Modal ─────────────────────────────────────────────
