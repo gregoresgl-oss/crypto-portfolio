@@ -2610,6 +2610,48 @@ function _showUnbondDetail(){
     }).catch(function(){showToast("Σφάλμα φόρτωσης","red");});
 }
 
+// ─── Support/Resistance algorithm (swing high/low + clustering) ──
+// Επιστρέφει { resistance: [r1,r2], support: [s1,s2] }
+// Δουλεύει σε arrays τιμών. Threshold: 2+ touches, cluster ±2.5%, swing window 5.
+function _computeSR(prices,currentPrice){
+  if(!prices||prices.length<30)return{resistance:[],support:[]};
+  var W=5; // swing window
+  var swings=[];
+  for(var i=W;i<prices.length-W;i++){
+    var p=prices[i];
+    if(p==null)continue;
+    var isHigh=true,isLow=true;
+    for(var k=1;k<=W;k++){
+      var l=prices[i-k],r=prices[i+k];
+      if(l==null||r==null){isHigh=false;isLow=false;break;}
+      if(p<=l||p<=r)isHigh=false;
+      if(p>=l||p>=r)isLow=false;
+      if(!isHigh&&!isLow)break;
+    }
+    if(isHigh)swings.push({price:p,type:'H'});
+    else if(isLow)swings.push({price:p,type:'L'});
+  }
+  if(!swings.length)return{resistance:[],support:[]};
+  // Cluster με ±2.5% tolerance
+  function cluster(arr){
+    var sorted=arr.slice().sort(function(a,b){return a-b;});
+    var clusters=[];
+    sorted.forEach(function(v){
+      var found=clusters.find(function(c){return Math.abs(v-c.avg)/c.avg<=0.025;});
+      if(found){found.values.push(v);found.avg=found.values.reduce(function(a,b){return a+b;},0)/found.values.length;}
+      else clusters.push({avg:v,values:[v]});
+    });
+    return clusters.filter(function(c){return c.values.length>=2;}); // 2+ touches
+  }
+  var highClusters=cluster(swings.filter(function(s){return s.type==='H';}).map(function(s){return s.price;}));
+  var lowClusters=cluster(swings.filter(function(s){return s.type==='L';}).map(function(s){return s.price;}));
+  // Resistance = clusters πάνω από currentPrice, διάλεξε 2 κοντινότερα
+  var resistance=highClusters.filter(function(c){return c.avg>currentPrice*1.005;}).sort(function(a,b){return a.avg-b.avg;}).slice(0,2).map(function(c){return c.avg;});
+  // Support = clusters κάτω από currentPrice, διάλεξε 2 κοντινότερα
+  var support=lowClusters.filter(function(c){return c.avg<currentPrice*0.995;}).sort(function(a,b){return b.avg-a.avg;}).slice(0,2).map(function(c){return c.avg;});
+  return{resistance:resistance,support:support};
+}
+
 // ─── Coin Chart Modal ─────────────────────────────────────────────
 // Click σε TOP ASSETS row → modal με price chart του coin
 // Στυλ: ίδιο με το main P&L chart (gold gradient fill, monospace tooltip)
@@ -2672,6 +2714,11 @@ function _showCoinChart(coinId){
       +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Change</div><div style="font-size:13px;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-change">—</div></div>'
       +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Avg</div><div style="font-size:13px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-avg">—</div></div>'
     +'</div>'
+    // ── Support/Resistance levels box (only shown for 1Y) ──
+    +'<div id="coin-chart-sr" style="display:none;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:12px 14px;margin-bottom:14px;">'
+      +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">📊 Levels (1Y)</div>'
+      +'<div id="coin-chart-sr-content" style="display:flex;gap:24px;flex-wrap:wrap;"></div>'
+    +'</div>'
     // ── CoinGecko link ─────────────────────
     +'<div style="display:flex;justify-content:flex-end;">'
       +'<a href="https://www.coingecko.com/en/coins/'+_esc(coinId)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:rgba(245,194,74,.85);text-decoration:none;padding:5px 9px;border:1px solid rgba(245,194,74,.2);border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-weight:600;">CoinGecko <span style="font-size:9px;">↗</span></a>'
@@ -2720,6 +2767,8 @@ async function _loadCoinChartData(){
     var vals=rows.map(function(row){return parseFloat(row.price_eur)||null;});
     // Stats
     var validVals=vals.filter(function(v){return v!=null&&!isNaN(v);});
+    var currentP=prices[_coinChartCoinId]||0;
+    var srLevels={resistance:[],support:[]};
     if(validVals.length){
       var lo=Math.min.apply(null,validVals),hi=Math.max.apply(null,validVals);
       var sum=validVals.reduce(function(a,b){return a+b;},0);
@@ -2732,12 +2781,79 @@ async function _loadCoinChartData(){
       ccCh.textContent=(changePct>=0?'+':'')+changePct.toFixed(2)+'%';
       ccCh.style.color=changePct>=0?'#7dd67d':'#ff5f6d';
       document.getElementById('cc-avg').textContent=_fmtP(avg);
+      // Compute S/R only για 1Y range
+      if(_coinChartRange===365){
+        srLevels=_computeSR(validVals,currentP||last);
+      }
+    }
+    // Render S/R box
+    var srBox=document.getElementById('coin-chart-sr');
+    var srContent=document.getElementById('coin-chart-sr-content');
+    if(_coinChartRange===365&&(srLevels.resistance.length||srLevels.support.length)){
+      srBox.style.display='block';
+      var refP=currentP||(validVals.length?validVals[validVals.length-1]:0);
+      var resHtml='<div><div style="font-size:9px;color:#ff5f6d;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Resistance</div><div style="display:flex;flex-direction:column;gap:3px;">';
+      srLevels.resistance.forEach(function(lv){
+        var pct=refP>0?((lv-refP)/refP*100):0;
+        resHtml+='<div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;">'+_fmtP(lv)+' <span style="color:rgba(231,228,216,.4);font-size:9px;">'+(pct>=0?'+':'')+pct.toFixed(0)+'%</span></div>';
+      });
+      if(!srLevels.resistance.length)resHtml+='<div style="font-size:11px;color:rgba(231,228,216,.4);">—</div>';
+      resHtml+='</div></div>';
+      var supHtml='<div><div style="font-size:9px;color:#7dd67d;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Support</div><div style="display:flex;flex-direction:column;gap:3px;">';
+      srLevels.support.forEach(function(lv){
+        var pct=refP>0?((lv-refP)/refP*100):0;
+        supHtml+='<div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;">'+_fmtP(lv)+' <span style="color:rgba(231,228,216,.4);font-size:9px;">'+pct.toFixed(0)+'%</span></div>';
+      });
+      if(!srLevels.support.length)supHtml+='<div style="font-size:11px;color:rgba(231,228,216,.4);">—</div>';
+      supHtml+='</div></div>';
+      srContent.innerHTML=resHtml+supHtml;
+    }else{
+      srBox.style.display='none';
     }
     // Destroy previous chart
     if(_coinChart&&typeof _coinChart.destroy==='function'){_coinChart.destroy();_coinChart=null;}
     // Build chart — ίδιο styling με _phChart
+    // Custom plugin για να ζωγραφίζει S/R horizontal lines πάνω από το chart
+    var srPlugin={
+      id:'srLines',
+      afterDatasetsDraw:function(chart){
+        if(_coinChartRange!==365)return;
+        var levels=chart.options.plugins.srLines||{resistance:[],support:[]};
+        if(!levels.resistance.length&&!levels.support.length)return;
+        var ctx=chart.ctx,ya=chart.scales.y,xa=chart.scales.x;
+        if(!ya||!xa)return;
+        ctx.save();
+        ctx.setLineDash([6,4]);ctx.lineWidth=1.2;
+        // Resistance — κόκκινες
+        levels.resistance.forEach(function(lv){
+          var y=ya.getPixelForValue(lv);
+          if(y<ya.top||y>ya.bottom)return;
+          ctx.strokeStyle='rgba(255,95,109,.45)';
+          ctx.beginPath();ctx.moveTo(xa.left,y);ctx.lineTo(xa.right,y);ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font="600 9px 'JetBrains Mono',monospace";
+          ctx.fillStyle='#ff5f6d';ctx.textAlign='right';ctx.textBaseline='bottom';
+          ctx.fillText(_fmtP(lv),xa.right-4,y-2);
+          ctx.setLineDash([6,4]);
+        });
+        // Support — πράσινες
+        levels.support.forEach(function(lv){
+          var y=ya.getPixelForValue(lv);
+          if(y<ya.top||y>ya.bottom)return;
+          ctx.strokeStyle='rgba(125,214,125,.45)';
+          ctx.beginPath();ctx.moveTo(xa.left,y);ctx.lineTo(xa.right,y);ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font="600 9px 'JetBrains Mono',monospace";
+          ctx.fillStyle='#7dd67d';ctx.textAlign='right';ctx.textBaseline='top';
+          ctx.fillText(_fmtP(lv),xa.right-4,y+3);
+          ctx.setLineDash([6,4]);
+        });
+        ctx.restore();
+      }
+    };
     _coinChart=new Chart(canv,{
       type:'line',
+      plugins:[srPlugin],
       data:{labels:labels,datasets:[{
         data:vals,
         borderColor:'#f5c24a',
@@ -2763,6 +2879,7 @@ async function _loadCoinChartData(){
         animation:{duration:600,easing:'easeOutQuart'},
         interaction:{mode:'index',intersect:false},
         plugins:{
+          srLines:srLevels,
           legend:{display:false},
           tooltip:{
             backgroundColor:'rgba(11,13,18,.95)',
