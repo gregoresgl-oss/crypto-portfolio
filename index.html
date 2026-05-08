@@ -1407,15 +1407,38 @@ function _buildAllocRows(){
 
 function _wgtTopAssets(){
   var el=document.createElement("div");el.className="card";
+  // User's own coins
   var rows=activeCoinIds.filter(_shouldShow).map(function(id){
     var p=prices[id]||0,ud=userdata[id]||{},ch=changes[id]||0;
     var logo=logoUrl(id);
     var avHtml=logo?('<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;">'):('<span>'+((coinReg[id]&&coinReg[id].sym||"?").slice(0,2))+'</span>');
-    return{id:id,sym:(coinReg[id]&&coinReg[id].sym)||id.toUpperCase(),name:(coinReg[id]&&coinReg[id].name)||id,val:((ud.staked||0)+(ud.liquid||0))*p,ch:ch,avHtml:avHtml};
+    return{id:id,sym:(coinReg[id]&&coinReg[id].sym)||id.toUpperCase(),name:(coinReg[id]&&coinReg[id].name)||id,val:((ud.staked||0)+(ud.liquid||0))*p,ch:ch,avHtml:avHtml,viewOnly:false};
   }).sort(function(a,b){return b.val-a.val;}).slice(0,6);
+  // BTC/ETH as viewer-only (always at top)
+  var viewerOnly=[BTC_ID,ETH_ID].map(function(id){
+    var p=prices[id]||0,ch=changes[id]||0;
+    var logo=logoUrl(id);
+    var avHtml=logo?('<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;">'):('<span>'+((coinReg[id]&&coinReg[id].sym||"?").slice(0,2))+'</span>');
+    return{id:id,sym:(coinReg[id]&&coinReg[id].sym)||id.toUpperCase(),name:(coinReg[id]&&coinReg[id].name)||id,price:p,ch:ch,avHtml:avHtml,viewOnly:true};
+  });
   var inner='<div class="card-head"><span class="card-title">TOP ASSETS</span></div>';
+  // Render viewer-only header section
+  if(viewerOnly.some(function(v){return v.price>0;})){
+    inner+='<div style="font-size:8px;color:rgba(245,194,74,.6);text-transform:uppercase;letter-spacing:1.5px;padding:4px 0 6px 4px;border-bottom:1px solid rgba(245,194,74,.08);margin-bottom:4px;">View only · Markets</div>';
+    viewerOnly.forEach(function(a){
+      if(!a.price)return;
+      inner+='<div class="asset-row" style="cursor:pointer;" onclick="_showCoinChart(\''+a.id+'\')">'
+        +'<div class="asset-logo">'+a.avHtml+'</div>'
+        +'<div style="flex:1;min-width:0;"><div class="asset-name">'+_esc(a.sym)
+        +' <span style="font-size:8px;color:rgba(245,194,74,.85);background:rgba(245,194,74,.1);border:1px solid rgba(245,194,74,.2);padding:1px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;vertical-align:1px;">View</span>'
+        +'</div><div class="asset-sym">'+_esc(a.name)+'</div></div>'
+        +'<div class="asset-val"><div class="asset-eur mono">'+_fmtP(a.price)+'</div>'
+        +'<div class="asset-chg mono '+(a.ch>=0?"text-green":"text-red")+'">'+(a.ch>=0?"+":"")+a.ch.toFixed(2)+'%</div></div></div>';
+    });
+  }
+  // Render user's own coins
   rows.forEach(function(a){
-    inner+='<div class="asset-row"><div class="asset-logo">'+a.avHtml+'</div>'
+    inner+='<div class="asset-row" style="cursor:pointer;" onclick="_showCoinChart(\''+a.id+'\')"><div class="asset-logo">'+a.avHtml+'</div>'
       +'<div style="flex:1;min-width:0;"><div class="asset-name">'+_esc(a.sym)+'</div><div class="asset-sym">'+_esc(a.name)+'</div></div>'
       +'<div class="asset-val"><div class="asset-eur mono">'+_fmt(a.val)+'</div>'
       +'<div class="asset-chg mono '+(a.ch>=0?"text-green":"text-red")+'">'+(a.ch>=0?"+":"")+a.ch.toFixed(2)+'%</div></div></div>';
@@ -2538,17 +2561,9 @@ async function checkUnbonding(){
   try{var r=await fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&order=updated_at.desc",{headers:_SB_H,signal:AbortSignal.timeout(5000)});if(!r.ok)return;var d=await r.json();var active=(d||[]).filter(u=>u.status==="unbonding"&&new Date(u.completion_time)>new Date());var b=document.getElementById("unbonding-banner");if(b){if(active.length){b.style.display="";b.textContent="⏳ "+active.length+" εκκρεμής unbonding";}else b.style.display="none";}}catch(e){}
 }
 function _showUnbondDetail(){
-  // Symbol mapping για κάθε chain
-  var SYMS={'cosmos':'ATOM','osmosis':'OSMO','juno-network':'JUNO','dymension':'DYM','saga-2':'SAGA','celestia':'TIA','stargaze':'STARS','akash-network':'AKT','secret':'SCRT','kava':'KAVA','injective':'INJ','evmos':'EVMOS'};
-  // Φέρνουμε prices επίσης για να δείξουμε EUR value
-  Promise.all([
-    fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&status=eq.unbonding&order=completion_time.asc",{headers:_SB_H}).then(function(r){return r.json();}),
-    fetch(_SB_URL+"/rest/v1/prices_cache?select=coin_id,price_eur",{headers:_SB_H}).then(function(r){return r.json();}).catch(function(){return [];})
-  ]).then(function(results){
-      var rows=results[0]||[];
-      var prices=results[1]||[];
-      var priceMap={};
-      prices.forEach(function(p){priceMap[p.coin_id]=parseFloat(p.price_eur)||0;});
+  fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&status=eq.unbonding&order=completion_time.asc",{headers:_SB_H})
+    .then(function(r){return r.json();})
+    .then(function(rows){
       if(!rows||!rows.length){showToast("Δεν υπάρχουν εκκρεμείς unbonding","gold");return;}
       // Build modal content
       var html='<div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;">';
@@ -2558,30 +2573,18 @@ function _showUnbondDetail(){
         var days=Math.ceil((comp-now)/(1000*60*60*24));
         var chain=u.chain_id||'';
         var chainName=chain.replace('-network','').replace('-2','').toUpperCase();
-        var sym=SYMS[chain]||chainName;
-        var amtNum=parseFloat(u.amount||0);
-        var amt=amtNum.toFixed(2);
+        var amt=parseFloat(u.amount||0).toFixed(2);
         var dateStr=comp.toLocaleDateString('el-GR',{day:'2-digit',month:'2-digit'});
-        // EUR value (αν έχουμε τιμή στο cache)
-        var price=priceMap[chain]||0;
-        var eurVal=amtNum*price;
-        var eurStr=eurVal>0?(eurVal>=1?'~'+Math.round(eurVal)+'€':'~'+eurVal.toFixed(2)+'€'):'';
-        // Color για τις ημέρες: κόκκινο <7, πορτοκαλί 7-14, χρυσό >14
-        var dayColor='#f5c24a'; // gold (default)
-        if(days<7)dayColor='#ff5f6d'; // red urgent
-        else if(days<14)dayColor='#fb923c'; // orange
         html+='<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.1);border-radius:8px;padding:10px 12px;">'
           +'<div style="display:flex;align-items:center;gap:8px;">'
             +'<span style="font-size:14px;">⏳</span>'
             +'<div>'
-              +'<div style="font-size:12px;font-weight:600;color:#f7e7b8;">'+chainName
-              +(eurStr?' <span style="font-size:10px;color:rgba(125,214,125,.7);font-weight:500;">'+eurStr+'</span>':'')
-              +'</div>'
-              +'<div style="font-size:10px;color:rgba(231,228,216,.4);">'+amt+' '+sym+' · '+(u.validator||'').slice(0,16)+'…</div>'
+              +'<div style="font-size:12px;font-weight:600;color:#f7e7b8;">'+chainName+'</div>'
+              +'<div style="font-size:10px;color:rgba(231,228,216,.4);">'+amt+' · '+u.validator.slice(0,16)+'...</div>'
             +'</div>'
           +'</div>'
           +'<div style="text-align:right;">'
-            +'<div style="font-size:12px;font-weight:600;color:'+dayColor+';">'+days+' ημ.</div>'
+            +'<div style="font-size:12px;font-weight:600;color:#f5c24a;">'+days+' ημ.</div>'
             +'<div style="font-size:10px;color:rgba(231,228,216,.4);">'+dateStr+'</div>'
           +'</div>'
           +'</div>';
@@ -2601,6 +2604,197 @@ function _showUnbondDetail(){
       overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
       document.body.appendChild(overlay);
     }).catch(function(){showToast("Σφάλμα φόρτωσης","red");});
+}
+
+// ─── Coin Chart Modal ─────────────────────────────────────────────
+// Click σε TOP ASSETS row → modal με price chart του coin
+// Στυλ: ίδιο με το main P&L chart (gold gradient fill, monospace tooltip)
+var _coinChart=null,_coinChartCoinId=null,_coinChartRange=365;
+
+function _showCoinChart(coinId){
+  if(!coinId)return;
+  _coinChartCoinId=coinId;
+  _coinChartRange=365; // default 1Y
+  var reg=coinReg[coinId]||{};
+  var sym=reg.sym||coinId.toUpperCase();
+  var name=reg.name||coinId;
+  var logo=logoUrl(coinId);
+  var avHtml=logo?('<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'):('<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:14px;font-weight:600;color:#e7e4d8;background:#2e3148;border-radius:50%;">'+sym.slice(0,2)+'</span>');
+  var price=prices[coinId]||0;
+  var ch=changes[coinId]||0;
+  // Holdings (αν τα έχει ο user)
+  var ud=userdata[coinId]||{};
+  var amt=(ud.staked||0)+(ud.liquid||0);
+  var val=amt*price;
+  var hasHoldings=val>0.01;
+  // Build modal overlay
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.className='coin-chart-overlay';
+  overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">'
+    // ── Header ─────────────────────────────
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px;">'
+      +'<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">'
+        +'<div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;">'+avHtml+'</div>'
+        +'<div style="min-width:0;">'
+          +'<div style="display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;">'
+            +'<span style="font-size:15px;font-weight:700;color:#f7e7b8;">'+_esc(sym)+'</span>'
+            +'<span style="font-size:11px;color:rgba(231,228,216,.4);">'+_esc(name)+'</span>'
+          +'</div>'
+          +'<div style="display:flex;align-items:baseline;gap:6px;margin-top:3px;flex-wrap:wrap;">'
+            +'<span style="font-size:20px;font-weight:700;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;letter-spacing:-.4px;">'+_fmtP(price)+'</span>'
+            +'<span style="font-size:11px;font-weight:600;color:'+(ch>=0?'#7dd67d':'#ff5f6d')+';font-family:\'JetBrains Mono\',monospace;">'+(ch>=0?'+':'')+ch.toFixed(2)+'%</span>'
+            +'<span style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:.8px;">24h</span>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+      +(hasHoldings?'<div style="text-align:right;flex-shrink:0;">'
+        +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Holdings</div>'
+        +'<div style="font-size:14px;font-weight:700;color:#7dd67d;font-family:\'JetBrains Mono\',monospace;">'+_fmtExact(val)+'</div>'
+        +'<div style="font-size:10px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+amt.toFixed(2)+' '+sym+'</div>'
+      +'</div>':'')
+      +'<button onclick="document.querySelectorAll(\'.coin-chart-overlay\').forEach(function(el){el.remove();});if(_coinChart){_coinChart.destroy();_coinChart=null;}" style="background:none;border:none;color:rgba(231,228,216,.5);font-size:18px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;flex-shrink:0;">✕</button>'
+    +'</div>'
+    // ── Time tabs ──────────────────────────
+    +'<div id="coin-chart-tabs" style="display:flex;gap:4px;margin-bottom:14px;padding:3px;background:rgba(255,255,255,.03);border-radius:6px;width:fit-content;">'
+      +[1,7,30,90,365].map(function(d){return '<button class="ccrange'+(d===365?' active':'')+'" data-d="'+d+'" onclick="_setCoinChartRange('+d+')" style="background:'+(d===365?'rgba(245,194,74,.15)':'none')+';border:'+(d===365?'1px solid rgba(245,194,74,.3)':'none')+';color:'+(d===365?'#f5c24a':'rgba(231,228,216,.5)')+';font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;'+(d===365?'font-weight:700;':'')+'">'+(d===1?'1D':d===7?'7D':d===30?'30D':d===90?'3M':'1Y')+'</button>';}).join('')
+    +'</div>'
+    // ── Chart canvas ───────────────────────
+    +'<div style="height:240px;position:relative;margin-bottom:14px;"><canvas id="coin-chart-canvas" style="width:100%;height:100%;"></canvas></div>'
+    // ── Footer stats ───────────────────────
+    +'<div id="coin-chart-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 0;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;">'
+      +'<div><div style="font-size:8px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Low</div><div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-low">—</div></div>'
+      +'<div><div style="font-size:8px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">High</div><div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-high">—</div></div>'
+      +'<div><div style="font-size:8px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Change</div><div style="font-size:11px;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-change">—</div></div>'
+      +'<div><div style="font-size:8px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Avg</div><div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-avg">—</div></div>'
+    +'</div>'
+    // ── CoinGecko link ─────────────────────
+    +'<div style="display:flex;justify-content:flex-end;">'
+      +'<a href="https://www.coingecko.com/en/coins/'+_esc(coinId)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:rgba(245,194,74,.85);text-decoration:none;padding:5px 9px;border:1px solid rgba(245,194,74,.2);border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-weight:600;">CoinGecko <span style="font-size:9px;">↗</span></a>'
+    +'</div>'
+  +'</div>';
+  overlay.addEventListener('click',function(e){if(e.target===overlay){overlay.remove();if(_coinChart){_coinChart.destroy();_coinChart=null;}}});
+  document.body.appendChild(overlay);
+  // Load data
+  _loadCoinChartData();
+}
+
+function _setCoinChartRange(days){
+  _coinChartRange=days;
+  document.querySelectorAll('#coin-chart-tabs .ccrange').forEach(function(b){
+    var active=parseInt(b.dataset.d)===days;
+    b.style.background=active?'rgba(245,194,74,.15)':'none';
+    b.style.border=active?'1px solid rgba(245,194,74,.3)':'none';
+    b.style.color=active?'#f5c24a':'rgba(231,228,216,.5)';
+    b.style.fontWeight=active?'700':'';
+  });
+  _loadCoinChartData();
+}
+
+async function _loadCoinChartData(){
+  var canv=document.getElementById('coin-chart-canvas');
+  if(!canv||!_coinChartCoinId)return;
+  try{
+    var cutoff=new Date();cutoff.setDate(cutoff.getDate()-_coinChartRange);
+    var r=await fetch(_SB_URL+'/rest/v1/price_history_hourly?select=created_at,price_eur&coin_id=eq.'+_coinChartCoinId+'&created_at=gte.'+cutoff.toISOString()+'&order=created_at.asc&limit=10000',{headers:_SB_H,signal:AbortSignal.timeout(10000)});
+    if(!r.ok){console.warn('[coin-chart] fetch failed',r.status);return;}
+    var rows=await r.json();
+    if(!rows||!rows.length){
+      // No data — show empty state
+      var ctx=canv.getContext('2d');ctx.clearRect(0,0,canv.width,canv.height);
+      ctx.fillStyle='rgba(231,228,216,.4)';ctx.font='11px JetBrains Mono';ctx.textAlign='center';
+      ctx.fillText('Δεν υπάρχουν δεδομένα για αυτό το range',canv.width/2,canv.height/2);
+      ['cc-low','cc-high','cc-change','cc-avg'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent='—';});
+      return;
+    }
+    var labels=rows.map(function(row){
+      var dt=new Date(row.created_at);
+      if(_coinChartRange===1)return dt.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'});
+      if(_coinChartRange<=30)return dt.toLocaleDateString('el-GR',{day:'numeric',month:'short'});
+      return dt.toLocaleDateString('el-GR',{day:'numeric',month:'short',year:_coinChartRange>=365?'2-digit':undefined});
+    });
+    var vals=rows.map(function(row){return parseFloat(row.price_eur)||null;});
+    // Stats
+    var validVals=vals.filter(function(v){return v!=null&&!isNaN(v);});
+    if(validVals.length){
+      var lo=Math.min.apply(null,validVals),hi=Math.max.apply(null,validVals);
+      var sum=validVals.reduce(function(a,b){return a+b;},0);
+      var avg=sum/validVals.length;
+      var first=validVals[0],last=validVals[validVals.length-1];
+      var changePct=first>0?((last-first)/first*100):0;
+      document.getElementById('cc-low').textContent=_fmtP(lo);
+      document.getElementById('cc-high').textContent=_fmtP(hi);
+      var ccCh=document.getElementById('cc-change');
+      ccCh.textContent=(changePct>=0?'+':'')+changePct.toFixed(2)+'%';
+      ccCh.style.color=changePct>=0?'#7dd67d':'#ff5f6d';
+      document.getElementById('cc-avg').textContent=_fmtP(avg);
+    }
+    // Destroy previous chart
+    if(_coinChart&&typeof _coinChart.destroy==='function'){_coinChart.destroy();_coinChart=null;}
+    // Build chart — ίδιο styling με _phChart
+    _coinChart=new Chart(canv,{
+      type:'line',
+      data:{labels:labels,datasets:[{
+        data:vals,
+        borderColor:'#f5c24a',
+        borderWidth:2.5,
+        tension:.4,
+        fill:'origin',
+        spanGaps:true,
+        backgroundColor:function(ctx){
+          var chart=ctx.chart;var{ctx:cx,chartArea}=chart;
+          if(!chartArea)return null;
+          var g=cx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);
+          g.addColorStop(0,'rgba(245,194,74,.55)');
+          g.addColorStop(0.5,'rgba(245,194,74,.25)');
+          g.addColorStop(1,'rgba(245,194,74,.02)');
+          return g;
+        },
+        pointRadius:0,
+        pointHoverRadius:5,
+        pointHoverBackgroundColor:'#f5c24a'
+      }]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        animation:{duration:600,easing:'easeOutQuart'},
+        interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:'rgba(11,13,18,.95)',
+            titleColor:'#f5c24a',
+            bodyColor:'#e7e4d8',
+            borderColor:'rgba(245,194,74,.3)',
+            borderWidth:1,padding:10,
+            titleFont:{family:'JetBrains Mono',size:10,weight:'600'},
+            bodyFont:{family:'JetBrains Mono',size:11},
+            callbacks:{label:function(ctx){var v=ctx.parsed.y;if(v==null)return null;return _fmtP(v);}}
+          }
+        },
+        scales:{
+          x:{
+            grid:{color:'rgba(255,255,255,.04)'},
+            ticks:{
+              color:'rgba(231,228,216,.35)',
+              font:{size:9,family:'JetBrains Mono'},
+              maxTicksLimit:_coinChartRange===1?6:_coinChartRange<=7?7:_coinChartRange<=30?8:_coinChartRange<=90?6:8,
+              autoSkip:true,maxRotation:0
+            }
+          },
+          y:{
+            grid:{color:'rgba(255,255,255,.04)'},
+            ticks:{
+              color:'rgba(231,228,216,.35)',
+              font:{size:9,family:'JetBrains Mono'},
+              callback:function(v){return _fmtP(v);},
+              maxTicksLimit:5
+            },
+            position:'right'
+          }
+        }
+      }
+    });
+  }catch(e){console.warn('[coin-chart] error',e);}
 }
 
 // ─── Logout ───────────────────────────────────────────────────────
