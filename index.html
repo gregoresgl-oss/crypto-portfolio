@@ -2562,7 +2562,7 @@ function _updateUserStats(u){
 
 // ─── Unbonding ────────────────────────────────────────────────────
 async function checkUnbonding(){
-  try{var r=await fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&order=updated_at.desc",{headers:_SB_H,signal:AbortSignal.timeout(5000)});if(!r.ok)return;var d=await r.json();var active=(d||[]).filter(u=>u.status==="unbonding"&&new Date(u.completion_time)>new Date());var b=document.getElementById("unbonding-banner");if(b){if(active.length){b.style.display="";b.textContent="⏳ "+active.length+" εκκρεμής unbonding";}else b.style.display="none";}}catch(e){}
+  try{var r=await fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&order=updated_at.desc",{headers:_SB_H,signal:AbortSignal.timeout(5000)});if(!r.ok)return;var d=await r.json();var active=(d||[]).filter(u=>u.status==="unbonding"&&new Date(u.completion_time)>new Date());var b=document.getElementById("unbonding-banner");if(b){if(active.length){b.style.display="block";b.textContent="⏳ "+active.length+" εκκρεμής unbonding";}else b.style.display="none";}}catch(e){}
 }
 function _showUnbondDetail(){
   fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&status=eq.unbonding&order=completion_time.asc",{headers:_SB_H})
