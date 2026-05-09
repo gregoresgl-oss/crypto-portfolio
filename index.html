@@ -1363,12 +1363,17 @@ function _buildWidget(id,ctx){
 }
 
 function _wgtHero(total,delta24h,pct24h){
-  var el=document.createElement("div");el.id="hero-card";
+  var el=document.createElement("div");el.id="hero-card";el.style.position="relative";
   el.innerHTML='<div class="hero-label">ΣΥΝΟΛΙΚΗ ΑΞΙΑ · EUR</div>'
     +'<div class="hero-value mono" id="hero-total">'+_fmtExact(total)+'</div>'
     +'<div class="hero-delta"><span class="mono '+(delta24h>=0?"text-green":"text-red")+'" style="font-size:13px;font-weight:700;">'+(delta24h>=0?"+":"")+_fmt(delta24h)+"</span>"
     +'<span class="pill '+(pct24h>=0?"pill-green":"pill-red")+' mono">'+(pct24h>=0?"+":"")+pct24h.toFixed(2)+"%</span>"
-    +'<span class="text-muted mono" style="font-size:10px;">24h</span></div>';
+    +'<span class="text-muted mono" style="font-size:10px;">24h</span></div>'
+    // Unbonding pill (top-right corner, hidden by default — toggled by checkUnbonding())
+    +'<div id="hero-unbond-pill" onclick="_showUnbondDetail()" style="display:none;position:absolute;top:14px;right:14px;align-items:center;gap:6px;background:rgba(245,194,74,.08);border:1px solid rgba(245,194,74,.22);padding:5px 10px;border-radius:20px;cursor:pointer;transition:background .2s;" onmouseenter="this.style.background=\'rgba(245,194,74,.14)\'" onmouseleave="this.style.background=\'rgba(245,194,74,.08)\'">'
+    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f5c24a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+    +'<span id="hero-unbond-count" style="font-size:10px;color:#f5c24a;font-weight:600;font-family:\'JetBrains Mono\',monospace;">0</span>'
+    +'</div>';
   return el;
 }
 
@@ -1388,6 +1393,15 @@ function _wgtSummary(total,liquid,staked,delta24h){
   var el=document.createElement("div");el.className="card";
   var rows=[["Liquid",_fmt(liquid)],["Staked",_fmt(staked)],["P&L 24h",(delta24h>=0?"+":"")+_fmt(delta24h),delta24h>=0?"text-green":"text-red"],["Coins",activeCoinIds.length,"text-muted"]];
   el.innerHTML='<div class="card-head"><span class="card-title">ΣΥΝΟΨΗ</span></div>'
+    // Unbonding row (hidden by default — toggled by checkUnbonding())
+    +'<div id="sum-unbond-row" onclick="_showUnbondDetail()" style="display:none;justify-content:space-between;align-items:center;cursor:pointer;padding:6px 9px;margin:-2px -3px 6px;border-radius:6px;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.18);transition:background .2s;" onmouseenter="this.style.background=\'rgba(245,194,74,.1)\'" onmouseleave="this.style.background=\'rgba(245,194,74,.05)\'">'
+    +'<span style="display:flex;align-items:center;gap:6px;">'
+    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f5c24a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+    +'<span style="font-size:12px;color:#f5c24a;font-weight:600;">Unbonding</span>'
+    +'<span id="sum-unbond-days" style="font-size:9px;color:rgba(245,194,74,.6);font-family:\'JetBrains Mono\',monospace;background:rgba(245,194,74,.08);padding:1px 4px;border-radius:3px;">—</span>'
+    +'</span>'
+    +'<span id="sum-unbond-eur" style="font-size:12px;font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#f5c24a;">—</span>'
+    +'</div>'
     +rows.map(([l,v,cls])=>'<div class="sum-row"><span class="sum-label">'+l+'</span><span class="sum-val mono '+(cls||"")+'">'+v+'</span></div>').join("");
   return el;
 }
@@ -2562,46 +2576,170 @@ function _updateUserStats(u){
 
 // ─── Unbonding ────────────────────────────────────────────────────
 async function checkUnbonding(){
-  try{var r=await fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&order=updated_at.desc",{headers:_SB_H,signal:AbortSignal.timeout(5000)});if(!r.ok)return;var d=await r.json();var active=(d||[]).filter(u=>u.status==="unbonding"&&new Date(u.completion_time)>new Date());var b=document.getElementById("unbonding-banner");if(b){if(active.length){b.style.display="block";b.textContent="⏳ "+active.length+" εκκρεμής unbonding";}else b.style.display="none";}}catch(e){}
+  try{
+    var r=await fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&order=completion_time.asc",{headers:_SB_H,signal:AbortSignal.timeout(5000)});
+    if(!r.ok)return;
+    var d=await r.json();
+    var now=new Date();
+    var active=(d||[]).filter(u=>u.status==="unbonding"&&new Date(u.completion_time)>now);
+    
+    // Old banner (kept for backwards compat — now hidden)
+    var b=document.getElementById("unbonding-banner");
+    if(b)b.style.display="none";
+    
+    // Hero pill
+    var pill=document.getElementById("hero-unbond-pill");
+    var pillCount=document.getElementById("hero-unbond-count");
+    // Summary row
+    var sumRow=document.getElementById("sum-unbond-row");
+    var sumDays=document.getElementById("sum-unbond-days");
+    var sumEur=document.getElementById("sum-unbond-eur");
+    
+    if(!active.length){
+      if(pill)pill.style.display="none";
+      if(sumRow)sumRow.style.display="none";
+      return;
+    }
+    
+    // Compute total EUR + closest completion (in days)
+    var totalEur=0;
+    var closestDays=Infinity;
+    active.forEach(function(u){
+      var price=prices[u.chain_id]||0;
+      totalEur+=parseFloat(u.amount||0)*price;
+      var days=Math.ceil((new Date(u.completion_time)-now)/(1000*60*60*24));
+      if(days<closestDays)closestDays=days;
+    });
+    
+    // Show pill
+    if(pill){
+      pill.style.display="inline-flex";
+      if(pillCount)pillCount.textContent=active.length;
+    }
+    // Show summary row
+    if(sumRow){
+      sumRow.style.display="flex";
+      if(sumDays)sumDays.textContent=closestDays+"η";
+      if(sumEur)sumEur.textContent=_fmt(totalEur);
+    }
+  }catch(e){}
 }
 function _showUnbondDetail(){
+  // Chain symbols + logos for the modal
+  var chainSym={cosmos:"ATOM",osmosis:"OSMO","juno-network":"JUNO",dymension:"DYM","saga-2":"SAGA",celestia:"TIA",stargaze:"STARS","akash-network":"AKT",kava:"KAVA",secret:"SCRT"};
+  
   fetch(_SB_URL+"/rest/v1/unbonding_cache?select=*&status=eq.unbonding&order=completion_time.asc",{headers:_SB_H})
     .then(function(r){return r.json();})
-    .then(function(rows){
+    .then(async function(rows){
       if(!rows||!rows.length){showToast("Δεν υπάρχουν εκκρεμείς unbonding","gold");return;}
-      // Build modal content
-      var html='<div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;">';
+      
+      // Batch fetch validators_cache για όλα τα validator addresses
+      var valAddrs=Array.from(new Set(rows.map(function(u){return u.validator;}).filter(Boolean)));
+      var valMap={};
+      if(valAddrs.length){
+        try{
+          var vQuery=valAddrs.map(function(a){return '"'+a+'"';}).join(",");
+          var vRes=await fetch(_SB_URL+"/rest/v1/validators_cache?select=address,moniker,logo_url&address=in.("+encodeURIComponent(vQuery)+")",{headers:_SB_H});
+          if(vRes.ok){
+            var vData=await vRes.json();
+            (vData||[]).forEach(function(v){valMap[v.address]=v;});
+          }
+        }catch(e){}
+      }
+      
+      // Compute totals
+      var totalEur=0;
+      rows.forEach(function(u){var price=prices[u.chain_id]||0;totalEur+=parseFloat(u.amount||0)*price;});
+      
+      // Build content
+      var now=new Date();
+      var html='<div style="display:flex;flex-direction:column;gap:10px;">';
       rows.forEach(function(u){
         var comp=new Date(u.completion_time);
-        var now=new Date();
-        var days=Math.ceil((comp-now)/(1000*60*60*24));
-        var chain=u.chain_id||'';
-        var chainName=chain.replace('-network','').replace('-2','').toUpperCase();
+        var totalDays=21; // standard cosmos unbonding period
+        var msTotal=totalDays*24*60*60*1000;
+        var msElapsed=Math.max(0,msTotal-(comp-now));
+        var pctElapsed=Math.min(100,Math.max(0,(msElapsed/msTotal)*100));
+        var daysRemaining=Math.max(0,Math.ceil((comp-now)/(1000*60*60*24)));
+        var startDate=new Date(comp.getTime()-msTotal);
+        var startStr=startDate.toLocaleDateString('el-GR',{day:'numeric',month:'short'});
+        var endStr=comp.toLocaleDateString('el-GR',{day:'numeric',month:'short'});
+        var dateStrFull=comp.toLocaleDateString('el-GR',{day:'2-digit',month:'2-digit',year:'numeric'});
+        var sym=chainSym[u.chain_id]||u.chain_id.toUpperCase();
         var amt=parseFloat(u.amount||0).toFixed(2);
-        var dateStr=comp.toLocaleDateString('el-GR',{day:'2-digit',month:'2-digit'});
-        html+='<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.1);border-radius:8px;padding:10px 12px;">'
-          +'<div style="display:flex;align-items:center;gap:8px;">'
-            +'<span style="font-size:14px;">⏳</span>'
-            +'<div>'
-              +'<div style="font-size:12px;font-weight:600;color:#f7e7b8;">'+chainName+'</div>'
-              +'<div style="font-size:10px;color:rgba(231,228,216,.4);">'+amt+' · '+u.validator.slice(0,16)+'...</div>'
+        var price=prices[u.chain_id]||0;
+        var eurVal=parseFloat(u.amount||0)*price;
+        var coinLogo=logoUrl(u.chain_id);
+        var coinAvHtml=coinLogo?'<img src="'+coinLogo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':'<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:11px;font-weight:600;background:#2e3148;border-radius:50%;color:#e7e4d8;">'+sym.slice(0,2)+'</span>';
+        // Validator info
+        var val=valMap[u.validator]||{};
+        var moniker=val.moniker||'Unknown Validator';
+        var valLogoUrl=val.logo_url||'';
+        var valLogoHtml=valLogoUrl?'<img src="'+valLogoUrl+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,.08);" onerror="this.outerHTML=\'<div style=&quot;width:30px;height:30px;border-radius:50%;background:#888;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0;&quot;>'+(moniker||'V').slice(0,2).toUpperCase()+'</div>\'">':'<div style="width:30px;height:30px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0;border:1px solid rgba(255,255,255,.08);">'+(moniker||'V').slice(0,2).toUpperCase()+'</div>';
+        
+        html+='<div style="background:rgba(245,194,74,.04);border:1px solid rgba(245,194,74,.12);border-radius:10px;padding:14px;">'
+          // Top: chain + amount + days
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">'
+            +'<div style="display:flex;align-items:center;gap:9px;">'
+              +'<div style="width:26px;height:26px;border-radius:50%;flex-shrink:0;">'+coinAvHtml+'</div>'
+              +'<div>'
+                +'<div style="font-size:13px;font-weight:600;color:#f7e7b8;">'+sym+(eurVal>0?' <span style="font-size:10px;color:rgba(125,214,125,.7);font-weight:500;margin-left:3px;">~'+_fmt(eurVal)+'</span>':'')+'</div>'
+                +'<div style="font-size:10px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+amt+' '+sym+'</div>'
+              +'</div>'
+            +'</div>'
+            +'<div style="text-align:right;">'
+              +'<div style="font-size:13px;font-weight:600;color:#f5c24a;font-family:\'JetBrains Mono\',monospace;">'+daysRemaining+' ημ.</div>'
+              +'<div style="font-size:10px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+dateStrFull+'</div>'
             +'</div>'
           +'</div>'
-          +'<div style="text-align:right;">'
-            +'<div style="font-size:12px;font-weight:600;color:#f5c24a;">'+days+' ημ.</div>'
-            +'<div style="font-size:10px;color:rgba(231,228,216,.4);">'+dateStr+'</div>'
+          // Validator block
+          +'<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-bottom:10px;">'
+            +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Validator</div>'
+            +'<div style="display:flex;align-items:center;gap:8px;">'
+              +valLogoHtml
+              +'<div style="min-width:0;flex:1;">'
+                +'<div style="font-size:12px;font-weight:600;color:#e7e4d8;">'+_esc(moniker)+'</div>'
+                +'<div style="font-size:9px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;word-break:break-all;line-height:1.4;">'+_esc(u.validator||'')+'</div>'
+              +'</div>'
+            +'</div>'
           +'</div>'
-          +'</div>';
+          // Address block
+          +'<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-bottom:10px;">'
+            +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Address</div>'
+            +'<div style="font-size:10px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;word-break:break-all;line-height:1.4;">'+_esc(u.address||'')+'</div>'
+          +'</div>'
+          // Countdown bar
+          +'<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;">'
+            +'<div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(231,228,216,.4);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace;">'
+              +'<span>Έναρξη '+startStr+'</span>'
+              +'<span style="color:rgba(245,194,74,.7);font-weight:600;">Ημέρα '+(totalDays-daysRemaining)+'/'+totalDays+'</span>'
+              +'<span>Λήξη '+endStr+'</span>'
+            +'</div>'
+            +'<div style="position:relative;height:5px;background:rgba(255,255,255,.05);border-radius:3px;">'
+              +'<div style="position:absolute;left:0;top:0;bottom:0;width:'+pctElapsed.toFixed(1)+'%;background:linear-gradient(90deg,#f5c24a,#fbbf24);border-radius:3px;"></div>'
+            +'</div>'
+          +'</div>'
+        +'</div>';
       });
       html+='</div>';
-      // Show in a modal overlay
+      
+      // Modal overlay
       var overlay=document.createElement('div');
       overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
       overlay.className='unbond-overlay';
-      overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:20px;width:100%;max-width:380px;">'
+      overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:18px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;">'
+        // Header
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
-          +'<span style="font-size:13px;font-weight:700;color:#f7e7b8;">⏳ Εκκρεμείς Unbonding</span>'
-          +'<button onclick="document.querySelectorAll(\'.unbond-overlay\').forEach(function(el){el.remove();})" style="background:none;border:none;color:rgba(231,228,216,.5);font-size:18px;cursor:pointer;">✕</button>'
+          +'<div style="display:flex;align-items:center;gap:9px;">'
+            +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(245,194,74,.08);border:1px solid rgba(245,194,74,.22);display:flex;align-items:center;justify-content:center;">'
+            +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f5c24a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+            +'</div>'
+            +'<div>'
+              +'<div style="font-size:13px;font-weight:700;color:#f7e7b8;">Εκκρεμές Unbonding</div>'
+              +'<div style="font-size:10px;color:rgba(231,228,216,.5);">'+rows.length+(rows.length===1?' ενεργό':' ενεργά')+(totalEur>0?' · '+_fmt(totalEur)+' συνολικά':'')+'</div>'
+            +'</div>'
+          +'</div>'
+          +'<button onclick="document.querySelectorAll(\'.unbond-overlay\').forEach(function(el){el.remove();})" style="background:none;border:none;color:rgba(231,228,216,.5);font-size:18px;cursor:pointer;padding:0;line-height:1;">✕</button>'
         +'</div>'
         +html
         +'</div>';
@@ -3059,7 +3197,7 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   // Background tasks
   setTimeout(()=>{_syncUserToCloud(au);},2000);
   setTimeout(()=>{_startPresence(au);_updateUserStats(au);},3000);
-  setTimeout(()=>{checkUnbonding();},4000);
+  setTimeout(()=>{checkUnbonding();},1500);
   // Notif tab badge: initial + every 60s
   setTimeout(()=>{_checkUnreadNotifCount();},5000);
   setInterval(()=>{if(_user)_checkUnreadNotifCount();},60000);
