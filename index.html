@@ -2748,7 +2748,7 @@ function _showCoinChart(coinId){
   var overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.className='coin-chart-overlay';
-  overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:22px;width:100%;max-width:760px;max-height:92vh;overflow-y:auto;">'
+  overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:22px;width:min(1200px,90vw);max-height:92vh;overflow-y:auto;">'
     // ── Header ─────────────────────────────
     +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:14px;">'
       +'<div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">'
@@ -2777,7 +2777,7 @@ function _showCoinChart(coinId){
       +[1,7,30,90,365].map(function(d){return '<button class="ccrange'+(d===365?' active':'')+'" data-d="'+d+'" onclick="_setCoinChartRange('+d+')" style="background:'+(d===365?'rgba(245,194,74,.15)':'none')+';border:'+(d===365?'1px solid rgba(245,194,74,.3)':'none')+';color:'+(d===365?'#f5c24a':'rgba(231,228,216,.5)')+';font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;'+(d===365?'font-weight:700;':'')+'">'+(d===1?'1D':d===7?'7D':d===30?'30D':d===90?'3M':'1Y')+'</button>';}).join('')
     +'</div>'
     // ── Chart canvas ───────────────────────
-    +'<div style="height:340px;position:relative;margin-bottom:14px;"><canvas id="coin-chart-canvas" style="width:100%;height:100%;"></canvas></div>'
+    +'<div style="height:min(440px,55vh);position:relative;margin-bottom:14px;"><canvas id="coin-chart-canvas" style="width:100%;height:100%;"></canvas></div>'
     // ── Footer stats ───────────────────────
     +'<div id="coin-chart-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 0;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:14px;">'
       +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Low</div><div style="font-size:13px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-low">—</div></div>'
