@@ -2655,53 +2655,71 @@ function _computeSR(prices,currentPrice){
   var highClusters=cluster(swings.filter(function(s){return s.type==='H';}).map(function(s){return s.price;}));
   var lowClusters=cluster(swings.filter(function(s){return s.type==='L';}).map(function(s){return s.price;}));
   // Build resistance candidates (πάνω από τρέχουσα τιμή)
-  var resCandidates=[];
-  // ATH guaranteed (αν >5% πάνω)
-  if(ath>currentPrice*1.05)resCandidates.push({avg:ath,touches:99,isAth:true});
-  // Swing highs με 2+ touches
-  highClusters.forEach(function(c){
-    if(c.touches>=2&&c.avg>currentPrice*1.05&&Math.abs(c.avg-ath)/ath>0.03){
-      resCandidates.push(c);
-    }
-  });
-  // Build support candidates (κάτω από τρέχουσα τιμή)
-  var supCandidates=[];
-  // ATL guaranteed (αν >5% κάτω)
-  if(atl<currentPrice*0.95)supCandidates.push({avg:atl,touches:99,isAtl:true});
-  // Swing lows με 2+ touches
-  lowClusters.forEach(function(c){
-    if(c.touches>=2&&c.avg<currentPrice*0.95&&Math.abs(c.avg-atl)/atl>0.03){
-      supCandidates.push(c);
-    }
-  });
-  // Sort by distance from current, prefer ATH/ATL + strength
-  // Resistance: closest first, but boost ATH and high-touch clusters
-  resCandidates.sort(function(a,b){
-    var distA=(a.avg-currentPrice)/currentPrice;
-    var distB=(b.avg-currentPrice)/currentPrice;
-    return distA-distB;
-  });
-  supCandidates.sort(function(a,b){
-    var distA=(currentPrice-a.avg)/currentPrice;
-    var distB=(currentPrice-b.avg)/currentPrice;
-    return distA-distB;
-  });
-  // Pick: 1st = closest, 2nd = next that is ≥8% away from 1st
-  function pickTwo(candidates){
-    if(!candidates.length)return[];
-    var first=candidates[0];
-    var second=null;
-    for(var j=1;j<candidates.length;j++){
-      var c=candidates[j];
-      if(Math.abs(c.avg-first.avg)/first.avg>=0.08){
-        second=c;break;
-      }
-    }
-    return second?[first.avg,second.avg]:[first.avg];
+  // ATH = πάντα 1ο level (αν >5% πάνω)
+  // 2ο level = πιο κοντινό swing high που είναι ≥8% μακριά από ATH
+  var resistance=[];
+  if(ath>currentPrice*1.05){
+    resistance.push(ath); // 1ο: ATH guaranteed
   }
+  // Συλλογή swing high candidates (πάνω από current, με 2+ touches, όχι κοντά σε ATH)
+  var resSwings=highClusters
+    .filter(function(c){
+      return c.touches>=2 
+          && c.avg>currentPrice*1.05 
+          && Math.abs(c.avg-ath)/ath>=0.08; // όχι duplicate του ATH
+    })
+    .sort(function(a,b){
+      // Prefer πιο κοντινά στην current price (intermediate target)
+      return (a.avg-currentPrice)-(b.avg-currentPrice);
+    });
+  if(resSwings.length){
+    resistance.push(resSwings[0].avg); // 2ο: πιο κοντινό swing
+  }
+  // Αν δεν βρήκαμε ATH (πχ τιμή κοντά στο ATH) ή swing, fallback:
+  // Το πιο κοντινό από όλα τα clusters
+  if(resistance.length<2){
+    var fallback=highClusters
+      .filter(function(c){
+        return c.avg>currentPrice*1.05 
+            && resistance.every(function(r){return Math.abs(c.avg-r)/r>=0.08;});
+      })
+      .sort(function(a,b){return (a.avg-currentPrice)-(b.avg-currentPrice);});
+    if(fallback.length)resistance.push(fallback[0].avg);
+  }
+  
+  // Build support candidates (κάτω από τρέχουσα τιμή)
+  // ATL = πάντα 1ο level (αν >5% κάτω)
+  // 2ο level = πιο κοντινό swing low που είναι ≥8% μακριά από ATL
+  var support=[];
+  if(atl<currentPrice*0.95){
+    support.push(atl); // 1ο: ATL guaranteed
+  }
+  var supSwings=lowClusters
+    .filter(function(c){
+      return c.touches>=2 
+          && c.avg<currentPrice*0.95 
+          && Math.abs(c.avg-atl)/atl>=0.08;
+    })
+    .sort(function(a,b){
+      // Prefer πιο κοντινά στην current price
+      return (currentPrice-a.avg)-(currentPrice-b.avg);
+    });
+  if(supSwings.length){
+    support.push(supSwings[0].avg);
+  }
+  if(support.length<2){
+    var fallbackS=lowClusters
+      .filter(function(c){
+        return c.avg<currentPrice*0.95 
+            && support.every(function(s){return Math.abs(c.avg-s)/s>=0.08;});
+      })
+      .sort(function(a,b){return (currentPrice-a.avg)-(currentPrice-b.avg);});
+    if(fallbackS.length)support.push(fallbackS[0].avg);
+  }
+  
   return{
-    resistance:pickTwo(resCandidates),
-    support:pickTwo(supCandidates)
+    resistance:resistance,
+    support:support
   };
 }
 
