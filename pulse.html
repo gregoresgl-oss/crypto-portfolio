@@ -634,23 +634,32 @@
 
 <script>
 /* ════════════════════════════════════════════════════════════
-   AUTH CHECK — redirect αν δεν είναι logged in στο GGWALL
+   AUTH CHECK — match index.html convention:
+   1. sessionStorage "pin_ok" === "1"
+   2. sessionStorage "active_user" exists with id
 ═══════════════════════════════════════════════════════════ */
 (function authGuard() {
   try {
-    const userStr = localStorage.getItem("_user") || sessionStorage.getItem("_user");
+    // Step 1: PIN check
+    if (sessionStorage.getItem("pin_ok") !== "1") {
+      window.location.replace("login.html");
+      return;
+    }
+    // Step 2: Active user
+    const userStr = sessionStorage.getItem("active_user");
     if (!userStr) {
-      window.location.href = "index.html";
+      window.location.replace("login.html");
       return;
     }
     const user = JSON.parse(userStr);
     if (!user || !user.id) {
-      window.location.href = "index.html";
+      window.location.replace("login.html");
       return;
     }
     window._user = user;
   } catch (e) {
-    window.location.href = "index.html";
+    console.error("[authGuard]", e);
+    window.location.replace("login.html");
   }
 })();
 
