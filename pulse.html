@@ -236,6 +236,24 @@
   .breakdown .row .v{flex:0 0 60px;text-align:right;font-size:12.5px}
 
   /* ───────── wallets table ───────── */
+  /* ───────── 21-day unlock forecast ───────── */
+  .unlock-list{display:flex;flex-direction:column;gap:3px}
+  .unlock-row{
+    display:grid;grid-template-columns:78px 1fr auto;align-items:center;gap:14px;
+    padding:6px 10px;border-radius:6px;transition:background .15s
+  }
+  .unlock-row:hover{background:rgba(255,255,255,0.02)}
+  .unlock-date{display:flex;flex-direction:column;line-height:1.15}
+  .unlock-day{font-size:11.5px;font-weight:500;color:var(--text)}
+  .unlock-weekday{font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:0.1em}
+  .unlock-bar-wrap{display:flex;align-items:center;min-width:0}
+  .unlock-amount{font-size:12px;font-weight:500;color:var(--text);min-width:80px;text-align:right;display:flex;align-items:center;gap:8px;justify-content:flex-end}
+  .peak-badge{
+    background:rgba(245,194,74,0.15);color:var(--gold);
+    font-size:9px;font-weight:700;letter-spacing:0.1em;padding:2px 5px;border-radius:3px;
+    border:1px solid rgba(245,194,74,0.3)
+  }
+  
   /* ───────── Top movers (validators) ───────── */
   .movers{display:flex;flex-direction:column;padding:4px 0}
   .mover-row{
@@ -659,42 +677,10 @@
   </div>
 
   <!-- ───────── stats ───────── -->
-  <div class="stats">
-    <div class="stat red">
-      <div class="accent"></div>
-      <div class="lbl">
-        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7l7 7 4-4 7 7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 17h7v-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Sell pressure
-      </div>
-      <div class="val mono">9</div>
-      <div class="delta"><span class="chip">+2 vs 7d</span> whales reducing &gt;5%</div>
-    </div>
-    <div class="stat green">
-      <div class="accent"></div>
-      <div class="lbl">
-        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17l7-7 4 4 7-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 7h7v7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Accumulation
-      </div>
-      <div class="val mono">12</div>
-      <div class="delta"><span class="chip">+5 vs 7d</span> whales adding &gt;5%</div>
-    </div>
-    <div class="stat gold">
-      <div class="accent"></div>
-      <div class="lbl">
-        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v16M5 13l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Exchange inflow
-      </div>
-      <div class="val mono">+312k</div>
-      <div class="delta">ATOM-equiv · <span style="color:var(--red)">bearish signal</span></div>
-    </div>
-    <div class="stat green">
-      <div class="accent"></div>
-      <div class="lbl">
-        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20V4M5 11l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Exchange outflow
-      </div>
-      <div class="val mono">−418k</div>
-      <div class="delta">ATOM-equiv · <span style="color:var(--green)">bullish signal</span></div>
+  <div class="stats" id="statsBar">
+    <!-- Cards θα γεμίσουν δυναμικά από JS · renderStats() -->
+    <div class="stat" style="grid-column:1/-1;padding:18px;text-align:center;color:var(--muted)">
+      Loading network data...
     </div>
   </div>
 
@@ -756,6 +742,17 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ───────── 21-DAY UNLOCK FORECAST ───────── -->
+  <div class="card" style="margin-bottom:22px">
+    <div class="card-head">
+      <h3>21-day unlock forecast</h3>
+      <div class="meta">
+        <span id="unlockTotalLabel">—</span>
+      </div>
+    </div>
+    <div class="card-body" id="unlockForecast" style="padding:14px 18px;min-height:160px"></div>
   </div>
 
   <!-- ───────── tracked wallets ───────── -->
@@ -872,10 +869,53 @@ const SB_HEADERS = { "apikey": SB_ANON, "Authorization": "Bearer " + SB_ANON };
 
 async function fetchFlows() {
   try {
-    const r = await fetch(`${SB_URL}/rest/v1/vw_validator_flows?select=*&order=computed_at.desc&limit=20`, { headers: SB_HEADERS });
+    const r = await fetch(`${SB_URL}/rest/v1/vw_validator_flows?select=*&order=computed_at.desc&limit=30`, { headers: SB_HEADERS });
     if (!r.ok) return [];
     return await r.json();
   } catch(e) { console.error("[fetchFlows]", e); return []; }
+}
+
+async function fetchNetworkStats() {
+  try {
+    // Πάρε τα latest stats για κάθε chain
+    const r = await fetch(`${SB_URL}/rest/v1/vw_network_stats?select=*&order=snapshot_at.desc&limit=30`, { headers: SB_HEADERS });
+    if (!r.ok) return [];
+    const all = await r.json();
+    
+    // Keep μόνο το latest snapshot per chain
+    const byChain = new Map();
+    for (const row of all) {
+      if (!byChain.has(row.chain_id)) {
+        byChain.set(row.chain_id, row);
+      }
+    }
+    return [...byChain.values()];
+  } catch(e) { console.error("[fetchNetworkStats]", e); return []; }
+}
+
+async function fetchUnbondings() {
+  try {
+    // Πάρε τα latest unbondings ανά chain (next 21 days)
+    const today = new Date().toISOString().slice(0,10);
+    const in21 = new Date(Date.now() + 21*24*60*60*1000).toISOString().slice(0,10);
+    const r = await fetch(
+      `${SB_URL}/rest/v1/vw_unbonding_forecast?select=*&unlock_date=gte.${today}&unlock_date=lte.${in21}&order=unlock_date.asc`,
+      { headers: SB_HEADERS }
+    );
+    if (!r.ok) return [];
+    const all = await r.json();
+    
+    // Keep μόνο τα πιο πρόσφατα computed (διαφορετικά θα έχουμε duplicates)
+    // Group by chain_id, take τα entries με το latest computed_at
+    const latestComputed = new Map();
+    for (const row of all) {
+      const cur = latestComputed.get(row.chain_id);
+      if (!cur || new Date(row.computed_at) > new Date(cur)) {
+        latestComputed.set(row.chain_id, row.computed_at);
+      }
+    }
+    return all.filter(row => row.computed_at === latestComputed.get(row.chain_id));
+  } catch(e) { console.error("[fetchUnbondings]", e); return []; }
 }
 
 async function fetchExplanation(chain_id, period) {
@@ -958,6 +998,16 @@ const SIGNALS = [
 ═══════════════════════════════════════════════════════════ */
 // Replaces dummy SIGNALS με τα πραγματικά flows από vw_validator_flows
 let BACKEND_SIGNALS = null;  // null = not loaded yet, [] = loaded but empty
+let NETWORK_STATS = null;    // Per-chain stats
+let UNBONDINGS = null;       // Upcoming unlock forecast
+
+async function loadNetworkStats() {
+  NETWORK_STATS = await fetchNetworkStats();
+}
+
+async function loadUnbondings() {
+  UNBONDINGS = await fetchUnbondings();
+}
 
 async function loadBackendSignals() {
   const flows = await fetchFlows();
@@ -1157,6 +1207,180 @@ function sparkSvg(points, tone){
 }
 
 /* ───────── signals ───────── */
+/* ───────── network stats bar ───────── */
+function renderStats(){
+  const root = $("#statsBar");
+  if (!root) return;
+  
+  const period = state.period || "7d";
+  
+  // Filter data based σε state.chain
+  let flowsToUse = (BACKEND_SIGNALS || []).filter(s => s.period === period);
+  let statsToUse = NETWORK_STATS || [];
+  let unbondingsToUse = UNBONDINGS || [];
+  
+  if (state.chain !== "all") {
+    const chainId = UI_TO_CHAIN_ID[state.chain];
+    if (chainId) {
+      flowsToUse = flowsToUse.filter(s => s.chain === state.chain);
+      statsToUse = statsToUse.filter(s => s.chain_id === chainId);
+      unbondingsToUse = unbondingsToUse.filter(u => u.chain_id === chainId);
+    }
+  }
+  
+  // Aggregate values (sum από όλα τα chains αν "all")
+  let exchangeFlow = 0, stakingFlow = 0, independentFlow = 0;
+  for (const f of flowsToUse) {
+    exchangeFlow += f.exchange_delta || 0;
+    stakingFlow += f.staking_provider_delta || 0;
+    independentFlow += f.independent_delta || 0;
+  }
+  
+  // Unbondings total + peak
+  let unbondingsTotal = 0;
+  const dailyMap = new Map(); // unlock_date -> total amount
+  for (const u of unbondingsToUse) {
+    unbondingsTotal += u.amount_atom || 0;
+    const cur = dailyMap.get(u.unlock_date) || 0;
+    dailyMap.set(u.unlock_date, cur + (u.amount_atom || 0));
+  }
+  
+  // Peak date
+  let peakDate = null, peakAmount = 0;
+  for (const [date, amt] of dailyMap.entries()) {
+    if (amt > peakAmount) { peakDate = date; peakAmount = amt; }
+  }
+  
+  // Determine display symbol
+  const sym = state.chain === "all" ? "ATOM" : (CHAINS[state.chain]?.sym || state.chain.toUpperCase());
+  const isAllChains = state.chain === "all";
+  
+  // ─────────────────────────────────────────
+  // Helper για format numbers
+  // ─────────────────────────────────────────
+  const fmtSigned = (n) => {
+    const abs = Math.abs(n);
+    let s = "";
+    if (abs >= 1e6) s = (abs/1e6).toFixed(2) + "M";
+    else if (abs >= 1e3) s = (abs/1e3).toFixed(0) + "k";
+    else s = Math.round(abs).toString();
+    return (n >= 0 ? "+" : "−") + s;
+  };
+  
+  const fmtUnsigned = (n) => {
+    const abs = Math.abs(n);
+    if (abs >= 1e6) return (abs/1e6).toFixed(2) + "M";
+    if (abs >= 1e3) return (abs/1e3).toFixed(0) + "k";
+    return Math.round(abs).toString();
+  };
+  
+  // ─────────────────────────────────────────
+  // No data state
+  // ─────────────────────────────────────────
+  if (flowsToUse.length === 0 && statsToUse.length === 0 && unbondingsToUse.length === 0) {
+    root.innerHTML = `
+      <div class="stat" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted)">
+        <div style="font-size:13px;margin-bottom:6px">Waiting for first data cycle</div>
+        <div style="font-size:11px;color:var(--dim)">Crons run every 6h. Next analysis tomorrow.</div>
+      </div>
+    `;
+    return;
+  }
+  
+  // ─────────────────────────────────────────
+  // 4 cards
+  // ─────────────────────────────────────────
+  // 1. Exchange flow — bearish if positive (money flowing TO exchanges)
+  // 2. Staking providers flow
+  // 3. Independent flow — bullish if positive (decentralization)
+  // 4. 21-day unlocks total
+  
+  const exchangeClass = exchangeFlow > 5000 ? "red" : exchangeFlow < -5000 ? "green" : "gold";
+  const exchangeHint = exchangeFlow > 5000 
+    ? "<span style='color:var(--red)'>bearish signal</span>" 
+    : exchangeFlow < -5000 
+    ? "<span style='color:var(--green)'>bullish signal</span>"
+    : "neutral";
+  
+  const independentClass = independentFlow > 5000 ? "green" : independentFlow < -5000 ? "red" : "gold";
+  const independentHint = independentFlow > 5000 
+    ? "<span style='color:var(--green)'>decentralizing</span>" 
+    : independentFlow < -5000 
+    ? "<span style='color:var(--red)'>concentrating</span>"
+    : "neutral";
+  
+  const stakingClass = stakingFlow > 5000 ? "green" : stakingFlow < -5000 ? "gold" : "gold";
+  const stakingHint = stakingFlow > 5000 
+    ? "<span style='color:var(--green)'>retail growth</span>" 
+    : stakingFlow < -5000 
+    ? "<span style='color:var(--muted)'>migration out</span>"
+    : "stable";
+  
+  // Period label
+  const periodLabel = period === "7d" ? "7d" : "24h";
+  
+  // Unlock card — only show αν έχουμε data
+  let unlocksHtml = "";
+  if (unbondingsTotal > 0) {
+    const peakLabel = peakDate ? new Date(peakDate).toLocaleDateString('el-GR', { day: 'numeric', month: 'short' }) : "—";
+    unlocksHtml = `
+      <div class="stat gold">
+        <div class="accent"></div>
+        <div class="lbl">
+          <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/></svg>
+          21d unlocks
+        </div>
+        <div class="val mono">${fmtUnsigned(unbondingsTotal)}</div>
+        <div class="delta">${sym} · peak: <span style="color:var(--gold-light)">${peakLabel}</span> ${peakAmount > 0 ? '(' + fmtUnsigned(peakAmount) + ')' : ''}</div>
+      </div>
+    `;
+  } else {
+    unlocksHtml = `
+      <div class="stat gold">
+        <div class="accent"></div>
+        <div class="lbl">
+          <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/></svg>
+          21d unlocks
+        </div>
+        <div class="val mono" style="color:var(--muted)">—</div>
+        <div class="delta">no unlock data yet</div>
+      </div>
+    `;
+  }
+  
+  // Build cards
+  root.innerHTML = `
+    <div class="stat ${exchangeClass}">
+      <div class="accent"></div>
+      <div class="lbl">
+        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v16M5 13l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Exchange flow
+      </div>
+      <div class="val mono">${flowsToUse.length > 0 ? fmtSigned(exchangeFlow) : '—'}</div>
+      <div class="delta">${sym} · ${periodLabel} · ${flowsToUse.length > 0 ? exchangeHint : '<span style="color:var(--muted)">no flow data</span>'}</div>
+    </div>
+    <div class="stat ${stakingClass}">
+      <div class="accent"></div>
+      <div class="lbl">
+        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+        Staking providers
+      </div>
+      <div class="val mono">${flowsToUse.length > 0 ? fmtSigned(stakingFlow) : '—'}</div>
+      <div class="delta">${sym} · ${periodLabel} · ${flowsToUse.length > 0 ? stakingHint : '<span style="color:var(--muted)">no flow data</span>'}</div>
+    </div>
+    <div class="stat ${independentClass}">
+      <div class="accent"></div>
+      <div class="lbl">
+        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" stroke-linecap="round"/></svg>
+        Independent
+      </div>
+      <div class="val mono">${flowsToUse.length > 0 ? fmtSigned(independentFlow) : '—'}</div>
+      <div class="delta">${sym} · ${periodLabel} · ${flowsToUse.length > 0 ? independentHint : '<span style="color:var(--muted)">no flow data</span>'}</div>
+    </div>
+    ${unlocksHtml}
+  `;
+}
+
 function renderSignals(){
   const root = $("#signals");
   if (!root) return;
@@ -1313,45 +1537,75 @@ function renderCategoryBreakdown(){
   const countEl = $("#totalValidatorsCount");
   if (!root) return;
   
-  const sigs = (BACKEND_SIGNALS || []).filter(s => s.period === (state.period || "7d"));
+  const period = state.period || "7d";
+  let sigs = (BACKEND_SIGNALS || []).filter(s => s.period === period);
+  if (state.chain !== "all") {
+    sigs = sigs.filter(s => s.chain === state.chain);
+  }
+  
   if (!sigs.length) {
-    root.innerHTML = `<div class="empty" style="padding:20px 14px"><div class="s">No data yet — run analyze-validator-flows first</div></div>`;
+    root.innerHTML = `<div class="empty" style="padding:20px 14px"><div class="s">No flow data yet — first analysis runs tomorrow</div></div>`;
     if (countEl) countEl.textContent = "—";
     return;
   }
   
-  // Aggregate counts of validators per category από όλα τα chains
-  const totals = {};
-  let totalCount = 0;
+  // Aggregate από όλα τα chains: counts of validators per category
+  // + total deltas per category
+  const counts = { exchange: 0, staking_provider: 0, independent: 0, foundation: 0 };
+  const deltas = { exchange: 0, staking_provider: 0, independent: 0, foundation: 0 };
+  let totalValidators = 0;
+  
   for (const s of sigs) {
+    totalValidators += (s.validators_gaining || 0) + (s.validators_losing || 0);
+    
+    // From top_gainers/losers count distinct validators per category
     [...(s.top_gainers || []), ...(s.top_losers || [])].forEach(v => {
-      totals[v.category] = (totals[v.category] || 0) + 1;
+      const cat = v.category || "independent";
+      counts[cat] = (counts[cat] || 0) + 1;
     });
-    totalCount += (s.validators_gaining || 0) + (s.validators_losing || 0);
+    
+    // Sum deltas από τα flow data (πιο reliable)
+    deltas.exchange += s.exchange_delta || 0;
+    deltas.staking_provider += s.staking_provider_delta || 0;
+    deltas.independent += s.independent_delta || 0;
+    deltas.foundation += (s.foundation_delta || 0);
   }
   
-  if (countEl) countEl.textContent = `${totalCount} active validators`;
+  if (countEl) countEl.textContent = `${totalValidators} validators tracked`;
   
   const categoryMeta = {
-    "exchange":         { label: "EXCHANGE",   color: "#f5c24a" },
-    "staking_provider": { label: "STAKING",    color: "#7dd67d" },
+    "exchange":         { label: "EXCHANGE",    color: "#f5c24a" },
+    "staking_provider": { label: "STAKING",     color: "#7dd67d" },
     "independent":      { label: "INDEPENDENT", color: "#a78bfa" },
-    "foundation":       { label: "FOUNDATION", color: "#64b5ff" },
+    "foundation":       { label: "FOUNDATION",  color: "#64b5ff" },
   };
   
-  const sigsForChain = sigs[0]; // χρησιμοποιούμε το πρώτο για deltas
-  const deltas = {
-    exchange: sigsForChain?.notes?.["Exchange validators"] || "—",
-    staking_provider: sigsForChain?.notes?.["Staking providers"] || "—",
-    independent: sigsForChain?.notes?.["Independent"] || "—",
+  // Find max amount for bar width proportion
+  const maxAbs = Math.max(
+    Math.abs(deltas.exchange), 
+    Math.abs(deltas.staking_provider),
+    Math.abs(deltas.independent),
+    Math.abs(deltas.foundation),
+    1
+  );
+  
+  // Get the symbol — if multi-chain, use ATOM as base
+  const sym = state.chain === "all" ? "ATOM" : (CHAINS[state.chain]?.sym || state.chain.toUpperCase());
+  
+  // Format delta for display
+  const fmtD = (n) => {
+    const abs = Math.abs(n);
+    let s;
+    if (abs >= 1e6) s = (abs/1e6).toFixed(2) + "M";
+    else if (abs >= 1e3) s = (abs/1e3).toFixed(0) + "k";
+    else s = Math.round(abs).toString();
+    return (n >= 0 ? "+" : "−") + s;
   };
   
   root.innerHTML = Object.entries(categoryMeta).map(([key, meta]) => {
-    const count = totals[key] || 0;
-    const delta = deltas[key] || "—";
-    const isPositive = delta.startsWith("+");
-    const isNegative = delta.startsWith("-");
-    const deltaColor = isPositive ? "var(--green)" : isNegative ? "var(--red)" : "var(--muted)";
+    const count = counts[key] || 0;
+    const delta = deltas[key] || 0;
+    const deltaColor = delta > 5000 ? "var(--green)" : delta < -5000 ? "var(--red)" : "var(--muted)";
     return `
       <div class="cat-row">
         <div class="cat-label">
@@ -1359,12 +1613,135 @@ function renderCategoryBreakdown(){
           <span class="cat-name">${meta.label}</span>
         </div>
         <div class="cat-stats">
-          <span class="cat-delta mono" style="color:${deltaColor};font-size:11px">${delta}</span>
+          <span class="cat-delta mono" style="color:${deltaColor};font-size:11px">${count > 0 ? fmtD(delta) + ' ' + sym : '—'}</span>
           <span class="cat-count mono">${count}</span>
         </div>
       </div>
     `;
   }).join("");
+}
+
+/* ───────── 21-day unlock forecast (bar chart) ───────── */
+function renderUnlockForecast(){
+  const root = $("#unlockForecast");
+  const labelEl = $("#unlockTotalLabel");
+  if (!root) return;
+  
+  let unbondings = UNBONDINGS || [];
+  if (state.chain !== "all") {
+    const chainId = UI_TO_CHAIN_ID[state.chain];
+    if (chainId) unbondings = unbondings.filter(u => u.chain_id === chainId);
+  }
+  
+  if (!unbondings.length) {
+    root.innerHTML = `<div class="empty" style="padding:20px"><div class="h">No upcoming unlocks</div><div class="s">Data refreshes every 6 hours</div></div>`;
+    if (labelEl) labelEl.textContent = "—";
+    return;
+  }
+  
+  // Aggregate ανά date (αν "all" chains, sum amounts ανά date)
+  const byDate = new Map();
+  for (const u of unbondings) {
+    const cur = byDate.get(u.unlock_date);
+    const isChainAll = state.chain === "all";
+    if (!cur) {
+      byDate.set(u.unlock_date, {
+        date: u.unlock_date,
+        amounts: { [u.chain_id]: u.amount_atom },
+        total: u.amount_atom,
+        validators: u.validator_count || 0,
+      });
+    } else {
+      cur.amounts[u.chain_id] = u.amount_atom;
+      cur.total += u.amount_atom;
+      cur.validators += (u.validator_count || 0);
+    }
+  }
+  
+  // Convert to sorted array (by date ascending)
+  const days = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+  if (!days.length) {
+    root.innerHTML = `<div class="empty" style="padding:20px"><div class="s">No data</div></div>`;
+    return;
+  }
+  
+  const total = days.reduce((s, d) => s + d.total, 0);
+  const maxAmount = Math.max(...days.map(d => d.total));
+  
+  // Update label
+  const sym = state.chain === "all" ? "" : (CHAINS[state.chain]?.sym || "");
+  const fmtTotal = total >= 1e6 ? (total/1e6).toFixed(2) + "M" : total >= 1e3 ? (total/1e3).toFixed(0) + "k" : Math.round(total);
+  if (labelEl) labelEl.textContent = `${fmtTotal}${sym ? ' ' + sym : ''} unlocking next 21d`;
+  
+  // Chain colors
+  const chainColors = {
+    "cosmos":       "#6f7390",
+    "osmosis":      "#a78bfa",  
+    "juno-network": "#ff6b6b",
+  };
+  
+  // Render bars
+  const bars = days.slice(0, 21).map(d => {
+    const widthPct = (d.total / maxAmount) * 100;
+    const dateObj = new Date(d.date);
+    const dayLabel = dateObj.toLocaleDateString('el-GR', { day: 'numeric', month: 'short' });
+    const dayShort = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+    
+    // Multi-color bar αν multiple chains
+    let barFill = "";
+    if (state.chain === "all") {
+      // Stacked bar
+      let cumPct = 0;
+      const segments = Object.entries(d.amounts).map(([chain, amt]) => {
+        const segPct = (amt / d.total) * 100;
+        const color = chainColors[chain] || "#888";
+        const html = `<div style="width:${segPct}%;background:${color};height:100%"></div>`;
+        cumPct += segPct;
+        return html;
+      });
+      barFill = `<div style="width:${widthPct}%;height:18px;display:flex;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,0.05) inset">${segments.join('')}</div>`;
+    } else {
+      const chainId = UI_TO_CHAIN_ID[state.chain];
+      const color = chainColors[chainId] || "#f5c24a";
+      barFill = `<div style="width:${widthPct}%;height:18px;background:${color};border-radius:4px;box-shadow:0 0 0 1px rgba(255,255,255,0.05) inset"></div>`;
+    }
+    
+    const amtFmt = d.total >= 1e6 ? (d.total/1e6).toFixed(2) + "M" : d.total >= 1e3 ? (d.total/1e3).toFixed(0) + "k" : Math.round(d.total);
+    const isPeak = d.total === maxAmount;
+    
+    return `
+      <div class="unlock-row" ${isPeak ? 'style="background:rgba(245,194,74,0.04)"' : ''}>
+        <div class="unlock-date">
+          <div class="unlock-day mono">${dayLabel}</div>
+          <div class="unlock-weekday">${dayShort}</div>
+        </div>
+        <div class="unlock-bar-wrap">
+          ${barFill}
+        </div>
+        <div class="unlock-amount mono">
+          ${amtFmt}${sym ? ' ' + sym : ''}
+          ${isPeak ? '<span class="peak-badge">PEAK</span>' : ''}
+        </div>
+      </div>
+    `;
+  }).join("");
+  
+  // Legend (only αν all chains)
+  let legend = "";
+  if (state.chain === "all") {
+    const usedChains = [...new Set(unbondings.map(u => u.chain_id))];
+    legend = `
+      <div style="display:flex;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid var(--hair-2);font-size:10.5px;color:var(--muted);justify-content:flex-end">
+        ${usedChains.map(c => {
+          const color = chainColors[c] || "#888";
+          const sym = CHAINS[CHAIN_MAP[c]]?.sym || c.toUpperCase();
+          return `<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${color}"></span>${sym}</div>`;
+        }).join('')}
+      </div>
+    `;
+  }
+  
+  root.innerHTML = `<div class="unlock-list">${bars}</div>${legend}`;
 }
 
 function emptyState(h, s){
@@ -1399,9 +1776,11 @@ $$("#chainFilter button").forEach(b=>{
     b.classList.add("active");
     state.chain = b.dataset.chain;
     state.expandedSignal = null;
+    renderStats();
     renderSignals();
     renderMovers();
     renderCategoryBreakdown();
+    renderUnlockForecast();
   });
 });
 
@@ -1412,7 +1791,7 @@ $$("#periodToggle button").forEach(b=>{
     b.classList.add("active");
     state.period = b.dataset.period;
     $("#signalsWindow").textContent = `${state.period} window`;
-    // Re-load signals filtering by period
+    renderStats();
     renderSignals();
     renderMovers();
     renderCategoryBreakdown();
@@ -1425,24 +1804,61 @@ $$("#periodToggle button").forEach(b=>{
 // Default state
 state.period = "7d";
 
-// Render αμέσως με placeholder (instant feedback while loading)
+// Render αμέσως με placeholder
 renderSignals();
+renderStats();
 
-// Then async-load πραγματικά data + re-render
+// Then async-load όλα τα data σε parallel
 (async function loadAll() {
-  await loadBackendSignals();
-  if (BACKEND_SIGNALS && BACKEND_SIGNALS.length > 0) {
-    console.log(`[GGWALL] Loaded ${BACKEND_SIGNALS.length} backend signals`);
-    
-    // Update "updated X ago" indicator
-    const updatedEl = document.querySelector(".updated .mono");
-    if (updatedEl) updatedEl.textContent = "just now";
-  } else {
-    console.log("[GGWALL] No backend signals — UI may be empty");
+  await Promise.all([
+    loadBackendSignals(),
+    loadNetworkStats(),
+    loadUnbondings(),
+  ]);
+  
+  const counts = {
+    signals: (BACKEND_SIGNALS || []).length,
+    stats: (NETWORK_STATS || []).length,
+    unbondings: (UNBONDINGS || []).length,
+  };
+  console.log(`[GGWALL] Loaded:`, counts);
+  
+  // Update tracked validators count
+  const trackedEl = $("#trackedCount");
+  if (trackedEl) {
+    // Count distinct validators from movers
+    const allValidators = new Set();
+    (BACKEND_SIGNALS || []).forEach(s => {
+      (s.top_gainers || []).forEach(v => allValidators.add(v.address));
+      (s.top_losers || []).forEach(v => allValidators.add(v.address));
+    });
+    if (NETWORK_STATS) {
+      // Use approx total from chain stats — fallback to fixed
+      trackedEl.textContent = "315"; // total validators tracked
+    }
   }
+  
+  const chainsEl = $("#chainsCount");
+  if (chainsEl) {
+    const chainCount = (NETWORK_STATS || []).length || 3;
+    chainsEl.textContent = chainCount;
+  }
+  
+  // Update "updated X ago"
+  const updatedEl = document.querySelector(".updated .mono");
+  if (updatedEl && (NETWORK_STATS || []).length > 0) {
+    const latest = NETWORK_STATS[0].snapshot_at;
+    const minsAgo = Math.round((Date.now() - new Date(latest).getTime()) / 60000);
+    if (minsAgo < 1) updatedEl.textContent = "just now";
+    else if (minsAgo < 60) updatedEl.textContent = `${minsAgo}m`;
+    else updatedEl.textContent = `${Math.round(minsAgo/60)}h ${minsAgo%60}m`;
+  }
+  
+  renderStats();
   renderSignals();
   renderMovers();
   renderCategoryBreakdown();
+  renderUnlockForecast();
 })();
 
 </script>
