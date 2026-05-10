@@ -236,6 +236,46 @@
   .breakdown .row .v{flex:0 0 60px;text-align:right;font-size:12.5px}
 
   /* ───────── wallets table ───────── */
+  /* ───────── Top movers (validators) ───────── */
+  .movers{display:flex;flex-direction:column;padding:4px 0}
+  .mover-row{
+    display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:12px;
+    padding:11px 18px;border-left:2px solid transparent;transition:background .15s
+  }
+  .mover-row + .mover-row{border-top:1px solid var(--hair-2)}
+  .mover-row:hover{background:rgba(255,255,255,0.02)}
+  .mover-arrow{display:grid;place-items:center}
+  .mover-name{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .mover-title{font-size:13.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mover-tag{
+    display:inline-block;padding:2px 7px;border-radius:5px;font-size:9.5px;font-weight:600;letter-spacing:0.1em;
+    text-transform:uppercase;width:fit-content
+  }
+  .mover-amount{font-size:13.5px;font-weight:600;text-align:right;line-height:1.3}
+  .mover-pct{display:block;margin-top:2px}
+  
+  /* ───────── Period toggle ───────── */
+  .period-toggle{display:inline-flex;background:rgba(255,255,255,0.025);border:1px solid var(--hair);border-radius:7px;padding:2px;gap:1px}
+  .period-toggle button{
+    padding:4px 10px;font-size:11px;color:var(--muted);border-radius:5px;
+    letter-spacing:0.04em;font-family:'JetBrains Mono',monospace;font-weight:500
+  }
+  .period-toggle button:hover{color:var(--text)}
+  .period-toggle button.active{background:rgba(245,194,74,0.1);color:var(--gold);box-shadow:0 0 0 1px var(--gold-hair) inset}
+  
+  /* ───────── Category breakdown (validators) ───────── */
+  .cat-row{
+    display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
+    padding:12px 18px;border-bottom:1px solid var(--hair-2)
+  }
+  .cat-row:last-child{border-bottom:none}
+  .cat-label{display:flex;align-items:center;gap:9px}
+  .cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .cat-name{font-size:11px;font-weight:600;letter-spacing:0.14em;color:var(--text)}
+  .cat-stats{display:flex;align-items:baseline;gap:14px}
+  .cat-delta{font-weight:500}
+  .cat-count{font-size:14px;font-weight:600;color:var(--text);min-width:32px;text-align:right}
+  
   .wallets-card{background:var(--card);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
   .table-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--hair-2);flex-wrap:wrap}
   .table-toolbar .left{display:flex;align-items:center;gap:14px}
@@ -481,6 +521,63 @@
       margin: 0;
     }
     
+    /* Wallet cards (mobile) — hide table, show cards */
+    .wallets-table-wrap { display: none !important; }
+    .wallets-cards { display: flex !important; flex-direction: column; }
+    .wallet-card {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--hair-2);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .wallet-card:hover, .wallet-card:active { background: rgba(255,255,255,0.025); }
+    .wallet-card:last-child { border-bottom: none; }
+    .wcard-row1 {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .wcard-row1 .wlogo {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .wcard-name { min-width: 0; }
+    .wcard-title {
+      font-size: 13px; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wcard-source {
+      font-size: 10.5px; color: var(--dim);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wcard-row2 {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 8px; padding-left: 46px;
+    }
+    .wcard-addr {
+      font-size: 10.5px; color: var(--muted);
+      flex: 1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wcard-row3 {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 10px; padding-left: 46px;
+    }
+    .wcard-change {
+      font-size: 14px; font-weight: 600;
+    }
+    
+    /* Hide table-toolbar tag filter on small mobile (keep search) */
+    .table-toolbar { padding: 12px 14px; gap: 10px; flex-direction: column; align-items: stretch; }
+    .table-toolbar .search input { width: 100%; font-size: 12px; }
+    #tagFilter { width: 100%; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+    #tagFilter::-webkit-scrollbar { display: none; }
+    #tagFilter .coin-check { flex-shrink: 0; font-size: 11px; padding: 5px 9px; }
+    
     /* Empty state */
     .empty { padding: 24px 14px; }
     .empty .h { font-size: 13px; }
@@ -488,6 +585,12 @@
     
     /* Toast */
     .toast { left: 14px; right: 14px; bottom: 14px; max-width: none; }
+  }
+  
+  /* Desktop: hide mobile cards */
+  @media (min-width: 721px) {
+    .wallets-cards { display: none !important; }
+    .wallets-table-wrap { display: block; }
   }
   
   /* Extra small screens (≤ 380px) */
@@ -605,121 +708,58 @@
           <h3>Aggregate signals · per chain</h3>
           <div class="meta">
             <span style="display:inline-flex;align-items:center;gap:6px"><span class="live-dot"></span> Live</span>
-            <span>7d window</span>
+            <span id="signalsWindow">7d window</span>
           </div>
         </div>
         <div class="card-body signals" id="signals"></div>
       </div>
 
-      <!-- MOVEMENTS -->
+      <!-- TOP MOVERS -->
       <div class="card">
         <div class="card-head">
-          <h3>Movements · live feed</h3>
+          <h3>Top movers · validators</h3>
           <div class="meta">
-            <button class="btn" id="movFilterBtn" style="padding:5px 9px;font-size:11px">All directions</button>
+            <div class="period-toggle" id="periodToggle">
+              <button data-period="24h">24h</button>
+              <button data-period="7d" class="active">7d</button>
+            </div>
           </div>
         </div>
-        <div class="card-body movements" id="movements"></div>
+        <div class="card-body movers" id="movers"></div>
       </div>
     </div>
 
     <!-- RIGHT col -->
     <div class="side">
-      <!-- BREAKDOWN -->
+      <!-- CATEGORY BREAKDOWN -->
       <div class="card breakdown">
         <div class="card-head">
-          <h3>Whale composition</h3>
-          <div class="meta"><span>28 wallets</span></div>
+          <h3>Category breakdown</h3>
+          <div class="meta"><span id="totalValidatorsCount">— validators</span></div>
         </div>
-        <div class="card-body">
-          <div class="row"><div class="label"><span class="tag exchange">EXCHANGE</span></div><div class="bar"><span style="width:32%;background:var(--gold)"></span></div><div class="v mono">9</div></div>
-          <div class="row"><div class="label"><span class="tag foundation">FOUNDATION</span></div><div class="bar"><span style="width:21%;background:var(--purple)"></span></div><div class="v mono">6</div></div>
-          <div class="row"><div class="label"><span class="tag founder">FOUNDER</span></div><div class="bar"><span style="width:18%;background:var(--blue)"></span></div><div class="v mono">5</div></div>
-          <div class="row"><div class="label"><span class="tag validator">VALIDATOR</span></div><div class="bar"><span style="width:18%;background:var(--green)"></span></div><div class="v mono">5</div></div>
-          <div class="row"><div class="label"><span class="tag unknown_whale">UNKNOWN</span></div><div class="bar"><span style="width:11%;background:rgba(231,228,216,0.4)"></span></div><div class="v mono">3</div></div>
+        <div class="card-body" id="categoryBreakdown">
+          <div class="empty" style="padding:20px 14px">
+            <div class="s">Loading...</div>
+          </div>
         </div>
       </div>
 
-      <!-- NOTIFY -->
-      <div class="card notify">
+      <!-- INFO CARD -->
+      <div class="card">
         <div class="card-head">
-          <h3>Notifications</h3>
-          <div class="meta"><span style="color:var(--gold)">Beta</span></div>
+          <h3>How it works</h3>
         </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="l">
-              <div class="h">Notify on whale movements</div>
-              <div class="s">Email + push when threshold is crossed</div>
-            </div>
-            <div class="toggle on" id="notifyToggle"></div>
-          </div>
-          <div class="hr"></div>
-          <div class="slider-wrap">
-            <div class="slider-row">
-              <div class="h">Threshold</div>
-              <div class="v mono"><span id="threshVal">15</span>%</div>
-            </div>
-            <input type="range" min="5" max="50" value="15" step="1" id="thresh" />
-            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim)" class="mono"><span>5%</span><span>50%</span></div>
-          </div>
-          <div class="hr"></div>
-          <div style="padding:14px 18px 6px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim)">Coin filter</div>
-          <div class="coin-checks" id="coinChecks">
-            <button class="coin-check on" data-coin="ATOM"><span class="ck">✓</span> ATOM</button>
-            <button class="coin-check on" data-coin="OSMO"><span class="ck">✓</span> OSMO</button>
-            <button class="coin-check" data-coin="JUNO"><span class="ck"></span> JUNO</button>
-            <button class="coin-check on" data-coin="DYM"><span class="ck">✓</span> DYM</button>
-            <button class="coin-check" data-coin="SAGA"><span class="ck"></span> SAGA</button>
-          </div>
-          <div style="padding:8px 18px 16px">
-            <button class="btn primary" style="width:100%;justify-content:center" id="saveAlerts">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Save alert preferences
-            </button>
-          </div>
+        <div class="card-body" style="padding:16px 18px;font-size:12px;color:var(--muted);line-height:1.6">
+          <p style="margin:0 0 10px">Watchtower tracks validator stake movements every 6 hours across Cosmos chains.</p>
+          <p style="margin:0 0 10px">When voting power shifts, it reveals where smart money is going — exchanges, staking providers, or independent validators.</p>
+          <p style="margin:0">Click <strong style="color:var(--gold)">"Γιατί συμβαίνει αυτό;"</strong> on any signal for AI-powered explanation with current crypto news context.</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ───────── tracked wallets ───────── -->
-  <div class="wallets-card">
-    <div class="card-head">
-      <h3>Tracked wallets</h3>
-      <div class="meta"><span>Sorted by 7d change</span></div>
-    </div>
-    <div class="table-toolbar">
-      <div class="left">
-        <div class="search">
-          <svg class="icn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5" stroke-linecap="round"/></svg>
-          <input type="text" placeholder="Search by name, address or tag…" id="walletSearch" />
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap" id="tagFilter">
-        <button class="coin-check on" data-tag="all">All tags</button>
-        <button class="coin-check" data-tag="EXCHANGE">Exchanges</button>
-        <button class="coin-check" data-tag="FOUNDATION">Foundations</button>
-        <button class="coin-check" data-tag="FOUNDER">Founders</button>
-        <button class="coin-check" data-tag="VALIDATOR">Validators</button>
-      </div>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="table" id="walletsTable">
-        <thead>
-          <tr>
-            <th>Wallet</th>
-            <th>Address</th>
-            <th>Tag</th>
-            <th>Chain</th>
-            <th style="text-align:right" class="sortable" data-sort="balance">Balance <span class="so">↓</span></th>
-            <th style="text-align:right" class="sortable sorted" data-sort="change">7d change <span class="so">↓</span></th>
-          </tr>
-        </thead>
-        <tbody id="walletsBody"></tbody>
-      </table>
-    </div>
-  </div>
+  <!-- Tracked wallets removed — Watchtower tracks validators not wallets -->
 </div>
 
 <!-- ───────── modal ───────── -->
@@ -910,88 +950,8 @@ const SIGNALS = [
     spark:makeSpark(-0.1), notes:{ Buyers:2, Sellers:2, "Net 7d":"−6k SAGA", "Largest move":"Validator −9k" } },
 ];
 
-const WALLETS = [
-  { id:"binance1", chain:"atom", name:"Binance Hot Wallet 1", short:"B1", color:"gold",
-    address:"cosmos1ku5uy0snzx2ke0lp5kdqzqhfu5gj7nvkz9yrcw", tag:"EXCHANGE",
-    balance:1_840_300, change:+2.4, source:"Binance public attestation" },
-  { id:"kraken_cold", chain:"atom", name:"Kraken Cold Storage", short:"KR", color:"gold",
-    address:"cosmos1zkqx3umakrxwzgg5g5gakqkx3xkk0p3y8vxqrf", tag:"EXCHANGE",
-    balance:920_500, change:+11.8, source:"Kraken proof-of-reserves" },
-  { id:"coinbase_cust", chain:"atom", name:"Coinbase Custody", short:"CB", color:"gold",
-    address:"cosmos1g5y2x9p4nv0kc4xzgu60q2yrjf9p2qf6r9z2cv", tag:"EXCHANGE",
-    balance:2_410_000, change:-1.1, source:"Coinbase Custody" },
-  { id:"icf", chain:"atom", name:"ICF Foundation Treasury", short:"IC", color:"purple",
-    address:"cosmos1unc788qkc6f6lq2v3hgcpf9g3z5x7w2dhydq8a", tag:"FOUNDATION",
-    balance:5_240_000, change:-7.3, source:"Interchain Foundation" },
-  { id:"sunny", chain:"osmo", name:"Sunny Aggarwal", short:"SA", color:"blue",
-    address:"osmo1z8acx5qg9lfu0jh8nj62fnqrfqkz9pdxvf3l28", tag:"FOUNDER",
-    balance:1_320_000, change:+18.2, source:"Verified by Osmosis CF" },
-  { id:"zaki", chain:"atom", name:"Zaki Manian", short:"ZM", color:"blue",
-    address:"cosmos1abcvfqg8yfh4j2k0wqzltrydp83c8xvpr2t5n9", tag:"FOUNDER",
-    balance:412_000, change:+3.1, source:"On-chain attestation" },
-  { id:"cbcloud", chain:"atom", name:"Coinbase Cloud Validator", short:"CC", color:"green",
-    address:"cosmosvaloper1c4t08x7y3kqzgw5fdh92mnp3vbu0lq7r9zexm6", tag:"VALIDATOR",
-    balance:3_120_400, change:-0.4, source:"Mintscan validator set" },
-  { id:"everstake", chain:"atom", name:"Everstake Validator", short:"EV", color:"green",
-    address:"cosmosvaloper1ev3rstake7q2hx9jnp8mb4d5c0uw2z6gyf9rkp4", tag:"VALIDATOR",
-    balance:2_890_100, change:+1.7, source:"Mintscan validator set" },
-  { id:"unkw1", chain:"atom", name:"Whale 0x…4f2", short:"??", color:"unknown",
-    address:"cosmos1n38xq7lcpv2hgw3y6jzkdtuf9p2qrm5x80c4f2", tag:"UNKNOWN_WHALE",
-    balance:680_000, change:+24.6, source:"Heuristic clustering" },
-  { id:"osmo_cf", chain:"osmo", name:"Osmosis Foundation", short:"OF", color:"purple",
-    address:"osmo1of0cn8k2vp4qg9z6yrt5ld3xj0pcw7m2hzbvyk", tag:"FOUNDATION",
-    balance:8_900_000, change:-2.8, source:"Osmosis governance" },
-  { id:"imperator", chain:"osmo", name:"Imperator Validator", short:"IM", color:"green",
-    address:"osmovaloper1imp3r4t0r9zx5pk2f7nq8gvjy4rh6cb2u0meld", tag:"VALIDATOR",
-    balance:4_500_300, change:+0.9, source:"Mintscan" },
-  { id:"binance_osmo", chain:"osmo", name:"Binance OSMO Hot", short:"B2", color:"gold",
-    address:"osmo1bnce8q3vk2mp7yr5gn0xc4lf9j2dqz6h8twv9p", tag:"EXCHANGE",
-    balance:6_200_000, change:+8.4, source:"Binance attestation" },
-  { id:"juno_cf", chain:"juno", name:"Juno Foundation", short:"JF", color:"purple",
-    address:"juno1cf0qdt8m4xv2ply9zg6kn5wpr3jh7c2yfu0ebr", tag:"FOUNDATION",
-    balance:1_460_000, change:-1.4, source:"Juno governance" },
-  { id:"juno_unk", chain:"juno", name:"Whale 0x…a72", short:"??", color:"unknown",
-    address:"juno1y3pxu7m2vw4kqg8hr5dl0cjz9bn6fpt2vea72k", tag:"UNKNOWN_WHALE",
-    balance:520_000, change:+0.0, source:"Heuristic clustering" },
-  { id:"dym_treas", chain:"dym", name:"Dymension Treasury", short:"DT", color:"purple",
-    address:"dym1tre4s2q9gpv0ck8mzx4lh3yj5n6r7wtfb2du9k", tag:"FOUNDATION",
-    balance:2_100_000, change:+9.2, source:"Dymension Foundation" },
-  { id:"dym_founder", chain:"dym", name:"Dymension Founder", short:"DF", color:"blue",
-    address:"dym1fnd2ek0q3vp7ymx5cn8gr2lj6h4w9bzu0t3p5q", tag:"FOUNDER",
-    balance:480_000, change:+14.5, source:"On-chain attestation" },
-  { id:"saga_cf", chain:"saga", name:"Saga Foundation", short:"SF", color:"purple",
-    address:"saga1cf2qd9m4xv8ply3zg6kn5wpr7jh1c0yfu2ebrt", tag:"FOUNDATION",
-    balance:920_000, change:-0.8, source:"Saga Foundation" },
-  { id:"saga_val", chain:"saga", name:"Polychain Validator", short:"PC", color:"green",
-    address:"sagavaloper1plyc2q9m4xv8kg7zh3rn5wptr6jc1y0bfu2erd", tag:"VALIDATOR",
-    balance:1_280_500, change:-3.2, source:"Mintscan" },
-];
 
-const MOVEMENTS = [
-  { ago:"2h ago",  walletId:"binance1",   dir:"in",  amount:50_000,  sym:"ATOM", chain:"atom", impact:"bear", note:"Large deposit · likely sell incoming" },
-  { ago:"4h ago",  walletId:"sunny",      dir:"acc", amount:8_400,   sym:"OSMO", chain:"osmo", impact:"bull", note:"Accumulating from Keplr" },
-  { ago:"8h ago",  walletId:"icf",        dir:"out", amount:250_000, sym:"ATOM", chain:"atom", impact:"bear", note:"Treasury moved to OTC desk" },
-  { ago:"14h ago", walletId:"zaki",       dir:"acc", amount:1_000,   sym:"ATOM", chain:"atom", impact:"bull", note:"Small accumulation" },
-  { ago:"1d ago",  walletId:"dym_treas",  dir:"acc", amount:60_000,  sym:"DYM",  chain:"dym",  impact:"bull", note:"Treasury increase" },
-  { ago:"1d ago",  walletId:"imperator",  dir:"out", amount:18_500,  sym:"OSMO", chain:"osmo", impact:"bull", note:"Withdrawal from exchange" },
-  { ago:"2d ago",  walletId:"kraken_cold",dir:"in",  amount:28_000,  sym:"ATOM", chain:"atom", impact:"bear", note:"Cold storage receiving" },
-  { ago:"2d ago",  walletId:"unkw1",      dir:"acc", amount:120_000, sym:"ATOM", chain:"atom", impact:"bull", note:"New wallet · large entry" },
-  { ago:"3d ago",  walletId:"saga_val",   dir:"in",  amount:9_000,   sym:"SAGA", chain:"saga", impact:"bear", note:"Deposit to Binance" },
-];
 
-const TX_BY_WALLET = {
-  binance1:[
-    {t:"2h ago",  dir:"in",  amount:50_000, sym:"ATOM", note:"Deposit from cosmos1mn…3a4"},
-    {t:"1d ago",  dir:"in",  amount:18_400, sym:"ATOM", note:"Deposit from cosmos1xr…9z2"},
-    {t:"3d ago",  dir:"out", amount:12_000, sym:"ATOM", note:"Withdrawal to cosmos1k4…wq8"},
-    {t:"5d ago",  dir:"in",  amount:42_500, sym:"ATOM", note:"Deposit from cosmos1pq…7vc"},
-  ],
-  default:[
-    {t:"6h ago",  dir:"out", amount:8_400,  sym:"—",    note:"Outbound transfer"},
-    {t:"2d ago",  dir:"in",  amount:14_000, sym:"—",    note:"Inbound transfer"},
-    {t:"4d ago",  dir:"out", amount:5_200,  sym:"—",    note:"Outbound transfer"},
-  ]
-};
 
 /* ════════════════════════════════════════════════════════════
    BACKEND SIGNALS LOADING
@@ -1006,23 +966,22 @@ async function loadBackendSignals() {
     return;
   }
   
-  // Group by chain — keep latest 7d flow per chain (preferred), fallback to 24h
-  const byChain = new Map();
+  // Group by (chain, period) — keep latest computed_at για κάθε combo
+  const byKey = new Map();
   for (const f of flows) {
     const uiChain = CHAIN_MAP[f.chain_id];
     if (!uiChain) continue;
+    const key = `${uiChain}|${f.period}`;
     
-    const existing = byChain.get(uiChain);
-    if (!existing) {
-      byChain.set(uiChain, f);
-    } else if (existing.period !== "7d" && f.period === "7d") {
-      // Prefer 7d over 24h
-      byChain.set(uiChain, f);
+    const existing = byKey.get(key);
+    if (!existing || new Date(f.computed_at) > new Date(existing.computed_at)) {
+      byKey.set(key, f);
     }
   }
   
   // Map to SIGNALS format
-  BACKEND_SIGNALS = [...byChain.entries()].map(([uiChain, flow]) => {
+  BACKEND_SIGNALS = [...byKey.values()].map((flow) => {
+    const uiChain = CHAIN_MAP[flow.chain_id];
     const sym = (CHAINS[uiChain]?.sym) || flow.chain_id.toUpperCase();
     const totalChange = (flow.exchange_delta || 0) + (flow.staking_provider_delta || 0) + (flow.independent_delta || 0);
     
@@ -1030,7 +989,7 @@ async function loadBackendSignals() {
     const tone = flow.verdict === "bullish" ? 0.6 : flow.verdict === "bearish" ? -0.6 : 0;
     
     return {
-      id: uiChain,
+      id: `${uiChain}-${flow.period}`,
       chain: uiChain,
       flow_id: flow.id,
       period: flow.period,
@@ -1138,13 +1097,9 @@ async function showAiExplanation(uiChain, flowId) {
    STATE
 ═══════════════════════════════════════════════════════════ */
 const state = {
-  chain:"all",
-  movDir:"all",       // all | in | out | acc
-  walletQuery:"",
-  walletTag:"all",
-  sortBy:"change",
-  sortDir:"desc",
-  expandedSignal:null,
+  chain: "all",
+  period: "7d",       // 24h | 7d
+  expandedSignal: null,
 };
 
 /* ════════════════════════════════════════════════════════════
@@ -1204,10 +1159,27 @@ function sparkSvg(points, tone){
 /* ───────── signals ───────── */
 function renderSignals(){
   const root = $("#signals");
-  // Use backend signals αν είναι loaded και έχει data, αλλιώς fallback σε dummy
-  const sourceSignals = (BACKEND_SIGNALS && BACKEND_SIGNALS.length > 0) ? BACKEND_SIGNALS : SIGNALS;
+  if (!root) return;
+  // Use backend signals αν είναι loaded και έχει data
+  const period = state.period || "7d";
+  let sourceSignals = (BACKEND_SIGNALS && BACKEND_SIGNALS.length > 0) 
+    ? BACKEND_SIGNALS.filter(s => s.period === period)
+    : [];
+  
+  // Loading state αν δεν έχουμε ακόμα δεδομένα
+  if (BACKEND_SIGNALS === null) {
+    root.innerHTML = `<div class="empty"><div class="ic"><div style="width:14px;height:14px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div></div><div class="h">Loading signals...</div></div>`;
+    return;
+  }
+  
   const filtered = state.chain==="all" ? sourceSignals : sourceSignals.filter(s=>s.chain===state.chain);
-  if (!filtered.length){ root.innerHTML = emptyState("No signals for this chain"); return; }
+  if (!filtered.length){ 
+    root.innerHTML = emptyState(
+      `No signals for ${period} window`, 
+      "Waiting for cron to generate analysis. First snapshot needed."
+    ); 
+    return; 
+  }
   root.innerHTML = filtered.map(s=>{
     const c = CHAINS[s.chain] || { name: s.chain.toUpperCase(), sym: s.chain.toUpperCase(), cls: s.chain };
     const isOpen = state.expandedSignal===s.id;
@@ -1269,127 +1241,130 @@ function dirLabel(dir){
   if(dir==="out") return `<span class="mono" style="color:var(--green)">−OUT</span>`;
   return `<span class="mono" style="color:var(--green)">+ACC</span>`;
 }
-function renderMovements(){
-  const root = $("#movements");
-  let list = MOVEMENTS;
-  if (state.chain!=="all") list = list.filter(m=>m.chain===state.chain);
-  if (state.movDir!=="all") list = list.filter(m=>m.dir===state.movDir);
-  if (!list.length){
-    root.innerHTML = emptyState("No movements match the current filters", "Try removing the chain filter or expanding the time window.");
+/* ───────── top movers (validators) ───────── */
+function renderMovers(){
+  const root = $("#movers");
+  if (!root) return;
+  
+  // Get current period from state
+  const period = state.period || "7d";
+  
+  // Filter signals που έχουν matching period
+  const sigs = (BACKEND_SIGNALS || []).filter(s => s.period === period);
+  if (state.chain !== "all") {
+    sigs.filter(s => s.chain === state.chain);
+  }
+  
+  // Combine top_gainers + top_losers from όλα τα signals
+  let movers = [];
+  for (const s of sigs) {
+    (s.top_gainers || []).forEach(g => movers.push({ ...g, sym: (CHAINS[s.chain]?.sym || s.chain.toUpperCase()), chain: s.chain, kind: "gain" }));
+    (s.top_losers || []).forEach(l => movers.push({ ...l, sym: (CHAINS[s.chain]?.sym || s.chain.toUpperCase()), chain: s.chain, kind: "loss" }));
+  }
+  
+  // Sort by absolute delta_atom desc
+  movers.sort((a,b) => Math.abs(b.delta_atom) - Math.abs(a.delta_atom));
+  movers = movers.slice(0, 10);
+  
+  if (!movers.length) {
+    root.innerHTML = emptyState("No movers data yet", "Waiting for analyze-validator-flows to run.");
     return;
   }
-  root.innerHTML = list.map(m=>{
-    const w = WALLETS.find(x=>x.id===m.walletId);
-    const c = CHAINS[m.chain];
-    const eur = m.amount * c.price;
+  
+  const categoryColors = {
+    "exchange": { bg: "rgba(245,194,74,0.1)", color: "#f5c24a" },
+    "staking_provider": { bg: "rgba(125,214,125,0.1)", color: "#7dd67d" },
+    "independent": { bg: "rgba(167,139,250,0.1)", color: "#a78bfa" },
+    "foundation": { bg: "rgba(100,181,255,0.1)", color: "#64b5ff" },
+  };
+  
+  root.innerHTML = movers.map(m => {
+    const cat = categoryColors[m.category] || categoryColors.independent;
+    const isGain = m.kind === "gain";
+    const sign = isGain ? "+" : "";
+    const arrowColor = isGain ? "var(--green)" : "var(--red)";
+    const formattedAtom = Math.abs(m.delta_atom) >= 1000
+      ? (Math.abs(m.delta_atom) / 1000).toFixed(0) + "k"
+      : Math.round(Math.abs(m.delta_atom));
     return `
-      <div class="movement ${m.impact}">
-        <div class="time mono">${m.ago}</div>
-        <div class="arrow-icn">${arrowIcon(m.dir)}</div>
-        <div class="who">
-          <div class="name">${w?w.name:"Unknown"}</div>
-          <div class="row2">
-            <span class="tag ${w?w.tag.toLowerCase():'unknown_whale'}">${w?w.tag.replace("_"," "):"UNKNOWN"}</span>
-            <span class="chain-chip">${c.sym}</span>
-            <span style="color:var(--dim)">·</span>
-            <span style="color:var(--muted)">${m.note}</span>
-          </div>
+      <div class="mover-row">
+        <div class="mover-arrow" style="color:${arrowColor}">
+          ${isGain
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          }
         </div>
-        <div class="amount">
-          <div class="a ${m.dir}">${dirLabel(m.dir)} <span class="mono" style="margin-left:4px">${fmtNum(m.amount)} ${m.sym}</span></div>
-          <div class="eur">${fmtEur(eur)}</div>
+        <div class="mover-name">
+          <div class="mover-title">${m.moniker}</div>
+          <div class="mover-tag" style="background:${cat.bg};color:${cat.color}">${m.category.replace("_"," ")}</div>
+        </div>
+        <div class="mover-amount mono" style="color:${arrowColor}">
+          ${sign}${formattedAtom} ${m.sym}
+          <div class="mover-pct mono" style="color:var(--muted);font-size:10.5px;font-weight:400">${sign}${m.delta_pct}%</div>
         </div>
       </div>
     `;
   }).join("");
 }
 
-/* ───────── wallets table ───────── */
-function renderWallets(){
-  const body = $("#walletsBody");
-  let list = WALLETS.slice();
-  if (state.chain!=="all") list = list.filter(w=>w.chain===state.chain);
-  if (state.walletTag!=="all") list = list.filter(w=>w.tag===state.walletTag);
-  if (state.walletQuery){
-    const q = state.walletQuery.toLowerCase();
-    list = list.filter(w => (w.name+" "+w.address+" "+w.tag).toLowerCase().includes(q));
-  }
-  // sort
-  list.sort((a,b)=>{
-    const dir = state.sortDir==="asc"?1:-1;
-    const va = state.sortBy==="balance" ? a.balance : a.change;
-    const vb = state.sortBy==="balance" ? b.balance : b.change;
-    return (va-vb)*dir;
-  });
-
-  if (!list.length){
-    body.innerHTML = `<tr><td colspan="6">${emptyState("No wallets match these filters")}</td></tr>`;
+/* ───────── category breakdown (validators) ───────── */
+function renderCategoryBreakdown(){
+  const root = $("#categoryBreakdown");
+  const countEl = $("#totalValidatorsCount");
+  if (!root) return;
+  
+  const sigs = (BACKEND_SIGNALS || []).filter(s => s.period === (state.period || "7d"));
+  if (!sigs.length) {
+    root.innerHTML = `<div class="empty" style="padding:20px 14px"><div class="s">No data yet — run analyze-validator-flows first</div></div>`;
+    if (countEl) countEl.textContent = "—";
     return;
   }
-
-  body.innerHTML = list.map(w=>{
-    const c = CHAINS[w.chain];
-    const eur = w.balance * c.price;
-    const pct = w.change;
-    const pctCls = pct>0.05?"pos":pct<-0.05?"neg":"flat";
-    const pctSign = pct>0?"+":"";
-    const barW = Math.min(100, Math.abs(pct)*4);
-    const barColor = pct>=0 ? "var(--green)" : "var(--red)";
+  
+  // Aggregate counts of validators per category από όλα τα chains
+  const totals = {};
+  let totalCount = 0;
+  for (const s of sigs) {
+    [...(s.top_gainers || []), ...(s.top_losers || [])].forEach(v => {
+      totals[v.category] = (totals[v.category] || 0) + 1;
+    });
+    totalCount += (s.validators_gaining || 0) + (s.validators_losing || 0);
+  }
+  
+  if (countEl) countEl.textContent = `${totalCount} active validators`;
+  
+  const categoryMeta = {
+    "exchange":         { label: "EXCHANGE",   color: "#f5c24a" },
+    "staking_provider": { label: "STAKING",    color: "#7dd67d" },
+    "independent":      { label: "INDEPENDENT", color: "#a78bfa" },
+    "foundation":       { label: "FOUNDATION", color: "#64b5ff" },
+  };
+  
+  const sigsForChain = sigs[0]; // χρησιμοποιούμε το πρώτο για deltas
+  const deltas = {
+    exchange: sigsForChain?.notes?.["Exchange validators"] || "—",
+    staking_provider: sigsForChain?.notes?.["Staking providers"] || "—",
+    independent: sigsForChain?.notes?.["Independent"] || "—",
+  };
+  
+  root.innerHTML = Object.entries(categoryMeta).map(([key, meta]) => {
+    const count = totals[key] || 0;
+    const delta = deltas[key] || "—";
+    const isPositive = delta.startsWith("+");
+    const isNegative = delta.startsWith("-");
+    const deltaColor = isPositive ? "var(--green)" : isNegative ? "var(--red)" : "var(--muted)";
     return `
-      <tr data-id="${w.id}">
-        <td>
-          <div class="wname">
-            <div class="wlogo" style="background:${logoColorVar(w.color)};color:${logoTextColor(w.color)};box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06)">${w.short}</div>
-            <div>
-              <div style="font-weight:500">${w.name}</div>
-              <div style="font-size:11.5px;color:var(--dim)">${w.source}</div>
-            </div>
-          </div>
-        </td>
-        <td>
-          <span class="addr-cell mono">${trunc(w.address)}
-            <button class="copy" data-copy="${w.address}" title="Copy address" aria-label="Copy address">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10" stroke-linecap="round"/></svg>
-            </button>
-          </span>
-        </td>
-        <td><span class="tag ${w.tag.toLowerCase()}">${w.tag.replace("_"," ")}</span></td>
-        <td><span class="chain-chip">${c.sym}</span></td>
-        <td style="text-align:right">
-          <div class="mono" style="font-weight:500">${fmtNum(w.balance)}</div>
-          <div class="mono" style="font-size:11.5px;color:var(--dim)">${fmtEur(eur)}</div>
-        </td>
-        <td style="text-align:right">
-          <div class="delta-bar">
-            <div class="mini-bar"><i style="width:${barW}%;background:${barColor}"></i></div>
-            <span class="pct mono ${pctCls}">${pctSign}${pct.toFixed(1)}%</span>
-          </div>
-        </td>
-      </tr>
+      <div class="cat-row">
+        <div class="cat-label">
+          <span class="cat-dot" style="background:${meta.color}"></span>
+          <span class="cat-name">${meta.label}</span>
+        </div>
+        <div class="cat-stats">
+          <span class="cat-delta mono" style="color:${deltaColor};font-size:11px">${delta}</span>
+          <span class="cat-count mono">${count}</span>
+        </div>
+      </div>
     `;
   }).join("");
-
-  // wire row click
-  $$("#walletsBody tr").forEach(tr=>{
-    tr.addEventListener("click", e=>{
-      if (e.target.closest(".copy")) return;
-      openModal(tr.dataset.id);
-    });
-  });
-  $$("#walletsBody .copy").forEach(btn=>{
-    btn.addEventListener("click", e=>{
-      e.stopPropagation();
-      copy(btn.dataset.copy);
-    });
-  });
-
-  // header sort indicator
-  $$(".table thead th.sortable").forEach(th=>{
-    const active = th.dataset.sort===state.sortBy;
-    th.classList.toggle("sorted", active);
-    const so = th.querySelector(".so");
-    if (so) so.textContent = state.sortDir==="asc" ? "↑" : "↓";
-  });
 }
 
 function emptyState(h, s){
@@ -1398,147 +1373,6 @@ function emptyState(h, s){
     <div class="h">${h}</div>
     ${s?`<div class="s">${s}</div>`:""}
   </div>`;
-}
-
-/* ════════════════════════════════════════════════════════════
-   MODAL
-═══════════════════════════════════════════════════════════ */
-let chart=null;
-function openModal(id){
-  const w = WALLETS.find(x=>x.id===id); if(!w) return;
-  const c = CHAINS[w.chain];
-  $("#mLogo").style.background = logoColorVar(w.color);
-  $("#mLogo").style.color = logoTextColor(w.color);
-  $("#mLogo").style.boxShadow = "inset 0 0 0 1px rgba(255,255,255,0.06)";
-  $("#mLogo").textContent = w.short;
-  $("#mName").textContent = w.name;
-  const tagEl = $("#mTag");
-  tagEl.className = "tag "+w.tag.toLowerCase();
-  tagEl.textContent = w.tag.replace("_"," ");
-  $("#mChain").textContent = `${c.sym} · ${c.name}`;
-  $("#mDesc").textContent = w.source;
-  $("#mAddr").textContent = w.address;
-  $("#mBal").textContent = fmtFull(w.balance)+" "+c.sym;
-  $("#mBalEur").textContent = fmtEur(w.balance * c.price);
-  const sign = w.change>=0?"+":"";
-  const cv = $("#mChange");
-  cv.textContent = sign+w.change.toFixed(1)+"%";
-  cv.style.color = w.change>=0 ? "var(--green)" : "var(--red)";
-  const abs = (w.change/100)*w.balance;
-  $("#mChangeAbs").textContent = (abs>=0?"+":"")+fmtNum(abs)+" "+c.sym;
-  $("#mCopy").onclick = ()=>copy(w.address);
-  $("#mMintscan").href = `https://www.mintscan.io/${w.chain==="atom"?"cosmos":w.chain}/account/${w.address}`;
-
-  // tx list
-  const txs = TX_BY_WALLET[w.id] || TX_BY_WALLET.default.map(t=>({...t,sym:c.sym}));
-  $("#mTxList").innerHTML = txs.map(t=>`
-    <div class="tx-row">
-      <div class="t mono">${t.t}</div>
-      <div class="arrow-icn ${t.dir==="in"?"":""}" style="background:${t.dir==="in"?"rgba(255,95,109,0.08)":"rgba(125,214,125,0.08)"};color:${t.dir==="in"?"var(--red)":"var(--green)"}">${arrowIcon(t.dir)}</div>
-      <div class="lbl">
-        ${t.dir==="in"?"Inbound":"Outbound"} transfer
-        <div class="sub">${t.note}</div>
-      </div>
-      <div class="a ${t.dir}">${t.dir==="in"?"+":"−"}${fmtNum(t.amount)} ${t.sym}</div>
-    </div>
-  `).join("");
-
-  // chart
-  drawChart(w, 30);
-  $$("#chartTabs button").forEach(b=>{
-    b.classList.toggle("on", b.dataset.range==="30");
-    b.onclick = ()=>{
-      $$("#chartTabs button").forEach(x=>x.classList.toggle("on", x===b));
-      drawChart(w, parseInt(b.dataset.range,10));
-    };
-  });
-
-  $("#modal").classList.add("open");
-  document.body.style.overflow="hidden";
-}
-function closeModal(){
-  $("#modal").classList.remove("open");
-  document.body.style.overflow="";
-  if (chart){ chart.destroy(); chart=null; }
-}
-
-function drawChart(w, days){
-  const c = CHAINS[w.chain];
-  const ctx = $("#balChart").getContext("2d");
-  if (chart) chart.destroy();
-  // build series ending at current balance, with same overall change %
-  const start = w.balance / (1 + w.change/100);
-  const arr=[]; const labels=[];
-  let prev = start * (0.95 + Math.random()*0.05);
-  const today = new Date();
-  for(let i=0;i<days;i++){
-    const t = i/(days-1);
-    const drift = start + (w.balance-start)*t;
-    const noise = drift * (Math.sin(i*0.6+w.id.length)*0.025 + (Math.random()-0.5)*0.02);
-    const v = Math.max(0, drift + noise);
-    arr.push(v);
-    const d = new Date(today); d.setDate(d.getDate()-(days-1-i));
-    labels.push(d.toISOString().slice(5,10));
-  }
-  arr[arr.length-1] = w.balance;
-
-  // gradient
-  const grad = ctx.createLinearGradient(0,0,0,200);
-  const lineColor = w.change>=0 ? "#7dd67d" : "#ff5f6d";
-  grad.addColorStop(0, w.change>=0 ? "rgba(125,214,125,0.28)" : "rgba(255,95,109,0.28)");
-  grad.addColorStop(1, "rgba(0,0,0,0)");
-
-  chart = new Chart(ctx, {
-    type:"line",
-    data:{
-      labels,
-      datasets:[{
-        data:arr,
-        borderColor:lineColor,
-        backgroundColor:grad,
-        borderWidth:2.5,
-        fill:true,
-        tension:0.32,
-        pointRadius:0,
-        pointHoverRadius:5,
-        pointHoverBackgroundColor:lineColor,
-        pointHoverBorderColor:"#0a0a0d",
-        pointHoverBorderWidth:2,
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{ mode:"index", intersect:false },
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:"#0a0a0d",
-          borderColor:"rgba(245,194,74,0.3)",
-          borderWidth:1,
-          titleColor:"#f5c24a",
-          bodyColor:"#e7e4d8",
-          titleFont:{family:"JetBrains Mono", size:11, weight:"500"},
-          bodyFont:{family:"JetBrains Mono", size:12},
-          padding:10, cornerRadius:8,
-          displayColors:false,
-          callbacks:{
-            label:(ctx)=> fmtFull(Math.round(ctx.parsed.y))+" "+c.sym,
-          }
-        }
-      },
-      scales:{
-        x:{
-          grid:{display:false},
-          ticks:{color:"rgba(231,228,216,0.4)", font:{family:"JetBrains Mono", size:10}, maxRotation:0, autoSkipPadding:24}
-        },
-        y:{
-          grid:{color:"rgba(255,255,255,0.04)"},
-          border:{display:false},
-          ticks:{color:"rgba(231,228,216,0.4)", font:{family:"JetBrains Mono", size:10}, callback:v=>fmtNum(v)}
-        }
-      }
-    }
-  });
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1565,86 +1399,50 @@ $$("#chainFilter button").forEach(b=>{
     b.classList.add("active");
     state.chain = b.dataset.chain;
     state.expandedSignal = null;
-    renderSignals(); renderMovements(); renderWallets();
+    renderSignals();
+    renderMovers();
+    renderCategoryBreakdown();
   });
 });
 
-// movements direction filter (cycle button)
-const dirCycle = ["all","in","out","acc"];
-const dirLabels = {all:"All directions", in:"Exchange inflow", out:"Exchange outflow", acc:"Accumulation"};
-$("#movFilterBtn").addEventListener("click", ()=>{
-  const idx = dirCycle.indexOf(state.movDir);
-  state.movDir = dirCycle[(idx+1)%dirCycle.length];
-  $("#movFilterBtn").textContent = dirLabels[state.movDir];
-  renderMovements();
-});
-
-// table sort
-$$(".table thead th.sortable").forEach(th=>{
-  th.addEventListener("click", ()=>{
-    const k = th.dataset.sort;
-    if (state.sortBy===k) state.sortDir = state.sortDir==="asc"?"desc":"asc";
-    else { state.sortBy=k; state.sortDir="desc"; }
-    renderWallets();
-  });
-});
-// search + tag filter
-$("#walletSearch").addEventListener("input", e=>{ state.walletQuery=e.target.value; renderWallets(); });
-$$("#tagFilter button").forEach(b=>{
+// period toggle (24h / 7d)
+$$("#periodToggle button").forEach(b=>{
   b.addEventListener("click", ()=>{
-    $$("#tagFilter button").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on");
-    state.walletTag = b.dataset.tag;
-    renderWallets();
+    $$("#periodToggle button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    state.period = b.dataset.period;
+    $("#signalsWindow").textContent = `${state.period} window`;
+    // Re-load signals filtering by period
+    renderSignals();
+    renderMovers();
+    renderCategoryBreakdown();
   });
 });
-
-// notify
-$("#notifyToggle").addEventListener("click", e=>e.currentTarget.classList.toggle("on"));
-const thresh = $("#thresh");
-function syncThresh(){
-  const v = +thresh.value;
-  $("#threshVal").textContent = v;
-  const pct = ((v-5)/(50-5))*100;
-  thresh.style.setProperty("--pct", pct+"%");
-}
-thresh.addEventListener("input", syncThresh);
-syncThresh();
-$$("#coinChecks .coin-check").forEach(b=>{
-  b.addEventListener("click", ()=>{
-    b.classList.toggle("on");
-    const isOn = b.classList.contains("on");
-    b.querySelector(".ck").textContent = isOn ? "✓" : "";
-  });
-});
-$("#saveAlerts").addEventListener("click", ()=>showToast("Alert preferences saved"));
-
-// modal close
-$("#mClose").addEventListener("click", closeModal);
-$("#modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
-document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
 
 /* ════════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════ */
-// Render αμέσως με dummy data (instant feedback)
+// Default state
+state.period = "7d";
+
+// Render αμέσως με placeholder (instant feedback while loading)
 renderSignals();
-renderMovements();
-renderWallets();
 
 // Then async-load πραγματικά data + re-render
 (async function loadAll() {
   await loadBackendSignals();
   if (BACKEND_SIGNALS && BACKEND_SIGNALS.length > 0) {
     console.log(`[GGWALL] Loaded ${BACKEND_SIGNALS.length} backend signals`);
-    renderSignals();
     
     // Update "updated X ago" indicator
     const updatedEl = document.querySelector(".updated .mono");
     if (updatedEl) updatedEl.textContent = "just now";
   } else {
-    console.log("[GGWALL] No backend signals — showing demo data");
+    console.log("[GGWALL] No backend signals — UI may be empty");
   }
+  renderSignals();
+  renderMovers();
+  renderCategoryBreakdown();
 })();
 
 </script>
