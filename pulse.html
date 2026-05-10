@@ -1,0 +1,1486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GGWALL · Watchtower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0d;
+    --bg-2:#0d0e13;
+    --card:#12151d;
+    --card-2:#161a24;
+    --gold:#f5c24a;
+    --gold-light:#f7e7b8;
+    --green:#7dd67d;
+    --red:#ff5f6d;
+    --orange:#fb923c;
+    --purple:#a78bfa;
+    --blue:#64b5ff;
+    --text:#e7e4d8;
+    --muted:rgba(231,228,216,0.5);
+    --dim:rgba(231,228,216,0.4);
+    --hair:rgba(255,255,255,0.06);
+    --hair-2:rgba(255,255,255,0.04);
+    --gold-hair:rgba(245,194,74,0.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11"}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(245,194,74,0.05), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(167,139,250,0.04), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+  button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+  a{color:inherit;text-decoration:none}
+
+  /* ───────── shell ───────── */
+  .app{max-width:1480px;margin:0 auto;padding:28px 32px 80px}
+  @media (max-width:720px){ .app{padding:20px 16px 60px} }
+
+  /* ───────── topbar ───────── */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-bottom:24px;border-bottom:1px solid var(--hair)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{
+    width:38px;height:38px;border-radius:10px;
+    background:radial-gradient(120% 120% at 30% 20%, #fff5d6, #f5c24a 40%, #b88a1d 100%);
+    box-shadow:0 0 0 1px rgba(245,194,74,0.45) inset, 0 8px 24px -8px rgba(245,194,74,0.5);
+    display:grid;place-items:center;color:#1a1408;font-weight:700;font-size:14px;letter-spacing:0.04em
+  }
+  .brand-name{font-weight:600;letter-spacing:0.18em;font-size:14px}
+  .brand-name .dim{color:var(--muted);font-weight:400}
+  .nav{display:flex;gap:2px;align-items:center;background:rgba(255,255,255,0.025);border:1px solid var(--hair);border-radius:10px;padding:4px}
+  .nav a{padding:7px 14px;font-size:12.5px;color:var(--muted);border-radius:7px;letter-spacing:0.04em}
+  .nav a:hover{color:var(--text)}
+  .nav a.active{background:rgba(245,194,74,0.08);color:var(--gold);box-shadow:0 0 0 1px var(--gold-hair) inset}
+  .topbar-right{display:flex;align-items:center;gap:14px;color:var(--muted);font-size:12.5px}
+  .net-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--hair);border-radius:8px}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(125,214,125,0.6);animation:pulse 2s infinite}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(125,214,125,0.55)}
+    70%{box-shadow:0 0 0 8px rgba(125,214,125,0)}
+    100%{box-shadow:0 0 0 0 rgba(125,214,125,0)}
+  }
+
+  /* ───────── page header ───────── */
+  .pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:28px 0 22px}
+  .pagehead h1{font-size:34px;font-weight:500;letter-spacing:-0.015em;margin:0}
+  .pagehead .eyebrow{display:flex;align-items:center;gap:10px;font-size:11.5px;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+  .pagehead .sub{color:var(--muted);font-size:14px;margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
+  .pagehead .sub .sep{color:var(--hair);}
+  .pagehead .sub .mono{color:var(--text)}
+
+  .chain-filter{display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:rgba(255,255,255,0.025);border:1px solid var(--hair);padding:5px;border-radius:11px}
+  .chain-filter button{
+    padding:7px 12px;font-size:12px;letter-spacing:0.04em;color:var(--muted);border-radius:7px;
+    display:inline-flex;align-items:center;gap:7px;transition:color .15s, background .15s
+  }
+  .chain-filter button:hover{color:var(--text)}
+  .chain-filter button.active{background:rgba(245,194,74,0.1);color:var(--gold);box-shadow:0 0 0 1px var(--gold-hair) inset}
+  .chain-filter .swatch{width:6px;height:6px;border-radius:50%}
+
+  .updated{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+  .updated .icn{color:var(--gold)}
+
+  /* ───────── stats grid ───────── */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  @media (max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:520px){.stats{grid-template-columns:1fr}}
+  .stat{
+    background:linear-gradient(180deg, var(--card) 0%, var(--bg-2) 100%);
+    border:1px solid var(--hair);border-radius:14px;padding:18px 18px 16px;position:relative;overflow:hidden;
+    transition:border-color .2s, transform .2s
+  }
+  .stat:hover{border-color:rgba(255,255,255,0.1)}
+  .stat .lbl{display:flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted)}
+  .stat .lbl .icn{display:inline-flex;width:14px;height:14px}
+  .stat .val{margin-top:14px;font-size:32px;font-weight:500;letter-spacing:-0.02em}
+  .stat .delta{margin-top:6px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .stat .delta .chip{padding:1px 6px;border-radius:4px;font-size:11px;font-weight:500}
+  .stat .accent{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)}
+  .stat.red .val{color:var(--red)} .stat.red .accent{background:var(--red)}
+  .stat.green .val{color:var(--green)} .stat.green .accent{background:var(--green)}
+  .stat.gold .val{color:var(--gold)} .stat.gold .accent{background:var(--gold)}
+  .stat.green .chip{background:rgba(125,214,125,0.12);color:var(--green)}
+  .stat.red .chip{background:rgba(255,95,109,0.12);color:var(--red)}
+  .stat.gold .chip{background:rgba(245,194,74,0.12);color:var(--gold)}
+
+  /* ───────── two-col main ───────── */
+  .grid-main{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:22px}
+  @media (max-width:1100px){.grid-main{grid-template-columns:1fr}}
+
+  .card{background:var(--card);border:1px solid var(--hair);border-radius:14px}
+  .card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--hair-2)}
+  .card-head h3{margin:0;font-size:13px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--text)}
+  .card-head .meta{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center}
+  .card-body{padding:8px 0 8px}
+
+  /* aggregate signals (chains) */
+  .signals{display:flex;flex-direction:column}
+  .signal-row{
+    display:grid;grid-template-columns:42px 1fr 110px 130px 38px;align-items:center;gap:14px;
+    padding:14px 18px;cursor:pointer;border-left:2px solid transparent;transition:background .15s, border-color .15s
+  }
+  .signal-row + .signal-row{border-top:1px solid var(--hair-2)}
+  .signal-row:hover{background:rgba(255,255,255,0.02);border-left-color:var(--gold-hair)}
+  .signal-row.expanded{background:rgba(245,194,74,0.03);border-left-color:var(--gold)}
+  .chain-logo{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:11px;letter-spacing:0.04em}
+  .chain-logo.atom{background:linear-gradient(135deg,#2e3148,#1a1c2e);color:#a8b1ff;box-shadow:inset 0 0 0 1px rgba(168,177,255,0.25)}
+  .chain-logo.osmo{background:linear-gradient(135deg,#3a1d52,#1f0d2e);color:#c39bff;box-shadow:inset 0 0 0 1px rgba(195,155,255,0.25)}
+  .chain-logo.juno{background:linear-gradient(135deg,#4a1818,#2a0d0d);color:#ff9b9b;box-shadow:inset 0 0 0 1px rgba(255,155,155,0.25)}
+  .chain-logo.dym{background:linear-gradient(135deg,#3a2a14,#241a0c);color:#ffcf85;box-shadow:inset 0 0 0 1px rgba(255,207,133,0.3)}
+  .chain-logo.saga{background:linear-gradient(135deg,#1a3a2c,#0c2218);color:#9be9c5;box-shadow:inset 0 0 0 1px rgba(155,233,197,0.25)}
+  .signal-name{font-size:14px;font-weight:500;letter-spacing:0.01em}
+  .signal-sub{font-size:11.5px;color:var(--muted);margin-top:3px;letter-spacing:0.02em}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:6px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase}
+  .badge.bullish{background:rgba(125,214,125,0.1);color:var(--green);box-shadow:inset 0 0 0 1px rgba(125,214,125,0.18)}
+  .badge.bearish{background:rgba(255,95,109,0.1);color:var(--red);box-shadow:inset 0 0 0 1px rgba(255,95,109,0.18)}
+  .badge.neutral{background:rgba(231,228,216,0.06);color:var(--muted);box-shadow:inset 0 0 0 1px var(--hair)}
+  .spark{width:130px;height:34px;display:block}
+  .chev{color:var(--muted);transition:transform .2s}
+  .signal-row.expanded .chev{transform:rotate(90deg);color:var(--gold)}
+
+  .signal-detail{display:none;padding:0 18px 18px 74px;font-size:12.5px;color:var(--muted);grid-template-columns:repeat(4,1fr);gap:18px;border-bottom:1px solid var(--hair-2)}
+  .signal-row.expanded + .signal-detail{display:grid}
+  .signal-detail .kv{display:flex;flex-direction:column;gap:4px}
+  .signal-detail .kv .k{font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim)}
+  .signal-detail .kv .v{font-size:14px;color:var(--text)}
+
+  /* movements timeline */
+  .movements{display:flex;flex-direction:column}
+  .movement{
+    display:grid;grid-template-columns:62px 28px 1fr auto;gap:12px;align-items:center;
+    padding:13px 18px;border-left:2px solid transparent;transition:background .15s
+  }
+  .movement + .movement{border-top:1px solid var(--hair-2)}
+  .movement.bull{border-left-color:rgba(125,214,125,0.6)}
+  .movement.bear{border-left-color:rgba(255,95,109,0.6)}
+  .movement:hover{background:rgba(255,255,255,0.02)}
+  .movement .time{font-size:11.5px;color:var(--dim);letter-spacing:0.04em}
+  .movement .who{display:flex;flex-direction:column;gap:3px}
+  .movement .who .name{font-size:13px;font-weight:500}
+  .movement .who .row2{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
+  .movement .amount{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+  .movement .amount .a{font-size:14px;font-weight:500}
+  .movement .amount .a.in{color:var(--red)}
+  .movement .amount .a.out{color:var(--green)}
+  .movement .amount .a.acc{color:var(--green)}
+  .movement .amount .eur{font-size:11.5px;color:var(--dim)}
+
+  .arrow-icn{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,0.03)}
+  .movement.bear .arrow-icn{background:rgba(255,95,109,0.08);color:var(--red)}
+  .movement.bull .arrow-icn{background:rgba(125,214,125,0.08);color:var(--green)}
+
+  /* tags */
+  .tag{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase}
+  .tag.exchange{background:rgba(245,194,74,0.1);color:var(--gold);box-shadow:inset 0 0 0 1px rgba(245,194,74,0.2)}
+  .tag.foundation{background:rgba(167,139,250,0.1);color:var(--purple);box-shadow:inset 0 0 0 1px rgba(167,139,250,0.22)}
+  .tag.founder{background:rgba(100,181,255,0.1);color:var(--blue);box-shadow:inset 0 0 0 1px rgba(100,181,255,0.22)}
+  .tag.validator{background:rgba(125,214,125,0.1);color:var(--green);box-shadow:inset 0 0 0 1px rgba(125,214,125,0.22)}
+  .tag.unknown_whale{background:rgba(231,228,216,0.05);color:var(--muted);box-shadow:inset 0 0 0 1px var(--hair)}
+
+  .chain-chip{font-size:10px;letter-spacing:0.12em;color:var(--dim);text-transform:uppercase}
+
+  /* sidebar (notify) */
+  .side{display:flex;flex-direction:column;gap:16px}
+  .notify .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px}
+  .notify .row + .row{border-top:1px solid var(--hair-2)}
+  .notify .row .l{font-size:13px}
+  .notify .row .l .h{font-weight:500}
+  .notify .row .l .s{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+  .toggle{position:relative;width:38px;height:22px;border-radius:99px;background:rgba(255,255,255,0.07);box-shadow:inset 0 0 0 1px var(--hair);cursor:pointer;transition:background .2s}
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#3a3d49;transition:transform .2s, background .2s}
+  .toggle.on{background:rgba(245,194,74,0.25);box-shadow:inset 0 0 0 1px rgba(245,194,74,0.45)}
+  .toggle.on::after{transform:translateX(16px);background:var(--gold)}
+
+  .slider-wrap{padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+  .slider-row{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  .slider-row .h{font-weight:500}
+  .slider-row .v{color:var(--gold);font-size:14px}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:99px;
+    background:linear-gradient(to right, var(--gold) 0% var(--pct,30%), rgba(255,255,255,0.08) var(--pct,30%) 100%);
+    outline:none;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+    background:var(--gold);box-shadow:0 0 0 4px rgba(245,194,74,0.18)
+  }
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--gold);border:none}
+
+  .coin-checks{display:flex;flex-wrap:wrap;gap:6px;padding:14px 18px}
+  .coin-check{
+    display:inline-flex;align-items:center;gap:7px;padding:7px 12px;font-size:12px;border-radius:8px;
+    background:rgba(255,255,255,0.025);color:var(--muted);cursor:pointer;
+    box-shadow:inset 0 0 0 1px var(--hair);transition:all .15s
+  }
+  .coin-check:hover{color:var(--text)}
+  .coin-check.on{background:rgba(245,194,74,0.08);color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold-hair)}
+  .coin-check .ck{width:12px;height:12px;border-radius:3px;display:grid;place-items:center;background:rgba(255,255,255,0.06)}
+  .coin-check.on .ck{background:var(--gold);color:#1a1408}
+
+  /* legend / breakdown card */
+  .breakdown .row{display:flex;align-items:center;gap:12px;padding:12px 18px}
+  .breakdown .row + .row{border-top:1px solid var(--hair-2)}
+  .breakdown .row .label{flex:0 0 110px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .breakdown .row .bar{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,0.04);overflow:hidden;position:relative}
+  .breakdown .row .bar > span{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
+  .breakdown .row .v{flex:0 0 60px;text-align:right;font-size:12.5px}
+
+  /* ───────── wallets table ───────── */
+  .wallets-card{background:var(--card);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
+  .table-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--hair-2);flex-wrap:wrap}
+  .table-toolbar .left{display:flex;align-items:center;gap:14px}
+  .search{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);border:1px solid var(--hair);border-radius:8px;padding:7px 11px;min-width:240px}
+  .search input{background:none;border:0;outline:0;color:var(--text);font-family:inherit;font-size:13px;width:100%}
+  .search input::placeholder{color:var(--dim)}
+  .search .icn{color:var(--muted)}
+  .table{width:100%;border-collapse:collapse}
+  .table thead th{
+    text-align:left;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim);
+    font-weight:500;padding:12px 18px;border-bottom:1px solid var(--hair-2);background:rgba(0,0,0,0.15);
+    user-select:none;
+  }
+  .table thead th.sortable{cursor:pointer}
+  .table thead th.sortable:hover{color:var(--muted)}
+  .table thead th .so{display:inline-block;margin-left:6px;color:var(--gold);opacity:0;transform:translateY(-1px)}
+  .table thead th.sorted .so{opacity:1}
+  .table tbody td{padding:14px 18px;border-bottom:1px solid var(--hair-2);font-size:13px;vertical-align:middle}
+  .table tbody tr{cursor:pointer;transition:background .15s}
+  .table tbody tr:hover{background:rgba(255,255,255,0.02)}
+  .table tbody tr:last-child td{border-bottom:0}
+  .wname{display:flex;align-items:center;gap:10px}
+  .wlogo{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:10.5px;letter-spacing:0.04em;flex-shrink:0}
+  .addr-cell{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+  .addr-cell .copy{color:var(--dim);padding:4px;border-radius:5px;display:inline-grid;place-items:center;transition:all .15s}
+  .addr-cell .copy:hover{color:var(--gold);background:rgba(245,194,74,0.08)}
+  .pct{font-weight:500}
+  .pct.pos{color:var(--green)}
+  .pct.neg{color:var(--red)}
+  .pct.flat{color:var(--muted)}
+  .delta-bar{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+  .mini-bar{width:36px;height:4px;border-radius:99px;background:rgba(255,255,255,0.05);overflow:hidden}
+  .mini-bar > i{display:block;height:100%;border-radius:99px}
+
+  /* ───────── modal ───────── */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(5,5,8,0.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:24px;
+  }
+  .modal-backdrop.open{display:flex}
+  .modal{
+    width:min(820px,100%);max-height:90vh;overflow:auto;
+    background:linear-gradient(180deg,#161a24 0%, #11141c 100%);
+    border:1px solid rgba(245,194,74,0.18);border-radius:16px;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.4);
+    animation:modalin .2s ease-out;
+  }
+  @keyframes modalin{from{opacity:0;transform:translateY(8px) scale(0.98)}to{opacity:1;transform:none}}
+  .modal-head{padding:22px 22px 18px;border-bottom:1px solid var(--hair-2);display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+  .modal-title{display:flex;align-items:center;gap:14px}
+  .modal-close{padding:6px;color:var(--muted);border-radius:6px}
+  .modal-close:hover{color:var(--text);background:rgba(255,255,255,0.04)}
+  .modal-balance{padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:24px;border-bottom:1px solid var(--hair-2)}
+  .balance .lbl{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+  .balance .v{font-size:26px;font-weight:500;letter-spacing:-0.01em}
+  .balance .eur{color:var(--muted);font-size:14px;margin-top:2px}
+  .modal-addr{padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--hair-2);flex-wrap:wrap}
+  .modal-addr .a{font-size:12.5px;color:var(--muted);word-break:break-all}
+  .modal-addr .actions{display:flex;gap:8px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;font-size:12px;border-radius:8px;background:rgba(255,255,255,0.03);box-shadow:inset 0 0 0 1px var(--hair);color:var(--text);transition:all .15s}
+  .btn:hover{background:rgba(255,255,255,0.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.12)}
+  .btn.primary{background:rgba(245,194,74,0.12);color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold-hair)}
+  .btn.primary:hover{background:rgba(245,194,74,0.16)}
+
+  .chart-wrap{padding:18px 22px}
+  .chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .chart-head .h{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim)}
+  .chart-tabs{display:flex;gap:2px;background:rgba(255,255,255,0.025);padding:3px;border-radius:7px;border:1px solid var(--hair)}
+  .chart-tabs button{padding:5px 10px;font-size:11px;letter-spacing:0.06em;color:var(--muted);border-radius:5px}
+  .chart-tabs button.on{background:rgba(245,194,74,0.1);color:var(--gold)}
+
+  .modal-tx{padding:8px 0 18px}
+  .modal-tx .h{padding:6px 22px 10px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim)}
+  .tx-row{display:grid;grid-template-columns:60px 28px 1fr auto;gap:12px;align-items:center;padding:11px 22px}
+  .tx-row + .tx-row{border-top:1px solid var(--hair-2)}
+  .tx-row .t{font-size:11.5px;color:var(--dim)}
+  .tx-row .lbl{font-size:13px}
+  .tx-row .lbl .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .tx-row .a{text-align:right;font-size:13px;font-weight:500}
+  .tx-row .a.in{color:var(--red)}
+  .tx-row .a.out{color:var(--green)}
+
+  /* empty state */
+  .empty{padding:32px 18px;text-align:center;color:var(--muted)}
+  .empty .ic{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 12px;border-radius:50%;background:rgba(255,255,255,0.03);color:var(--dim)}
+  .empty .h{color:var(--text);font-size:14px;margin-bottom:4px}
+  .empty .s{font-size:12.5px}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:#181b25;border:1px solid var(--gold-hair);color:var(--gold);
+    padding:10px 16px;border-radius:10px;font-size:13px;z-index:60;opacity:0;
+    transition:all .25s;display:flex;align-items:center;gap:8px;
+    box-shadow:0 12px 30px -10px rgba(0,0,0,0.5)
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* utility */
+  .row-flex{display:flex;align-items:center;gap:8px}
+  .hr{height:1px;background:var(--hair);margin:0}
+
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:99px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.1)}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ───────── topbar ───────── -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">G</div>
+      <div>
+        <div class="brand-name">GGWALL <span class="dim">/ TERMINAL</span></div>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <a href="index.html">Portfolio</a>
+      <a href="#" class="active">Watchtower</a>
+    </nav>
+    <div class="topbar-right">
+      <div class="net-pill">
+        <span class="live-dot"></span>
+        <span>5 chains live</span>
+      </div>
+      <div class="mono">EUR</div>
+    </div>
+  </div>
+
+  <!-- ───────── page header ───────── -->
+  <div class="pagehead">
+    <div>
+      <div class="eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 14c4 0 4-3 8-3s4 3 8 3" stroke-linecap="round"/><circle cx="17" cy="9" r="1.4" fill="currentColor"/></svg>
+        Watchtower
+      </div>
+      <h1>What the on-chain validators reveal, before the price does.</h1>
+      <div class="sub">
+        <span><span class="mono" id="trackedCount">200</span> tracked validators</span>
+        <span class="sep">·</span>
+        <span><span class="mono" id="chainsCount">1</span> chains</span>
+        <span class="sep">·</span>
+        <span>Snapshots every <span class="mono">6h</span></span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+      <div class="updated">
+        <svg class="icn" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg>
+        <span>Updated <span class="mono" style="color:var(--text)">2h 14m</span> ago</span>
+      </div>
+      <div class="chain-filter" id="chainFilter">
+        <button data-chain="all" class="active"><span class="swatch" style="background:#fff"></span>All</button>
+        <button data-chain="atom"><span class="swatch" style="background:#a8b1ff"></span>ATOM</button>
+        <button data-chain="osmo"><span class="swatch" style="background:#c39bff"></span>OSMO</button>
+        <button data-chain="juno"><span class="swatch" style="background:#ff9b9b"></span>JUNO</button>
+        <button data-chain="dym"><span class="swatch" style="background:#ffcf85"></span>DYM</button>
+        <button data-chain="saga"><span class="swatch" style="background:#9be9c5"></span>SAGA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── stats ───────── -->
+  <div class="stats">
+    <div class="stat red">
+      <div class="accent"></div>
+      <div class="lbl">
+        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7l7 7 4-4 7 7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 17h7v-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Sell pressure
+      </div>
+      <div class="val mono">9</div>
+      <div class="delta"><span class="chip">+2 vs 7d</span> whales reducing &gt;5%</div>
+    </div>
+    <div class="stat green">
+      <div class="accent"></div>
+      <div class="lbl">
+        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17l7-7 4 4 7-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 7h7v7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Accumulation
+      </div>
+      <div class="val mono">12</div>
+      <div class="delta"><span class="chip">+5 vs 7d</span> whales adding &gt;5%</div>
+    </div>
+    <div class="stat gold">
+      <div class="accent"></div>
+      <div class="lbl">
+        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v16M5 13l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Exchange inflow
+      </div>
+      <div class="val mono">+312k</div>
+      <div class="delta">ATOM-equiv · <span style="color:var(--red)">bearish signal</span></div>
+    </div>
+    <div class="stat green">
+      <div class="accent"></div>
+      <div class="lbl">
+        <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20V4M5 11l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Exchange outflow
+      </div>
+      <div class="val mono">−418k</div>
+      <div class="delta">ATOM-equiv · <span style="color:var(--green)">bullish signal</span></div>
+    </div>
+  </div>
+
+  <!-- ───────── two-col main ───────── -->
+  <div class="grid-main">
+    <!-- LEFT col -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <!-- AGGREGATE SIGNALS -->
+      <div class="card">
+        <div class="card-head">
+          <h3>Aggregate signals · per chain</h3>
+          <div class="meta">
+            <span style="display:inline-flex;align-items:center;gap:6px"><span class="live-dot"></span> Live</span>
+            <span>7d window</span>
+          </div>
+        </div>
+        <div class="card-body signals" id="signals"></div>
+      </div>
+
+      <!-- MOVEMENTS -->
+      <div class="card">
+        <div class="card-head">
+          <h3>Movements · live feed</h3>
+          <div class="meta">
+            <button class="btn" id="movFilterBtn" style="padding:5px 9px;font-size:11px">All directions</button>
+          </div>
+        </div>
+        <div class="card-body movements" id="movements"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT col -->
+    <div class="side">
+      <!-- BREAKDOWN -->
+      <div class="card breakdown">
+        <div class="card-head">
+          <h3>Whale composition</h3>
+          <div class="meta"><span>28 wallets</span></div>
+        </div>
+        <div class="card-body">
+          <div class="row"><div class="label"><span class="tag exchange">EXCHANGE</span></div><div class="bar"><span style="width:32%;background:var(--gold)"></span></div><div class="v mono">9</div></div>
+          <div class="row"><div class="label"><span class="tag foundation">FOUNDATION</span></div><div class="bar"><span style="width:21%;background:var(--purple)"></span></div><div class="v mono">6</div></div>
+          <div class="row"><div class="label"><span class="tag founder">FOUNDER</span></div><div class="bar"><span style="width:18%;background:var(--blue)"></span></div><div class="v mono">5</div></div>
+          <div class="row"><div class="label"><span class="tag validator">VALIDATOR</span></div><div class="bar"><span style="width:18%;background:var(--green)"></span></div><div class="v mono">5</div></div>
+          <div class="row"><div class="label"><span class="tag unknown_whale">UNKNOWN</span></div><div class="bar"><span style="width:11%;background:rgba(231,228,216,0.4)"></span></div><div class="v mono">3</div></div>
+        </div>
+      </div>
+
+      <!-- NOTIFY -->
+      <div class="card notify">
+        <div class="card-head">
+          <h3>Notifications</h3>
+          <div class="meta"><span style="color:var(--gold)">Beta</span></div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="l">
+              <div class="h">Notify on whale movements</div>
+              <div class="s">Email + push when threshold is crossed</div>
+            </div>
+            <div class="toggle on" id="notifyToggle"></div>
+          </div>
+          <div class="hr"></div>
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <div class="h">Threshold</div>
+              <div class="v mono"><span id="threshVal">15</span>%</div>
+            </div>
+            <input type="range" min="5" max="50" value="15" step="1" id="thresh" />
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim)" class="mono"><span>5%</span><span>50%</span></div>
+          </div>
+          <div class="hr"></div>
+          <div style="padding:14px 18px 6px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim)">Coin filter</div>
+          <div class="coin-checks" id="coinChecks">
+            <button class="coin-check on" data-coin="ATOM"><span class="ck">✓</span> ATOM</button>
+            <button class="coin-check on" data-coin="OSMO"><span class="ck">✓</span> OSMO</button>
+            <button class="coin-check" data-coin="JUNO"><span class="ck"></span> JUNO</button>
+            <button class="coin-check on" data-coin="DYM"><span class="ck">✓</span> DYM</button>
+            <button class="coin-check" data-coin="SAGA"><span class="ck"></span> SAGA</button>
+          </div>
+          <div style="padding:8px 18px 16px">
+            <button class="btn primary" style="width:100%;justify-content:center" id="saveAlerts">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Save alert preferences
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── tracked wallets ───────── -->
+  <div class="wallets-card">
+    <div class="card-head">
+      <h3>Tracked wallets</h3>
+      <div class="meta"><span>Sorted by 7d change</span></div>
+    </div>
+    <div class="table-toolbar">
+      <div class="left">
+        <div class="search">
+          <svg class="icn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5" stroke-linecap="round"/></svg>
+          <input type="text" placeholder="Search by name, address or tag…" id="walletSearch" />
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="tagFilter">
+        <button class="coin-check on" data-tag="all">All tags</button>
+        <button class="coin-check" data-tag="EXCHANGE">Exchanges</button>
+        <button class="coin-check" data-tag="FOUNDATION">Foundations</button>
+        <button class="coin-check" data-tag="FOUNDER">Founders</button>
+        <button class="coin-check" data-tag="VALIDATOR">Validators</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="table" id="walletsTable">
+        <thead>
+          <tr>
+            <th>Wallet</th>
+            <th>Address</th>
+            <th>Tag</th>
+            <th>Chain</th>
+            <th style="text-align:right" class="sortable" data-sort="balance">Balance <span class="so">↓</span></th>
+            <th style="text-align:right" class="sortable sorted" data-sort="change">7d change <span class="so">↓</span></th>
+          </tr>
+        </thead>
+        <tbody id="walletsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── modal ───────── -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal" id="modalBox">
+    <div class="modal-head">
+      <div class="modal-title">
+        <div class="wlogo" id="mLogo">B1</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="font-size:18px;font-weight:500" id="mName">—</div>
+            <span class="tag exchange" id="mTag">EXCHANGE</span>
+            <span class="chain-chip" id="mChain">ATOM</span>
+          </div>
+          <div style="margin-top:6px;font-size:12px;color:var(--muted)" id="mDesc">—</div>
+        </div>
+      </div>
+      <button class="modal-close" id="mClose" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-balance">
+      <div class="balance">
+        <div class="lbl">Current balance</div>
+        <div class="v mono" id="mBal">—</div>
+        <div class="eur mono" id="mBalEur">—</div>
+      </div>
+      <div class="balance">
+        <div class="lbl">7d change</div>
+        <div class="v mono" id="mChange">—</div>
+        <div class="eur mono" id="mChangeAbs">—</div>
+      </div>
+    </div>
+    <div class="modal-addr">
+      <div class="a mono" id="mAddr">—</div>
+      <div class="actions">
+        <button class="btn" id="mCopy">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10" stroke-linecap="round"/></svg>
+          Copy
+        </button>
+        <a class="btn primary" target="_blank" rel="noreferrer" id="mMintscan">
+          Open in Mintscan
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 5h5v5M19 5L10 14M19 13v6H5V5h6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-head">
+        <div class="h">Balance history</div>
+        <div class="chart-tabs" id="chartTabs">
+          <button data-range="7">7D</button>
+          <button class="on" data-range="30">30D</button>
+          <button data-range="90">90D</button>
+        </div>
+      </div>
+      <div style="height:200px"><canvas id="balChart"></canvas></div>
+    </div>
+    <div class="modal-tx">
+      <div class="h">Recent transactions</div>
+      <div id="mTxList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span id="toastMsg">Copied</span>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   AUTH CHECK — redirect αν δεν είναι logged in στο GGWALL
+═══════════════════════════════════════════════════════════ */
+(function authGuard() {
+  try {
+    const userStr = localStorage.getItem("_user") || sessionStorage.getItem("_user");
+    if (!userStr) {
+      window.location.href = "index.html";
+      return;
+    }
+    const user = JSON.parse(userStr);
+    if (!user || !user.id) {
+      window.location.href = "index.html";
+      return;
+    }
+    window._user = user;
+  } catch (e) {
+    window.location.href = "index.html";
+  }
+})();
+
+/* ════════════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════
+   SUPABASE BACKEND CONFIG
+═══════════════════════════════════════════════════════════ */
+const SB_URL = "https://rzrxulubttnjtxziodib.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6cnh1bHVidHRuanR4emlvZGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1ODkyMzMsImV4cCI6MjA5MTE2NTIzM30.Whh6EL4GlP-lO5dIIJ5mID5pXz4_BRtZitrr-Y2QAy8";
+const SB_HEADERS = { "apikey": SB_ANON, "Authorization": "Bearer " + SB_ANON };
+
+async function fetchFlows() {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/vw_validator_flows?select=*&order=computed_at.desc&limit=20`, { headers: SB_HEADERS });
+    if (!r.ok) return [];
+    return await r.json();
+  } catch(e) { console.error("[fetchFlows]", e); return []; }
+}
+
+async function fetchExplanation(chain_id, period) {
+  try {
+    const r = await fetch(`${SB_URL}/functions/v1/explain-validator-flows`, {
+      method: "POST",
+      headers: { ...SB_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({ chain_id, period })
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(e) { console.error("[fetchExplanation]", e); return null; }
+}
+
+// Map chain_id (database) -> UI chain key
+const CHAIN_MAP = {
+  "cosmos": "atom",
+  "osmosis": "osmo",
+  "juno-network": "juno",
+  "dymension": "dym",
+  "saga-2": "saga",
+};
+
+// Reverse map για να ξέρουμε ποιο chain_id να καλέσουμε
+const UI_TO_CHAIN_ID = {
+  "atom": "cosmos",
+  "osmo": "osmosis",
+  "juno": "juno-network",
+  "dym": "dymension",
+  "saga": "saga-2",
+};
+
+function fmtDelta(n, sym) {
+  const s = Math.abs(n) >= 1e6 ? (n/1e6).toFixed(2)+"M" : Math.abs(n) >= 1e3 ? (n/1e3).toFixed(0)+"k" : Math.round(n);
+  return (n>=0?"+":"") + s + " " + sym;
+}
+
+/* ════════════════════════════════════════════════════════════
+   DUMMY DATA (used as fallback when backend is empty)
+═══════════════════════════════════════════════════════════ */
+const CHAINS = {
+  atom : { name:"Cosmos Hub",  sym:"ATOM", price:1.67,  cls:"atom" },
+  osmo : { name:"Osmosis",     sym:"OSMO", price:0.42,  cls:"osmo" },
+  juno : { name:"Juno",        sym:"JUNO", price:0.18,  cls:"juno" },
+  dym  : { name:"Dymension",   sym:"DYM",  price:1.92,  cls:"dym"  },
+  saga : { name:"Saga",        sym:"SAGA", price:2.74,  cls:"saga" },
+};
+
+// helper: simple deterministic sparkline given a "tone" (-1..1)
+function makeSpark(tone){
+  const n = 30, pts = [];
+  let v = 0.5 + (tone>=0 ? -tone*0.25 : -tone*0.25); // start lower if rising overall
+  for(let i=0;i<n;i++){
+    const noise = (Math.sin(i*1.7+tone*3)+Math.cos(i*0.6+tone))*0.04;
+    v += tone*0.018 + noise;
+    v = Math.max(0.05, Math.min(0.95, v));
+    pts.push(v);
+  }
+  return pts;
+}
+
+const SIGNALS = [
+  { id:"atom", chain:"atom", verdict:"bearish", confidence:37, label:"37% of whales selling",
+    spark:makeSpark(-0.6), notes:{ Buyers:3, Sellers:5, "Net 7d":"−180k ATOM", "Largest move":"ICF −250k" } },
+  { id:"osmo", chain:"osmo", verdict:"bullish", confidence:52, label:"52% of whales accumulating",
+    spark:makeSpark(0.7),  notes:{ Buyers:6, Sellers:2, "Net 7d":"+1.2M OSMO", "Largest move":"Sunny +260k" } },
+  { id:"juno", chain:"juno", verdict:"neutral", confidence:8,  label:"Mixed activity, low volume",
+    spark:makeSpark(0.05), notes:{ Buyers:2, Sellers:2, "Net 7d":"−14k JUNO", "Largest move":"Foundation −20k" } },
+  { id:"dym",  chain:"dym",  verdict:"bullish", confidence:40, label:"40% of whales accumulating",
+    spark:makeSpark(0.45), notes:{ Buyers:4, Sellers:1, "Net 7d":"+88k DYM", "Largest move":"Treasury +60k" } },
+  { id:"saga", chain:"saga", verdict:"neutral", confidence:12, label:"Sideways, no clear bias",
+    spark:makeSpark(-0.1), notes:{ Buyers:2, Sellers:2, "Net 7d":"−6k SAGA", "Largest move":"Validator −9k" } },
+];
+
+const WALLETS = [
+  { id:"binance1", chain:"atom", name:"Binance Hot Wallet 1", short:"B1", color:"gold",
+    address:"cosmos1ku5uy0snzx2ke0lp5kdqzqhfu5gj7nvkz9yrcw", tag:"EXCHANGE",
+    balance:1_840_300, change:+2.4, source:"Binance public attestation" },
+  { id:"kraken_cold", chain:"atom", name:"Kraken Cold Storage", short:"KR", color:"gold",
+    address:"cosmos1zkqx3umakrxwzgg5g5gakqkx3xkk0p3y8vxqrf", tag:"EXCHANGE",
+    balance:920_500, change:+11.8, source:"Kraken proof-of-reserves" },
+  { id:"coinbase_cust", chain:"atom", name:"Coinbase Custody", short:"CB", color:"gold",
+    address:"cosmos1g5y2x9p4nv0kc4xzgu60q2yrjf9p2qf6r9z2cv", tag:"EXCHANGE",
+    balance:2_410_000, change:-1.1, source:"Coinbase Custody" },
+  { id:"icf", chain:"atom", name:"ICF Foundation Treasury", short:"IC", color:"purple",
+    address:"cosmos1unc788qkc6f6lq2v3hgcpf9g3z5x7w2dhydq8a", tag:"FOUNDATION",
+    balance:5_240_000, change:-7.3, source:"Interchain Foundation" },
+  { id:"sunny", chain:"osmo", name:"Sunny Aggarwal", short:"SA", color:"blue",
+    address:"osmo1z8acx5qg9lfu0jh8nj62fnqrfqkz9pdxvf3l28", tag:"FOUNDER",
+    balance:1_320_000, change:+18.2, source:"Verified by Osmosis CF" },
+  { id:"zaki", chain:"atom", name:"Zaki Manian", short:"ZM", color:"blue",
+    address:"cosmos1abcvfqg8yfh4j2k0wqzltrydp83c8xvpr2t5n9", tag:"FOUNDER",
+    balance:412_000, change:+3.1, source:"On-chain attestation" },
+  { id:"cbcloud", chain:"atom", name:"Coinbase Cloud Validator", short:"CC", color:"green",
+    address:"cosmosvaloper1c4t08x7y3kqzgw5fdh92mnp3vbu0lq7r9zexm6", tag:"VALIDATOR",
+    balance:3_120_400, change:-0.4, source:"Mintscan validator set" },
+  { id:"everstake", chain:"atom", name:"Everstake Validator", short:"EV", color:"green",
+    address:"cosmosvaloper1ev3rstake7q2hx9jnp8mb4d5c0uw2z6gyf9rkp4", tag:"VALIDATOR",
+    balance:2_890_100, change:+1.7, source:"Mintscan validator set" },
+  { id:"unkw1", chain:"atom", name:"Whale 0x…4f2", short:"??", color:"unknown",
+    address:"cosmos1n38xq7lcpv2hgw3y6jzkdtuf9p2qrm5x80c4f2", tag:"UNKNOWN_WHALE",
+    balance:680_000, change:+24.6, source:"Heuristic clustering" },
+  { id:"osmo_cf", chain:"osmo", name:"Osmosis Foundation", short:"OF", color:"purple",
+    address:"osmo1of0cn8k2vp4qg9z6yrt5ld3xj0pcw7m2hzbvyk", tag:"FOUNDATION",
+    balance:8_900_000, change:-2.8, source:"Osmosis governance" },
+  { id:"imperator", chain:"osmo", name:"Imperator Validator", short:"IM", color:"green",
+    address:"osmovaloper1imp3r4t0r9zx5pk2f7nq8gvjy4rh6cb2u0meld", tag:"VALIDATOR",
+    balance:4_500_300, change:+0.9, source:"Mintscan" },
+  { id:"binance_osmo", chain:"osmo", name:"Binance OSMO Hot", short:"B2", color:"gold",
+    address:"osmo1bnce8q3vk2mp7yr5gn0xc4lf9j2dqz6h8twv9p", tag:"EXCHANGE",
+    balance:6_200_000, change:+8.4, source:"Binance attestation" },
+  { id:"juno_cf", chain:"juno", name:"Juno Foundation", short:"JF", color:"purple",
+    address:"juno1cf0qdt8m4xv2ply9zg6kn5wpr3jh7c2yfu0ebr", tag:"FOUNDATION",
+    balance:1_460_000, change:-1.4, source:"Juno governance" },
+  { id:"juno_unk", chain:"juno", name:"Whale 0x…a72", short:"??", color:"unknown",
+    address:"juno1y3pxu7m2vw4kqg8hr5dl0cjz9bn6fpt2vea72k", tag:"UNKNOWN_WHALE",
+    balance:520_000, change:+0.0, source:"Heuristic clustering" },
+  { id:"dym_treas", chain:"dym", name:"Dymension Treasury", short:"DT", color:"purple",
+    address:"dym1tre4s2q9gpv0ck8mzx4lh3yj5n6r7wtfb2du9k", tag:"FOUNDATION",
+    balance:2_100_000, change:+9.2, source:"Dymension Foundation" },
+  { id:"dym_founder", chain:"dym", name:"Dymension Founder", short:"DF", color:"blue",
+    address:"dym1fnd2ek0q3vp7ymx5cn8gr2lj6h4w9bzu0t3p5q", tag:"FOUNDER",
+    balance:480_000, change:+14.5, source:"On-chain attestation" },
+  { id:"saga_cf", chain:"saga", name:"Saga Foundation", short:"SF", color:"purple",
+    address:"saga1cf2qd9m4xv8ply3zg6kn5wpr7jh1c0yfu2ebrt", tag:"FOUNDATION",
+    balance:920_000, change:-0.8, source:"Saga Foundation" },
+  { id:"saga_val", chain:"saga", name:"Polychain Validator", short:"PC", color:"green",
+    address:"sagavaloper1plyc2q9m4xv8kg7zh3rn5wptr6jc1y0bfu2erd", tag:"VALIDATOR",
+    balance:1_280_500, change:-3.2, source:"Mintscan" },
+];
+
+const MOVEMENTS = [
+  { ago:"2h ago",  walletId:"binance1",   dir:"in",  amount:50_000,  sym:"ATOM", chain:"atom", impact:"bear", note:"Large deposit · likely sell incoming" },
+  { ago:"4h ago",  walletId:"sunny",      dir:"acc", amount:8_400,   sym:"OSMO", chain:"osmo", impact:"bull", note:"Accumulating from Keplr" },
+  { ago:"8h ago",  walletId:"icf",        dir:"out", amount:250_000, sym:"ATOM", chain:"atom", impact:"bear", note:"Treasury moved to OTC desk" },
+  { ago:"14h ago", walletId:"zaki",       dir:"acc", amount:1_000,   sym:"ATOM", chain:"atom", impact:"bull", note:"Small accumulation" },
+  { ago:"1d ago",  walletId:"dym_treas",  dir:"acc", amount:60_000,  sym:"DYM",  chain:"dym",  impact:"bull", note:"Treasury increase" },
+  { ago:"1d ago",  walletId:"imperator",  dir:"out", amount:18_500,  sym:"OSMO", chain:"osmo", impact:"bull", note:"Withdrawal from exchange" },
+  { ago:"2d ago",  walletId:"kraken_cold",dir:"in",  amount:28_000,  sym:"ATOM", chain:"atom", impact:"bear", note:"Cold storage receiving" },
+  { ago:"2d ago",  walletId:"unkw1",      dir:"acc", amount:120_000, sym:"ATOM", chain:"atom", impact:"bull", note:"New wallet · large entry" },
+  { ago:"3d ago",  walletId:"saga_val",   dir:"in",  amount:9_000,   sym:"SAGA", chain:"saga", impact:"bear", note:"Deposit to Binance" },
+];
+
+const TX_BY_WALLET = {
+  binance1:[
+    {t:"2h ago",  dir:"in",  amount:50_000, sym:"ATOM", note:"Deposit from cosmos1mn…3a4"},
+    {t:"1d ago",  dir:"in",  amount:18_400, sym:"ATOM", note:"Deposit from cosmos1xr…9z2"},
+    {t:"3d ago",  dir:"out", amount:12_000, sym:"ATOM", note:"Withdrawal to cosmos1k4…wq8"},
+    {t:"5d ago",  dir:"in",  amount:42_500, sym:"ATOM", note:"Deposit from cosmos1pq…7vc"},
+  ],
+  default:[
+    {t:"6h ago",  dir:"out", amount:8_400,  sym:"—",    note:"Outbound transfer"},
+    {t:"2d ago",  dir:"in",  amount:14_000, sym:"—",    note:"Inbound transfer"},
+    {t:"4d ago",  dir:"out", amount:5_200,  sym:"—",    note:"Outbound transfer"},
+  ]
+};
+
+/* ════════════════════════════════════════════════════════════
+   BACKEND SIGNALS LOADING
+═══════════════════════════════════════════════════════════ */
+// Replaces dummy SIGNALS με τα πραγματικά flows από vw_validator_flows
+let BACKEND_SIGNALS = null;  // null = not loaded yet, [] = loaded but empty
+
+async function loadBackendSignals() {
+  const flows = await fetchFlows();
+  if (!flows.length) {
+    BACKEND_SIGNALS = [];
+    return;
+  }
+  
+  // Group by chain — keep latest 7d flow per chain (preferred), fallback to 24h
+  const byChain = new Map();
+  for (const f of flows) {
+    const uiChain = CHAIN_MAP[f.chain_id];
+    if (!uiChain) continue;
+    
+    const existing = byChain.get(uiChain);
+    if (!existing) {
+      byChain.set(uiChain, f);
+    } else if (existing.period !== "7d" && f.period === "7d") {
+      // Prefer 7d over 24h
+      byChain.set(uiChain, f);
+    }
+  }
+  
+  // Map to SIGNALS format
+  BACKEND_SIGNALS = [...byChain.entries()].map(([uiChain, flow]) => {
+    const sym = (CHAINS[uiChain]?.sym) || flow.chain_id.toUpperCase();
+    const totalChange = (flow.exchange_delta || 0) + (flow.staking_provider_delta || 0) + (flow.independent_delta || 0);
+    
+    // Build sparkline tone from verdict
+    const tone = flow.verdict === "bullish" ? 0.6 : flow.verdict === "bearish" ? -0.6 : 0;
+    
+    return {
+      id: uiChain,
+      chain: uiChain,
+      flow_id: flow.id,
+      period: flow.period,
+      verdict: flow.verdict,
+      confidence: flow.confidence,
+      label: `${flow.confidence}% confidence · ${flow.period} window`,
+      spark: makeSpark(tone),
+      notes: {
+        "Exchange validators": fmtDelta(flow.exchange_delta || 0, sym),
+        "Staking providers": fmtDelta(flow.staking_provider_delta || 0, sym),
+        "Independent": fmtDelta(flow.independent_delta || 0, sym),
+        "Net change": fmtDelta(totalChange, sym),
+        "Validators ↑": flow.validators_gaining || 0,
+        "Validators ↓": flow.validators_losing || 0,
+      },
+      top_gainers: flow.top_gainers || [],
+      top_losers: flow.top_losers || [],
+    };
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   AI EXPLANATION MODAL
+═══════════════════════════════════════════════════════════ */
+let aiExplanationCache = {};  // flow_id -> result
+
+async function showAiExplanation(uiChain, flowId) {
+  const chainId = UI_TO_CHAIN_ID[uiChain];
+  if (!chainId) return;
+  
+  // Build modal
+  let overlay = document.getElementById("ai-explain-modal");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "ai-explain-modal";
+    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;";
+    document.body.appendChild(overlay);
+  }
+  
+  overlay.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--gold-hair);border-radius:14px;padding:22px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;font-family:'Space Grotesk',sans-serif;color:var(--text);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:rgba(245,194,74,0.1);border:1px solid rgba(245,194,74,0.3);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5c24a" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--gold-light);">AI Analysis · ${uiChain.toUpperCase()}</div>
+            <div style="font-size:10px;color:var(--muted);">Powered by Gemini 3 Flash + CoinDesk news</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('ai-explain-modal').remove()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1;">✕</button>
+      </div>
+      <div id="ai-explain-content" style="font-size:13px;line-height:1.7;color:var(--text);">
+        <div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;padding:14px 0;">
+          <div style="width:14px;height:14px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+          <span>Αναλύω τα δεδομένα + ψάχνω σχετικά news...</span>
+        </div>
+      </div>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+  `;
+  
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) overlay.remove();
+  });
+  
+  // Fetch / use cache
+  let result = aiExplanationCache[flowId];
+  if (!result) {
+    result = await fetchExplanation(chainId, "7d");
+    if (result?.ok) aiExplanationCache[flowId] = result;
+  }
+  
+  const content = document.getElementById("ai-explain-content");
+  if (!content) return;
+  
+  if (!result || !result.ok) {
+    content.innerHTML = `<div style="padding:14px;background:rgba(255,95,109,0.05);border:1px solid rgba(255,95,109,0.2);border-radius:8px;color:var(--red);font-size:12px;">Αδυναμία λήψης AI explanation. Δοκιμάστε ξανά σε λίγο.</div>`;
+    return;
+  }
+  
+  const newsHtml = (result.news || []).length > 0 
+    ? `<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--hair);">
+         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:600;">📰 Σχετικά News (CoinDesk)</div>
+         ${result.news.slice(0,5).map(n => `
+           <div style="padding:8px 0;border-bottom:1px solid var(--hair-2);">
+             <a href="${n.url}" target="_blank" style="color:var(--text);font-size:12px;line-height:1.5;text-decoration:none;display:block;">${n.title}</a>
+             <div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:3px;">${n.date ? new Date(n.date).toLocaleDateString('el-GR') : ''}</div>
+           </div>
+         `).join("")}
+       </div>`
+    : "";
+  
+  content.innerHTML = `
+    <div style="background:rgba(245,194,74,0.04);border-left:3px solid var(--gold);padding:14px 16px;border-radius:0 8px 8px 0;">
+      ${result.explanation.replace(/\n/g, "<br>")}
+    </div>
+    ${newsHtml}
+    ${result.cached ? `<div style="margin-top:10px;font-size:9px;color:var(--dim);text-align:right;">⚡ Cached · ${new Date(result.generated_at).toLocaleString('el-GR')}</div>` : ""}
+  `;
+}
+
+/* ════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+const state = {
+  chain:"all",
+  movDir:"all",       // all | in | out | acc
+  walletQuery:"",
+  walletTag:"all",
+  sortBy:"change",
+  sortDir:"desc",
+  expandedSignal:null,
+};
+
+/* ════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════ */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+
+function fmtNum(n){
+  const a = Math.abs(n);
+  if (a>=1e9) return (n/1e9).toFixed(2)+"B";
+  if (a>=1e6) return (n/1e6).toFixed(2)+"M";
+  if (a>=1e3) return (n/1e3).toFixed(1)+"k";
+  return Math.round(n).toString();
+}
+function fmtFull(n){ return n.toLocaleString("en-US"); }
+function fmtEur(n){ return "€"+fmtFull(Math.round(n)); }
+function trunc(a){ return a.length>26 ? a.slice(0,12)+"…"+a.slice(-6) : a; }
+
+function logoColorVar(c){
+  return ({
+    gold:    "linear-gradient(135deg, rgba(245,194,74,0.25), rgba(245,194,74,0.07))",
+    purple:  "linear-gradient(135deg, rgba(167,139,250,0.25), rgba(167,139,250,0.07))",
+    blue:    "linear-gradient(135deg, rgba(100,181,255,0.25), rgba(100,181,255,0.07))",
+    green:   "linear-gradient(135deg, rgba(125,214,125,0.25), rgba(125,214,125,0.07))",
+    unknown: "linear-gradient(135deg, rgba(231,228,216,0.12), rgba(231,228,216,0.04))",
+  }[c]||"rgba(255,255,255,0.05)");
+}
+function logoTextColor(c){
+  return ({gold:"#f5c24a",purple:"#c39bff",blue:"#9bc8ff",green:"#9be9c5",unknown:"rgba(231,228,216,0.6)"}[c]||"#fff");
+}
+
+/* ───────── sparkline svg ───────── */
+function sparkSvg(points, tone){
+  const w=120, h=30, pad=2;
+  const min=Math.min(...points), max=Math.max(...points);
+  const range = max-min || 1;
+  const step = (w-pad*2)/(points.length-1);
+  const xs = points.map((p,i)=>pad+i*step);
+  const ys = points.map(p=> pad + (1-(p-min)/range) * (h-pad*2));
+  const path = xs.map((x,i)=> (i===0?`M${x},${ys[i]}`:`L${x},${ys[i]}`)).join("");
+  const area = path + ` L${xs[xs.length-1]},${h} L${xs[0]},${h} Z`;
+  const color = tone==="bullish" ? "#7dd67d" : tone==="bearish" ? "#ff5f6d" : "#a0a3ad";
+  const id = "g"+Math.random().toString(36).slice(2,7);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${area}" fill="url(#${id})" />
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+/* ───────── signals ───────── */
+function renderSignals(){
+  const root = $("#signals");
+  // Use backend signals αν είναι loaded και έχει data, αλλιώς fallback σε dummy
+  const sourceSignals = (BACKEND_SIGNALS && BACKEND_SIGNALS.length > 0) ? BACKEND_SIGNALS : SIGNALS;
+  const filtered = state.chain==="all" ? sourceSignals : sourceSignals.filter(s=>s.chain===state.chain);
+  if (!filtered.length){ root.innerHTML = emptyState("No signals for this chain"); return; }
+  root.innerHTML = filtered.map(s=>{
+    const c = CHAINS[s.chain] || { name: s.chain.toUpperCase(), sym: s.chain.toUpperCase(), cls: s.chain };
+    const isOpen = state.expandedSignal===s.id;
+    const hasFlowId = s.flow_id !== undefined;
+    return `
+      <div class="signal-row ${isOpen?"expanded":""}" data-sig="${s.id}">
+        <div class="chain-logo ${c.cls}">${c.sym.slice(0,3)}</div>
+        <div>
+          <div class="signal-name">${c.name} <span style="color:var(--dim);font-weight:400">· ${c.sym}</span></div>
+          <div class="signal-sub">${s.label}</div>
+        </div>
+        <span class="badge ${s.verdict}">${s.verdict}</span>
+        ${sparkSvg(s.spark, s.verdict)}
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="signal-detail">
+        ${Object.entries(s.notes).map(([k,v])=>`<div class="kv"><div class="k">${k}</div><div class="v mono">${v}</div></div>`).join("")}
+        ${hasFlowId ? `
+          <div style="grid-column:1/-1;margin-top:10px;display:flex;gap:8px;align-items:center;">
+            <button class="why-btn" data-chain="${s.chain}" data-flow="${s.flow_id}" 
+              style="background:linear-gradient(135deg,rgba(245,194,74,0.15),rgba(245,194,74,0.05));border:1px solid rgba(245,194,74,0.3);color:var(--gold-light);padding:7px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:'Space Grotesk',sans-serif;transition:all 0.2s;"
+              onmouseover="this.style.background='linear-gradient(135deg,rgba(245,194,74,0.25),rgba(245,194,74,0.1))'"
+              onmouseout="this.style.background='linear-gradient(135deg,rgba(245,194,74,0.15),rgba(245,194,74,0.05))'">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" stroke-linecap="round"/></svg>
+              <span>Γιατί συμβαίνει αυτό;</span>
+            </button>
+            <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;">AI · ${s.period || "7d"}</span>
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+
+  $$(".signal-row", root).forEach(row=>{
+    row.addEventListener("click", ()=>{
+      const id = row.dataset.sig;
+      state.expandedSignal = state.expandedSignal===id ? null : id;
+      renderSignals();
+    });
+  });
+  
+  // Why? button click handlers (dont propagate to row)
+  $$(".why-btn", root).forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      showAiExplanation(btn.dataset.chain, btn.dataset.flow);
+    });
+  });
+}
+
+/* ───────── movements ───────── */
+function arrowIcon(dir){
+  if (dir==="in") return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v14M5 11l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  if (dir==="out") return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20V6M5 13l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function dirLabel(dir){
+  if(dir==="in")  return `<span class="mono" style="color:var(--red)">+IN</span>`;
+  if(dir==="out") return `<span class="mono" style="color:var(--green)">−OUT</span>`;
+  return `<span class="mono" style="color:var(--green)">+ACC</span>`;
+}
+function renderMovements(){
+  const root = $("#movements");
+  let list = MOVEMENTS;
+  if (state.chain!=="all") list = list.filter(m=>m.chain===state.chain);
+  if (state.movDir!=="all") list = list.filter(m=>m.dir===state.movDir);
+  if (!list.length){
+    root.innerHTML = emptyState("No movements match the current filters", "Try removing the chain filter or expanding the time window.");
+    return;
+  }
+  root.innerHTML = list.map(m=>{
+    const w = WALLETS.find(x=>x.id===m.walletId);
+    const c = CHAINS[m.chain];
+    const eur = m.amount * c.price;
+    return `
+      <div class="movement ${m.impact}">
+        <div class="time mono">${m.ago}</div>
+        <div class="arrow-icn">${arrowIcon(m.dir)}</div>
+        <div class="who">
+          <div class="name">${w?w.name:"Unknown"}</div>
+          <div class="row2">
+            <span class="tag ${w?w.tag.toLowerCase():'unknown_whale'}">${w?w.tag.replace("_"," "):"UNKNOWN"}</span>
+            <span class="chain-chip">${c.sym}</span>
+            <span style="color:var(--dim)">·</span>
+            <span style="color:var(--muted)">${m.note}</span>
+          </div>
+        </div>
+        <div class="amount">
+          <div class="a ${m.dir}">${dirLabel(m.dir)} <span class="mono" style="margin-left:4px">${fmtNum(m.amount)} ${m.sym}</span></div>
+          <div class="eur">${fmtEur(eur)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ───────── wallets table ───────── */
+function renderWallets(){
+  const body = $("#walletsBody");
+  let list = WALLETS.slice();
+  if (state.chain!=="all") list = list.filter(w=>w.chain===state.chain);
+  if (state.walletTag!=="all") list = list.filter(w=>w.tag===state.walletTag);
+  if (state.walletQuery){
+    const q = state.walletQuery.toLowerCase();
+    list = list.filter(w => (w.name+" "+w.address+" "+w.tag).toLowerCase().includes(q));
+  }
+  // sort
+  list.sort((a,b)=>{
+    const dir = state.sortDir==="asc"?1:-1;
+    const va = state.sortBy==="balance" ? a.balance : a.change;
+    const vb = state.sortBy==="balance" ? b.balance : b.change;
+    return (va-vb)*dir;
+  });
+
+  if (!list.length){
+    body.innerHTML = `<tr><td colspan="6">${emptyState("No wallets match these filters")}</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = list.map(w=>{
+    const c = CHAINS[w.chain];
+    const eur = w.balance * c.price;
+    const pct = w.change;
+    const pctCls = pct>0.05?"pos":pct<-0.05?"neg":"flat";
+    const pctSign = pct>0?"+":"";
+    const barW = Math.min(100, Math.abs(pct)*4);
+    const barColor = pct>=0 ? "var(--green)" : "var(--red)";
+    return `
+      <tr data-id="${w.id}">
+        <td>
+          <div class="wname">
+            <div class="wlogo" style="background:${logoColorVar(w.color)};color:${logoTextColor(w.color)};box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06)">${w.short}</div>
+            <div>
+              <div style="font-weight:500">${w.name}</div>
+              <div style="font-size:11.5px;color:var(--dim)">${w.source}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="addr-cell mono">${trunc(w.address)}
+            <button class="copy" data-copy="${w.address}" title="Copy address" aria-label="Copy address">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10" stroke-linecap="round"/></svg>
+            </button>
+          </span>
+        </td>
+        <td><span class="tag ${w.tag.toLowerCase()}">${w.tag.replace("_"," ")}</span></td>
+        <td><span class="chain-chip">${c.sym}</span></td>
+        <td style="text-align:right">
+          <div class="mono" style="font-weight:500">${fmtNum(w.balance)}</div>
+          <div class="mono" style="font-size:11.5px;color:var(--dim)">${fmtEur(eur)}</div>
+        </td>
+        <td style="text-align:right">
+          <div class="delta-bar">
+            <div class="mini-bar"><i style="width:${barW}%;background:${barColor}"></i></div>
+            <span class="pct mono ${pctCls}">${pctSign}${pct.toFixed(1)}%</span>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  // wire row click
+  $$("#walletsBody tr").forEach(tr=>{
+    tr.addEventListener("click", e=>{
+      if (e.target.closest(".copy")) return;
+      openModal(tr.dataset.id);
+    });
+  });
+  $$("#walletsBody .copy").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      copy(btn.dataset.copy);
+    });
+  });
+
+  // header sort indicator
+  $$(".table thead th.sortable").forEach(th=>{
+    const active = th.dataset.sort===state.sortBy;
+    th.classList.toggle("sorted", active);
+    const so = th.querySelector(".so");
+    if (so) so.textContent = state.sortDir==="asc" ? "↑" : "↓";
+  });
+}
+
+function emptyState(h, s){
+  return `<div class="empty">
+    <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5" stroke-linecap="round"/></svg></div>
+    <div class="h">${h}</div>
+    ${s?`<div class="s">${s}</div>`:""}
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════════ */
+let chart=null;
+function openModal(id){
+  const w = WALLETS.find(x=>x.id===id); if(!w) return;
+  const c = CHAINS[w.chain];
+  $("#mLogo").style.background = logoColorVar(w.color);
+  $("#mLogo").style.color = logoTextColor(w.color);
+  $("#mLogo").style.boxShadow = "inset 0 0 0 1px rgba(255,255,255,0.06)";
+  $("#mLogo").textContent = w.short;
+  $("#mName").textContent = w.name;
+  const tagEl = $("#mTag");
+  tagEl.className = "tag "+w.tag.toLowerCase();
+  tagEl.textContent = w.tag.replace("_"," ");
+  $("#mChain").textContent = `${c.sym} · ${c.name}`;
+  $("#mDesc").textContent = w.source;
+  $("#mAddr").textContent = w.address;
+  $("#mBal").textContent = fmtFull(w.balance)+" "+c.sym;
+  $("#mBalEur").textContent = fmtEur(w.balance * c.price);
+  const sign = w.change>=0?"+":"";
+  const cv = $("#mChange");
+  cv.textContent = sign+w.change.toFixed(1)+"%";
+  cv.style.color = w.change>=0 ? "var(--green)" : "var(--red)";
+  const abs = (w.change/100)*w.balance;
+  $("#mChangeAbs").textContent = (abs>=0?"+":"")+fmtNum(abs)+" "+c.sym;
+  $("#mCopy").onclick = ()=>copy(w.address);
+  $("#mMintscan").href = `https://www.mintscan.io/${w.chain==="atom"?"cosmos":w.chain}/account/${w.address}`;
+
+  // tx list
+  const txs = TX_BY_WALLET[w.id] || TX_BY_WALLET.default.map(t=>({...t,sym:c.sym}));
+  $("#mTxList").innerHTML = txs.map(t=>`
+    <div class="tx-row">
+      <div class="t mono">${t.t}</div>
+      <div class="arrow-icn ${t.dir==="in"?"":""}" style="background:${t.dir==="in"?"rgba(255,95,109,0.08)":"rgba(125,214,125,0.08)"};color:${t.dir==="in"?"var(--red)":"var(--green)"}">${arrowIcon(t.dir)}</div>
+      <div class="lbl">
+        ${t.dir==="in"?"Inbound":"Outbound"} transfer
+        <div class="sub">${t.note}</div>
+      </div>
+      <div class="a ${t.dir}">${t.dir==="in"?"+":"−"}${fmtNum(t.amount)} ${t.sym}</div>
+    </div>
+  `).join("");
+
+  // chart
+  drawChart(w, 30);
+  $$("#chartTabs button").forEach(b=>{
+    b.classList.toggle("on", b.dataset.range==="30");
+    b.onclick = ()=>{
+      $$("#chartTabs button").forEach(x=>x.classList.toggle("on", x===b));
+      drawChart(w, parseInt(b.dataset.range,10));
+    };
+  });
+
+  $("#modal").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeModal(){
+  $("#modal").classList.remove("open");
+  document.body.style.overflow="";
+  if (chart){ chart.destroy(); chart=null; }
+}
+
+function drawChart(w, days){
+  const c = CHAINS[w.chain];
+  const ctx = $("#balChart").getContext("2d");
+  if (chart) chart.destroy();
+  // build series ending at current balance, with same overall change %
+  const start = w.balance / (1 + w.change/100);
+  const arr=[]; const labels=[];
+  let prev = start * (0.95 + Math.random()*0.05);
+  const today = new Date();
+  for(let i=0;i<days;i++){
+    const t = i/(days-1);
+    const drift = start + (w.balance-start)*t;
+    const noise = drift * (Math.sin(i*0.6+w.id.length)*0.025 + (Math.random()-0.5)*0.02);
+    const v = Math.max(0, drift + noise);
+    arr.push(v);
+    const d = new Date(today); d.setDate(d.getDate()-(days-1-i));
+    labels.push(d.toISOString().slice(5,10));
+  }
+  arr[arr.length-1] = w.balance;
+
+  // gradient
+  const grad = ctx.createLinearGradient(0,0,0,200);
+  const lineColor = w.change>=0 ? "#7dd67d" : "#ff5f6d";
+  grad.addColorStop(0, w.change>=0 ? "rgba(125,214,125,0.28)" : "rgba(255,95,109,0.28)");
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+
+  chart = new Chart(ctx, {
+    type:"line",
+    data:{
+      labels,
+      datasets:[{
+        data:arr,
+        borderColor:lineColor,
+        backgroundColor:grad,
+        borderWidth:2.5,
+        fill:true,
+        tension:0.32,
+        pointRadius:0,
+        pointHoverRadius:5,
+        pointHoverBackgroundColor:lineColor,
+        pointHoverBorderColor:"#0a0a0d",
+        pointHoverBorderWidth:2,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:"index", intersect:false },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#0a0a0d",
+          borderColor:"rgba(245,194,74,0.3)",
+          borderWidth:1,
+          titleColor:"#f5c24a",
+          bodyColor:"#e7e4d8",
+          titleFont:{family:"JetBrains Mono", size:11, weight:"500"},
+          bodyFont:{family:"JetBrains Mono", size:12},
+          padding:10, cornerRadius:8,
+          displayColors:false,
+          callbacks:{
+            label:(ctx)=> fmtFull(Math.round(ctx.parsed.y))+" "+c.sym,
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{display:false},
+          ticks:{color:"rgba(231,228,216,0.4)", font:{family:"JetBrains Mono", size:10}, maxRotation:0, autoSkipPadding:24}
+        },
+        y:{
+          grid:{color:"rgba(255,255,255,0.04)"},
+          border:{display:false},
+          ticks:{color:"rgba(231,228,216,0.4)", font:{family:"JetBrains Mono", size:10}, callback:v=>fmtNum(v)}
+        }
+      }
+    }
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   COPY / TOAST
+═══════════════════════════════════════════════════════════ */
+function copy(text){
+  navigator.clipboard?.writeText(text).then(()=>showToast("Copied address"));
+}
+let toastTimer;
+function showToast(msg){
+  $("#toastMsg").textContent = msg;
+  $("#toast").classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>$("#toast").classList.remove("show"), 1800);
+}
+
+/* ════════════════════════════════════════════════════════════
+   WIRING
+═══════════════════════════════════════════════════════════ */
+// chain filter
+$$("#chainFilter button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    $$("#chainFilter button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    state.chain = b.dataset.chain;
+    state.expandedSignal = null;
+    renderSignals(); renderMovements(); renderWallets();
+  });
+});
+
+// movements direction filter (cycle button)
+const dirCycle = ["all","in","out","acc"];
+const dirLabels = {all:"All directions", in:"Exchange inflow", out:"Exchange outflow", acc:"Accumulation"};
+$("#movFilterBtn").addEventListener("click", ()=>{
+  const idx = dirCycle.indexOf(state.movDir);
+  state.movDir = dirCycle[(idx+1)%dirCycle.length];
+  $("#movFilterBtn").textContent = dirLabels[state.movDir];
+  renderMovements();
+});
+
+// table sort
+$$(".table thead th.sortable").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k = th.dataset.sort;
+    if (state.sortBy===k) state.sortDir = state.sortDir==="asc"?"desc":"asc";
+    else { state.sortBy=k; state.sortDir="desc"; }
+    renderWallets();
+  });
+});
+// search + tag filter
+$("#walletSearch").addEventListener("input", e=>{ state.walletQuery=e.target.value; renderWallets(); });
+$$("#tagFilter button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    $$("#tagFilter button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    state.walletTag = b.dataset.tag;
+    renderWallets();
+  });
+});
+
+// notify
+$("#notifyToggle").addEventListener("click", e=>e.currentTarget.classList.toggle("on"));
+const thresh = $("#thresh");
+function syncThresh(){
+  const v = +thresh.value;
+  $("#threshVal").textContent = v;
+  const pct = ((v-5)/(50-5))*100;
+  thresh.style.setProperty("--pct", pct+"%");
+}
+thresh.addEventListener("input", syncThresh);
+syncThresh();
+$$("#coinChecks .coin-check").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    b.classList.toggle("on");
+    const isOn = b.classList.contains("on");
+    b.querySelector(".ck").textContent = isOn ? "✓" : "";
+  });
+});
+$("#saveAlerts").addEventListener("click", ()=>showToast("Alert preferences saved"));
+
+// modal close
+$("#mClose").addEventListener("click", closeModal);
+$("#modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
+
+/* ════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+// Render αμέσως με dummy data (instant feedback)
+renderSignals();
+renderMovements();
+renderWallets();
+
+// Then async-load πραγματικά data + re-render
+(async function loadAll() {
+  await loadBackendSignals();
+  if (BACKEND_SIGNALS && BACKEND_SIGNALS.length > 0) {
+    console.log(`[GGWALL] Loaded ${BACKEND_SIGNALS.length} backend signals`);
+    renderSignals();
+    
+    // Update "updated X ago" indicator
+    const updatedEl = document.querySelector(".updated .mono");
+    if (updatedEl) updatedEl.textContent = "just now";
+  } else {
+    console.log("[GGWALL] No backend signals — showing demo data");
+  }
+})();
+
+</script>
+</body>
+</html>
