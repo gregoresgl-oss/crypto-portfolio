@@ -1,4 +1,4 @@
-<!-- v2.9 CE-combo -->
+<!-- v3.0 zigzag-paragraphs -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -338,9 +338,16 @@
     border-radius:2px;margin-bottom:14px
   }
   .cosmic-body{font-size:11.5px;color:var(--muted);line-height:1.65}
-  .cosmic-body p{margin:0 0 10px}
+  .cosmic-body p{margin:0 0 10px;position:relative;padding-left:18px}
+  .cosmic-body p.indent{padding-left:42px}
   .cosmic-body p:last-child{margin:0}
   .cosmic-body strong{color:var(--gold);font-weight:500}
+  .cosmic-mark{
+    position:absolute;left:0;color:var(--gold);
+    font-weight:500;font-family:'JetBrains Mono',monospace
+  }
+  .cosmic-body p.indent .cosmic-mark{left:24px}
+  .cosmic-mark.dim{opacity:0.55}
   
   /* ───────── Period toggle ───────── */
   .period-toggle{display:inline-flex;background:rgba(255,255,255,0.025);border:1px solid var(--hair);border-radius:7px;padding:2px;gap:1px}
@@ -838,10 +845,10 @@
             <div class="cosmic-title">On-chain ντετέκτιβ<br><span>για το staking</span></div>
             <div class="cosmic-sep"></div>
             <div class="cosmic-body">
-              <p>Το Watchtower παρακολουθεί την κίνηση staking σε όλο το Cosmos, παίρνοντας snapshots κάθε 6 ώρες. Κατηγοριοποιεί τους validators σε τρεις ομάδες: exchanges (Binance, Coinbase, OKX), staking providers (επαγγελματικά node services) και independents (community validators).</p>
-              <p>Όταν αλλάζει το voting power, εμφανίζεται πού κινούνται τα tokens. Inflow σε exchanges → πιθανό sell pressure. Outflow → long-term hodling.</p>
-              <p>Δείχνει 21-day forecast για όλα τα επερχόμενα unlocks, με σήμανση των whale unbondings (&gt;100k tokens) για άμεση οπτική αναγνώριση. Για κάθε whale παρέχεται link στο Mintscan για περαιτέρω έρευνα της διεύθυνσης.</p>
-              <p>Πάτα <strong>"Γιατί συμβαίνει αυτό;"</strong> σε κάθε signal για AI-powered εξήγηση με πραγματικά crypto news.</p>
+              <p><span class="cosmic-mark">›</span>Το Watchtower παρακολουθεί την κίνηση staking σε όλο το Cosmos, παίρνοντας snapshots κάθε 6 ώρες. Κατηγοριοποιεί τους validators σε τρεις ομάδες: exchanges (Binance, Coinbase, OKX), staking providers (επαγγελματικά node services) και independents (community validators).</p>
+              <p class="indent"><span class="cosmic-mark dim">›</span>Όταν αλλάζει το voting power, εμφανίζεται πού κινούνται τα tokens. Inflow σε exchanges → πιθανό sell pressure. Outflow → long-term hodling.</p>
+              <p><span class="cosmic-mark">›</span>Δείχνει 21-day forecast για όλα τα επερχόμενα unlocks, με σήμανση των whale unbondings (&gt;100k tokens) για άμεση οπτική αναγνώριση. Για κάθε whale παρέχεται link στο Mintscan για περαιτέρω έρευνα της διεύθυνσης.</p>
+              <p class="indent"><span class="cosmic-mark dim">›</span>Πάτα <strong>"Γιατί συμβαίνει αυτό;"</strong> σε κάθε signal για AI-powered εξήγηση με πραγματικά crypto news.</p>
             </div>
           </div>
         </div>
