@@ -1,4 +1,4 @@
-<!-- v2.2 lower-threshold -->
+<!-- v2.3 red-huge-whale -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -280,6 +280,16 @@
   }
   .whale-toggle:hover{background:rgba(167,139,250,0.15);border-color:rgba(167,139,250,0.45)}
   .whale-toggle.active{background:rgba(167,139,250,0.2);border-color:#a78bfa;color:#fff}
+  .whale-toggle.huge{
+    background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.4);color:#ef4444;
+    animation:pulse-red 2.5s ease-in-out infinite
+  }
+  .whale-toggle.huge:hover{background:rgba(239,68,68,0.22);border-color:#ef4444;color:#fff}
+  .whale-toggle.huge.active{background:rgba(239,68,68,0.3);border-color:#ef4444;color:#fff}
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
+  }
   .whale-expand{padding:6px 0 10px 92px;display:flex;flex-direction:column;gap:4px}
   .whale-list{display:flex;flex-direction:column;gap:6px}
   .whale-row{
@@ -2109,8 +2119,9 @@ function renderUnlockForecast(){
       const chainId = UI_TO_CHAIN_ID[state.chain];
       if (chainId) dayWhales = dayWhales.filter(w => w.chain_id === chainId);
     }
+    const hasHugeWhale = dayWhales.some(w => parseFloat(w.amount_atom) > 300000);
     const whaleBtn = dayWhales.length 
-      ? `<button class="whale-toggle" data-date="${d.date}" title="${dayWhales.length} whale${dayWhales.length>1?'s':''} unbonding">🐋 ${dayWhales.length}</button>`
+      ? `<button class="whale-toggle ${hasHugeWhale ? 'huge' : ''}" data-date="${d.date}" title="${dayWhales.length} whale${dayWhales.length>1?'s':''} unbonding">🐋 ${dayWhales.length}</button>`
       : '';
     
     return `
@@ -2188,8 +2199,8 @@ function renderDayWhales(whales){
     const mintscanUrl = `https://www.mintscan.io/${mintscanChain}/address/${w.delegator_address}`;
     const amt = parseFloat(w.amount_atom);
     const amtFmt = amt >= 1e6 ? (amt/1e6).toFixed(2) + "M" : (amt/1e3).toFixed(0) + "k";
-    // "Huge" thresholds: >500k για όλα (5x το whale threshold)
-    const isHuge = amt > 500000;
+    // "Huge" thresholds: ATOM>300k, OSMO>300k, JUNO>300k
+    const isHuge = amt > 300000;
     const icon = isHuge ? "🚨" : "🐋";
     const addr = w.delegator_address;
     const addrShort = addr.length > 26 ? `${addr.slice(0, 14)}…${addr.slice(-6)}` : addr;
