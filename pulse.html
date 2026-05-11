@@ -268,6 +268,35 @@
   }
   .mover-amount{font-size:13.5px;font-weight:600;text-align:right;line-height:1.3}
   .mover-pct{display:block;margin-top:2px}
+
+  /* ───────── Whale unbondings ───────── */
+  .whale-list{display:flex;flex-direction:column;gap:6px}
+  .whale-row{
+    display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:14px;
+    padding:9px 12px;border-radius:7px;background:rgba(255,255,255,0.015);
+    border-left:2px solid rgba(167,139,250,0.5);transition:background .15s
+  }
+  .whale-row:hover{background:rgba(255,255,255,0.04)}
+  .whale-row.huge{border-left-color:#ef4444;background:rgba(239,68,68,0.04)}
+  .whale-row.huge:hover{background:rgba(239,68,68,0.07)}
+  .whale-icon{font-size:15px;line-height:1}
+  .whale-addr{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);
+    letter-spacing:-0.02em;line-height:1.3
+  }
+  .whale-mintscan-link{
+    color:var(--gold);text-decoration:none;font-size:10px;opacity:0.75;
+    transition:opacity 0.15s;font-family:'JetBrains Mono',monospace
+  }
+  .whale-mintscan-link:hover{opacity:1;text-decoration:underline}
+  .whale-amount{
+    font-family:'JetBrains Mono',monospace;font-weight:500;font-size:12px;
+    color:var(--text);text-align:right;white-space:nowrap
+  }
+  .whale-date{
+    font-size:10px;color:var(--dim);text-transform:uppercase;
+    letter-spacing:0.08em;white-space:nowrap
+  }
   
   /* ───────── Period toggle ───────── */
   .period-toggle{display:inline-flex;background:rgba(255,255,255,0.025);border:1px solid var(--hair);border-radius:7px;padding:2px;gap:1px}
@@ -780,6 +809,17 @@
       </div>
     </div>
     <div class="card-body" id="unlockForecast" style="padding:14px 18px;min-height:160px"></div>
+  </div>
+
+  <!-- ───────── WHALE UNBONDINGS ───────── -->
+  <div class="card" style="margin-bottom:22px">
+    <div class="card-head">
+      <h3>🐋 Whale unbondings</h3>
+      <div class="meta">
+        <span id="whaleCount">—</span>
+      </div>
+    </div>
+    <div class="card-body" id="whaleList" style="padding:14px 18px;min-height:120px"></div>
   </div>
 
   <!-- ───────── tracked wallets ───────── -->
@@ -2101,6 +2141,94 @@ function renderUnlockForecast(){
   root.innerHTML = `<div class="unlock-list">${bars}</div>${legend}`;
 }
 
+/* ───────── Whale unbondings (with Mintscan links) ───────── */
+const MINTSCAN_CHAIN_PATH = {
+  "cosmos": "cosmos",
+  "osmosis": "osmosis",
+  "juno-network": "juno"
+};
+
+async function fetchWhales(){
+  try {
+    const today = new Date().toISOString().slice(0,10);
+    const r = await fetch(
+      `${SB_URL}/rest/v1/whale_unbondings?select=*&unlock_date=gte.${today}&order=amount_atom.desc`,
+      { headers: SB_HEADERS }
+    );
+    if (!r.ok) return [];
+    const all = await r.json();
+    // Keep μόνο latest computed per chain (dedupe)
+    const latestComputed = new Map();
+    for (const row of all) {
+      const cur = latestComputed.get(row.chain_id);
+      if (!cur || new Date(row.computed_at) > new Date(cur)) {
+        latestComputed.set(row.chain_id, row.computed_at);
+      }
+    }
+    return all.filter(row => row.computed_at === latestComputed.get(row.chain_id));
+  } catch(e) { console.error("[fetchWhales]", e); return []; }
+}
+
+async function renderWhales(){
+  const root = $("#whaleList");
+  const countEl = $("#whaleCount");
+  if (!root) return;
+
+  let whales = await fetchWhales();
+
+  // Filter by selected chain
+  if (state.chain !== "all") {
+    const dbChain = UI_TO_CHAIN_ID[state.chain];
+    if (dbChain) whales = whales.filter(w => w.chain_id === dbChain);
+  }
+
+  if (countEl) countEl.textContent = whales.length ? `${whales.length} detected` : "";
+
+  if (!whales.length) {
+    root.innerHTML = '<div style="color:var(--muted);text-align:center;padding:24px;font-size:11.5px">No whale unbondings detected in next 21 days</div>';
+    return;
+  }
+
+  const html = whales.map(w => {
+    const uiChain = CHAIN_MAP[w.chain_id];
+    const sym = CHAINS[uiChain]?.sym || w.chain_id.toUpperCase();
+    const mintscanChain = MINTSCAN_CHAIN_PATH[w.chain_id] || w.chain_id;
+    const mintscanUrl = `https://www.mintscan.io/${mintscanChain}/address/${w.delegator_address}`;
+
+    const amt = parseFloat(w.amount_atom);
+    const amtFmt = amt >= 1e6 ? (amt/1e6).toFixed(2) + "M" : (amt/1e3).toFixed(0) + "k";
+
+    // "Huge" thresholds: >500k ATOM, >1M OSMO/JUNO
+    const isHuge = (w.chain_id === "cosmos" && amt > 500000) ||
+                   (w.chain_id !== "cosmos" && amt > 1000000);
+    const icon = isHuge ? "🚨" : "🐋";
+
+    // Truncate address: first 14 chars + ... + last 6 chars
+    const addr = w.delegator_address;
+    const addrShort = addr.length > 26 ? `${addr.slice(0, 14)}…${addr.slice(-6)}` : addr;
+
+    // Date format
+    const d = new Date(w.unlock_date + "T00:00:00Z");
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    return `
+      <div class="whale-row ${isHuge ? 'huge' : ''}">
+        <span class="whale-icon">${icon}</span>
+        <div style="min-width:0">
+          <div class="whale-addr">${addrShort}</div>
+          <a href="${mintscanUrl}" target="_blank" rel="noopener noreferrer" class="whale-mintscan-link">
+            View on Mintscan ↗
+          </a>
+        </div>
+        <div class="whale-amount">${amtFmt} ${sym}</div>
+        <div class="whale-date">${dateStr}</div>
+      </div>
+    `;
+  }).join("");
+
+  root.innerHTML = `<div class="whale-list">${html}</div>`;
+}
+
 function emptyState(h, s){
   return `<div class="empty">
     <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5" stroke-linecap="round"/></svg></div>
@@ -2138,6 +2266,7 @@ $$("#chainFilter button").forEach(b=>{
     renderMovers();
     renderCategoryBreakdown();
     renderUnlockForecast();
+    renderWhales();
   });
 });
 
@@ -2216,6 +2345,7 @@ renderStats();
   renderMovers();
   renderCategoryBreakdown();
   renderUnlockForecast();
+  renderWhales();
 })();
 
 </script>
