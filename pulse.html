@@ -1047,6 +1047,13 @@ async function loadBackendSignals() {
       confidence: flow.confidence,
       label: `${flow.confidence}% confidence · ${flow.period} window`,
       spark: makeSpark(tone),
+      // Raw deltas για renderStats
+      exchange_delta: flow.exchange_delta || 0,
+      staking_provider_delta: flow.staking_provider_delta || 0,
+      independent_delta: flow.independent_delta || 0,
+      foundation_delta: flow.foundation_delta || 0,
+      validators_gaining: flow.validators_gaining || 0,
+      validators_losing: flow.validators_losing || 0,
       notes: {
         "Exchange validators": fmtDelta(flow.exchange_delta || 0, sym),
         "Staking providers": fmtDelta(flow.staking_provider_delta || 0, sym),
@@ -1134,7 +1141,51 @@ async function showAiExplanation(uiChain, flowId) {
        </div>`
     : "";
   
+  // ─── Verdict comparison block ───
+  let verdictBlock = "";
+  if (result.verdict_original && result.verdict_refined) {
+    const orig = (result.verdict_original || "").toUpperCase();
+    const refined = (result.verdict_refined || "").toUpperCase();
+    const origColor = orig === "BEARISH" ? "var(--red)" : orig === "BULLISH" ? "var(--green)" : "var(--gold)";
+    const refColor = refined === "BEARISH" ? "var(--red)" : refined === "BULLISH" ? "var(--green)" : "var(--gold)";
+    
+    if (result.is_override) {
+      verdictBlock = `
+        <div style="margin-bottom:16px;padding:12px 14px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.25);border-radius:10px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01" stroke-linecap="round"/></svg>
+            <span style="font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;">AI Override</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;font-size:13px;">
+            <div style="text-decoration:line-through;color:var(--muted);">
+              <span style="color:${origColor};font-weight:600;">${orig}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;margin-left:4px;">${result.confidence_original}%</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div>
+              <span style="color:${refColor};font-weight:700;">${refined}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;margin-left:4px;color:var(--text);">${result.confidence_refined}%</span>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:8px;">Το AI διαφωνεί με το rules engine βάσει context.</div>
+        </div>
+      `;
+    } else {
+      verdictBlock = `
+        <div style="margin-bottom:16px;padding:10px 14px;background:rgba(125,214,125,0.05);border:1px solid rgba(125,214,125,0.2);border-radius:10px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span style="color:var(--muted);">AI confirms:</span>
+            <span style="color:${refColor};font-weight:700;">${refined}</span>
+            <span style="font-family:'JetBrains Mono',monospace;color:var(--text);">${result.confidence_refined}%</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+  
   content.innerHTML = `
+    ${verdictBlock}
     <div style="background:rgba(245,194,74,0.04);border-left:3px solid var(--gold);padding:14px 16px;border-radius:0 8px 8px 0;">
       ${result.explanation.replace(/\n/g, "<br>")}
     </div>
