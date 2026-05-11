@@ -1776,9 +1776,9 @@ function renderMovers(){
   const period = state.period || "7d";
   
   // Filter signals που έχουν matching period
-  const sigs = (BACKEND_SIGNALS || []).filter(s => s.period === period);
+  let sigs = (BACKEND_SIGNALS || []).filter(s => s.period === period);
   if (state.chain !== "all") {
-    sigs.filter(s => s.chain === state.chain);
+    sigs = sigs.filter(s => s.chain === state.chain);
   }
   
   // Combine top_gainers + top_losers from όλα τα signals
