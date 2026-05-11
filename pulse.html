@@ -1,4 +1,4 @@
-<!-- v2.1 whale-inline -->
+<!-- v2.2 lower-threshold -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -2188,8 +2188,8 @@ function renderDayWhales(whales){
     const mintscanUrl = `https://www.mintscan.io/${mintscanChain}/address/${w.delegator_address}`;
     const amt = parseFloat(w.amount_atom);
     const amtFmt = amt >= 1e6 ? (amt/1e6).toFixed(2) + "M" : (amt/1e3).toFixed(0) + "k";
-    const isHuge = (w.chain_id === "cosmos" && amt > 500000) ||
-                   (w.chain_id !== "cosmos" && amt > 1000000);
+    // "Huge" thresholds: >500k για όλα (5x το whale threshold)
+    const isHuge = amt > 500000;
     const icon = isHuge ? "🚨" : "🐋";
     const addr = w.delegator_address;
     const addrShort = addr.length > 26 ? `${addr.slice(0, 14)}…${addr.slice(-6)}` : addr;
