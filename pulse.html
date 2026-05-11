@@ -1,4 +1,4 @@
-<!-- v2.7 clean-bg -->
+<!-- v2.8 BC-combo -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -316,7 +316,7 @@
   }
 
   /* ───────── Cosmic banner ───────── */
-  .cosmic-banner{overflow:hidden}
+  .cosmic-banner{overflow:hidden;border-left:3px solid var(--gold)}
   .cosmic-bg{padding:8px 4px}
   .cosmic-content{position:relative}
   .cosmic-eyebrow{
@@ -326,9 +326,13 @@
   .cosmic-title{
     font-size:22px;color:var(--text);font-weight:500;line-height:1.2;
     letter-spacing:-0.02em;font-family:Georgia,'Times New Roman',serif;
-    margin-bottom:16px
+    margin-bottom:12px
   }
   .cosmic-title span{color:var(--gold)}
+  .cosmic-sep{
+    width:40px;height:2px;background:var(--gold);opacity:0.7;
+    border-radius:2px;margin-bottom:14px
+  }
   .cosmic-body{font-size:11.5px;color:var(--muted);line-height:1.65}
   .cosmic-body p{margin:0 0 10px}
   .cosmic-body p:last-child{margin:0}
@@ -828,6 +832,7 @@
           <div class="cosmic-content">
             <div class="cosmic-eyebrow">// WATCHTOWER</div>
             <div class="cosmic-title">On-chain ντετέκτιβ<br><span>για το staking</span></div>
+            <div class="cosmic-sep"></div>
             <div class="cosmic-body">
               <p>Το Watchtower παρακολουθεί την κίνηση staking σε όλο το Cosmos, παίρνοντας snapshots κάθε 6 ώρες. Κατηγοριοποιεί τους validators σε τρεις ομάδες: exchanges (Binance, Coinbase, OKX), staking providers (επαγγελματικά node services) και independents (community validators).</p>
               <p>Όταν αλλάζει το voting power, εμφανίζεται πού κινούνται τα tokens. Inflow σε exchanges → πιθανό sell pressure. Outflow → long-term hodling.</p>
