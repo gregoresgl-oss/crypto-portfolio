@@ -1,4 +1,4 @@
-<!-- v2.3 red-huge-whale -->
+<!-- v2.4 cosmic-banner -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -313,6 +313,32 @@
   .whale-amount{
     font-family:'JetBrains Mono',monospace;font-weight:500;font-size:11.5px;
     color:var(--text);text-align:right;white-space:nowrap
+  }
+
+  /* ───────── Cosmic banner ───────── */
+  .cosmic-banner{overflow:hidden;padding:0}
+  .cosmic-bg{
+    position:relative;height:180px;overflow:hidden;
+    display:flex;align-items:center;padding:0 30px;
+    background:
+      radial-gradient(ellipse at 30% 50%, rgba(232,184,74,0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 60%, rgba(167,139,250,0.15) 0%, transparent 55%),
+      #0d0d1f
+  }
+  .cosmic-svg{position:absolute;inset:0;width:100%;height:100%;opacity:0.4;pointer-events:none}
+  .cosmic-content{position:relative;z-index:1;max-width:55%}
+  .cosmic-eyebrow{
+    font-size:9px;letter-spacing:0.25em;color:#e8b84a;
+    font-family:'JetBrains Mono',monospace;margin-bottom:8px
+  }
+  .cosmic-title{
+    font-size:22px;color:#fff;font-weight:500;line-height:1.2;
+    letter-spacing:-0.02em;font-family:Georgia,'Times New Roman',serif
+  }
+  .cosmic-title span{color:#e8b84a}
+  .cosmic-foot{
+    padding:14px 22px;font-size:11.5px;color:var(--muted);
+    line-height:1.6;border-top:0.5px solid rgba(255,255,255,0.04)
   }
   
   /* ───────── Period toggle ───────── */
@@ -803,15 +829,27 @@
         </div>
       </div>
 
-      <!-- INFO CARD -->
-      <div class="card">
-        <div class="card-head">
-          <h3>How it works</h3>
+      <!-- COSMIC BANNER -->
+      <div class="card cosmic-banner">
+        <div class="cosmic-bg">
+          <svg class="cosmic-svg" viewBox="0 0 600 180" preserveAspectRatio="none">
+            <circle cx="200" cy="90" r="60" fill="none" stroke="#e8b84a" stroke-width="0.3" opacity="0.4"/>
+            <circle cx="200" cy="90" r="35" fill="none" stroke="#e8b84a" stroke-width="0.3" opacity="0.5"/>
+            <circle cx="200" cy="90" r="15" fill="none" stroke="#e8b84a" stroke-width="0.4" opacity="0.7"/>
+            <circle cx="200" cy="90" r="3" fill="#e8b84a"/>
+            <circle cx="180" cy="65" r="1.5" fill="#a78bfa"/>
+            <circle cx="240" cy="105" r="1.2" fill="#a78bfa"/>
+            <circle cx="160" cy="110" r="1" fill="#7dd67d"/>
+            <circle cx="225" cy="70" r="1.3" fill="#e8b84a"/>
+            <line x1="200" y1="90" x2="425" y2="90" stroke="#e8b84a" stroke-width="0.3" stroke-dasharray="3,5" opacity="0.4"/>
+          </svg>
+          <div class="cosmic-content">
+            <div class="cosmic-eyebrow">// WATCHTOWER</div>
+            <div class="cosmic-title">On-chain ντετέκτιβ<br><span>για το staking.</span></div>
+          </div>
         </div>
-        <div class="card-body" style="padding:16px 18px;font-size:12px;color:var(--muted);line-height:1.6">
-          <p style="margin:0 0 10px">Watchtower tracks validator stake movements every 6 hours across Cosmos chains.</p>
-          <p style="margin:0 0 10px">When voting power shifts, it reveals where smart money is going — exchanges, staking providers, or independent validators.</p>
-          <p style="margin:0">Click <strong style="color:var(--gold)">"Γιατί συμβαίνει αυτό;"</strong> on any signal for AI-powered explanation with current crypto news context.</p>
+        <div class="cosmic-foot">
+          Snapshots κάθε 6 ώρες · 3 chains · Whale tracking &gt;100k · AI-powered signals · Mintscan link σε κάθε whale
         </div>
       </div>
     </div>
