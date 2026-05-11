@@ -638,7 +638,7 @@
     <div class="topbar-right">
       <div class="net-pill">
         <span class="live-dot"></span>
-        <span>5 chains live</span>
+        <span>3 chains live</span>
       </div>
       <div class="mono">EUR</div>
     </div>
@@ -670,8 +670,6 @@
         <button data-chain="atom"><span class="swatch" style="background:#a8b1ff"></span>ATOM</button>
         <button data-chain="osmo"><span class="swatch" style="background:#c39bff"></span>OSMO</button>
         <button data-chain="juno"><span class="swatch" style="background:#ff9b9b"></span>JUNO</button>
-        <button data-chain="dym"><span class="swatch" style="background:#ffcf85"></span>DYM</button>
-        <button data-chain="saga"><span class="swatch" style="background:#9be9c5"></span>SAGA</button>
       </div>
     </div>
   </div>
@@ -935,8 +933,6 @@ const CHAIN_MAP = {
   "cosmos": "atom",
   "osmosis": "osmo",
   "juno-network": "juno",
-  "dymension": "dym",
-  "saga-2": "saga",
 };
 
 // Reverse map για να ξέρουμε ποιο chain_id να καλέσουμε
@@ -944,8 +940,6 @@ const UI_TO_CHAIN_ID = {
   "atom": "cosmos",
   "osmo": "osmosis",
   "juno": "juno-network",
-  "dym": "dymension",
-  "saga": "saga-2",
 };
 
 function fmtDelta(n, sym) {
@@ -954,20 +948,18 @@ function fmtDelta(n, sym) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   DUMMY DATA (used as fallback when backend is empty)
+   CHAIN METADATA
 ═══════════════════════════════════════════════════════════ */
 const CHAINS = {
   atom : { name:"Cosmos Hub",  sym:"ATOM", price:1.67,  cls:"atom" },
   osmo : { name:"Osmosis",     sym:"OSMO", price:0.42,  cls:"osmo" },
   juno : { name:"Juno",        sym:"JUNO", price:0.18,  cls:"juno" },
-  dym  : { name:"Dymension",   sym:"DYM",  price:1.92,  cls:"dym"  },
-  saga : { name:"Saga",        sym:"SAGA", price:2.74,  cls:"saga" },
 };
 
 // helper: simple deterministic sparkline given a "tone" (-1..1)
 function makeSpark(tone){
   const n = 30, pts = [];
-  let v = 0.5 + (tone>=0 ? -tone*0.25 : -tone*0.25); // start lower if rising overall
+  let v = 0.5 + (tone>=0 ? -tone*0.25 : -tone*0.25);
   for(let i=0;i<n;i++){
     const noise = (Math.sin(i*1.7+tone*3)+Math.cos(i*0.6+tone))*0.04;
     v += tone*0.018 + noise;
@@ -977,18 +969,7 @@ function makeSpark(tone){
   return pts;
 }
 
-const SIGNALS = [
-  { id:"atom", chain:"atom", verdict:"bearish", confidence:37, label:"37% of whales selling",
-    spark:makeSpark(-0.6), notes:{ Buyers:3, Sellers:5, "Net 7d":"−180k ATOM", "Largest move":"ICF −250k" } },
-  { id:"osmo", chain:"osmo", verdict:"bullish", confidence:52, label:"52% of whales accumulating",
-    spark:makeSpark(0.7),  notes:{ Buyers:6, Sellers:2, "Net 7d":"+1.2M OSMO", "Largest move":"Sunny +260k" } },
-  { id:"juno", chain:"juno", verdict:"neutral", confidence:8,  label:"Mixed activity, low volume",
-    spark:makeSpark(0.05), notes:{ Buyers:2, Sellers:2, "Net 7d":"−14k JUNO", "Largest move":"Foundation −20k" } },
-  { id:"dym",  chain:"dym",  verdict:"bullish", confidence:40, label:"40% of whales accumulating",
-    spark:makeSpark(0.45), notes:{ Buyers:4, Sellers:1, "Net 7d":"+88k DYM", "Largest move":"Treasury +60k" } },
-  { id:"saga", chain:"saga", verdict:"neutral", confidence:12, label:"Sideways, no clear bias",
-    spark:makeSpark(-0.1), notes:{ Buyers:2, Sellers:2, "Net 7d":"−6k SAGA", "Largest move":"Validator −9k" } },
-];
+// (Δεν χρειαζόμαστε πια το SIGNALS dummy array — έχουμε real backend data)
 
 
 
