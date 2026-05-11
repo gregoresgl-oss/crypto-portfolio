@@ -278,17 +278,48 @@
   .period-toggle button:hover{color:var(--text)}
   .period-toggle button.active{background:rgba(245,194,74,0.1);color:var(--gold);box-shadow:0 0 0 1px var(--gold-hair) inset}
   
-  /* ───────── Category breakdown (validators) ───────── */
+  /* ───────── Category breakdown (validators) v2 ───────── */
+  .cat-row-v2{
+    padding:14px 18px;border-bottom:1px solid var(--hair-2);
+  }
+  .cat-row-v2:last-child{border-bottom:none}
+  .cat-row-top{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;margin-bottom:8px
+  }
+  .cat-label{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+  .cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .cat-name{font-size:11px;font-weight:600;letter-spacing:0.14em;color:var(--text)}
+  .cat-validators-count{
+    font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.025);padding:2px 6px;border-radius:4px;
+    letter-spacing:0.04em
+  }
+  .cat-stats{display:flex;align-items:baseline;gap:12px;flex-shrink:0}
+  .cat-delta{font-size:11.5px;font-weight:500}
+  .cat-pct{
+    font-size:13px;font-weight:700;color:var(--text);
+    min-width:36px;text-align:right
+  }
+  .cat-pct-empty{
+    font-size:13px;color:var(--dim);font-family:'JetBrains Mono',monospace
+  }
+  .cat-bar-track{
+    width:100%;height:4px;background:rgba(255,255,255,0.03);
+    border-radius:2px;overflow:hidden;position:relative
+  }
+  .cat-bar-fill{
+    height:100%;border-radius:2px;
+    transition:width .4s cubic-bezier(.4,0,.2,1);
+    box-shadow:0 0 8px -2px currentColor
+  }
+  
+  /* Old (kept for backward compat) */
   .cat-row{
     display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
     padding:12px 18px;border-bottom:1px solid var(--hair-2)
   }
   .cat-row:last-child{border-bottom:none}
-  .cat-label{display:flex;align-items:center;gap:9px}
-  .cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .cat-name{font-size:11px;font-weight:600;letter-spacing:0.14em;color:var(--text)}
-  .cat-stats{display:flex;align-items:baseline;gap:14px}
-  .cat-delta{font-weight:500}
   .cat-count{font-size:14px;font-weight:600;color:var(--text);min-width:32px;text-align:right}
   
   .wallets-card{background:var(--card);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
@@ -1873,7 +1904,7 @@ function renderCategoryBreakdown(){
     deltas.foundation += (s.foundation_delta || 0);
   }
   
-  if (countEl) countEl.textContent = `${totalValidators} validators tracked`;
+  if (countEl) countEl.textContent = `${totalValidators} active validators`;
   
   const categoryMeta = {
     "exchange":         { label: "EXCHANGE",    color: "#f5c24a" },
@@ -1882,14 +1913,9 @@ function renderCategoryBreakdown(){
     "foundation":       { label: "FOUNDATION",  color: "#64b5ff" },
   };
   
-  // Find max amount for bar width proportion
-  const maxAbs = Math.max(
-    Math.abs(deltas.exchange), 
-    Math.abs(deltas.staking_provider),
-    Math.abs(deltas.independent),
-    Math.abs(deltas.foundation),
-    1
-  );
+  // Calculate total absolute flow across categories (for percentage)
+  const totalAbsFlow = Math.abs(deltas.exchange) + Math.abs(deltas.staking_provider) + 
+                       Math.abs(deltas.independent) + Math.abs(deltas.foundation);
   
   // Get the symbol — if multi-chain, use ATOM as base
   const sym = state.chain === "all" ? "ATOM" : (CHAINS[state.chain]?.sym || state.chain.toUpperCase());
@@ -1907,16 +1933,45 @@ function renderCategoryBreakdown(){
   root.innerHTML = Object.entries(categoryMeta).map(([key, meta]) => {
     const count = counts[key] || 0;
     const delta = deltas[key] || 0;
+    const absDelta = Math.abs(delta);
+    const pct = totalAbsFlow > 0 ? (absDelta / totalAbsFlow) * 100 : 0;
+    const isPositive = delta > 0;
+    const isNegative = delta < 0;
     const deltaColor = delta > 5000 ? "var(--green)" : delta < -5000 ? "var(--red)" : "var(--muted)";
-    return `
-      <div class="cat-row">
-        <div class="cat-label">
-          <span class="cat-dot" style="background:${meta.color}"></span>
-          <span class="cat-name">${meta.label}</span>
+    const barColor = isPositive ? "var(--green)" : isNegative ? "var(--red)" : "var(--muted)";
+    
+    // Show "—" if no movement at all
+    if (absDelta < 1 && count === 0) {
+      return `
+        <div class="cat-row-v2">
+          <div class="cat-row-top">
+            <div class="cat-label">
+              <span class="cat-dot" style="background:${meta.color}"></span>
+              <span class="cat-name">${meta.label}</span>
+            </div>
+            <div class="cat-stats">
+              <span class="cat-pct-empty">—</span>
+            </div>
+          </div>
         </div>
-        <div class="cat-stats">
-          <span class="cat-delta mono" style="color:${deltaColor};font-size:11px">${count > 0 ? fmtD(delta) + ' ' + sym : '—'}</span>
-          <span class="cat-count mono">${count}</span>
+      `;
+    }
+    
+    return `
+      <div class="cat-row-v2">
+        <div class="cat-row-top">
+          <div class="cat-label">
+            <span class="cat-dot" style="background:${meta.color}"></span>
+            <span class="cat-name">${meta.label}</span>
+            <span class="cat-validators-count">${count} validator${count !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="cat-stats">
+            <span class="cat-delta mono" style="color:${deltaColor}">${fmtD(delta)} ${sym}</span>
+            <span class="cat-pct mono">${pct.toFixed(0)}%</span>
+          </div>
+        </div>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill" style="width:${pct}%;background:${barColor};"></div>
         </div>
       </div>
     `;
