@@ -1,4 +1,4 @@
-<!-- v2.6 title-2lines -->
+<!-- v2.7 clean-bg -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -316,25 +316,19 @@
   }
 
   /* ───────── Cosmic banner ───────── */
-  .cosmic-banner{overflow:hidden;padding:0}
-  .cosmic-bg{
-    position:relative;overflow:hidden;padding:24px 28px;
-    background:
-      radial-gradient(ellipse at 20% 0%, rgba(232,184,74,0.10) 0%, transparent 55%),
-      radial-gradient(ellipse at 90% 100%, rgba(167,139,250,0.10) 0%, transparent 55%),
-      #0d0d1f
-  }
-  .cosmic-content{position:relative;z-index:1}
+  .cosmic-banner{overflow:hidden}
+  .cosmic-bg{padding:8px 4px}
+  .cosmic-content{position:relative}
   .cosmic-eyebrow{
     font-size:9px;letter-spacing:0.25em;color:#e8b84a;
     font-family:'JetBrains Mono',monospace;margin-bottom:10px
   }
   .cosmic-title{
-    font-size:22px;color:#fff;font-weight:500;line-height:1.2;
+    font-size:22px;color:var(--text);font-weight:500;line-height:1.2;
     letter-spacing:-0.02em;font-family:Georgia,'Times New Roman',serif;
     margin-bottom:16px
   }
-  .cosmic-title span{color:#e8b84a}
+  .cosmic-title span{color:var(--gold)}
   .cosmic-body{font-size:11.5px;color:var(--muted);line-height:1.65}
   .cosmic-body p{margin:0 0 10px}
   .cosmic-body p:last-child{margin:0}
@@ -833,7 +827,7 @@
         <div class="cosmic-bg">
           <div class="cosmic-content">
             <div class="cosmic-eyebrow">// WATCHTOWER</div>
-            <div class="cosmic-title">On-chain ντετέκτιβ<br><span>για το staking.</span></div>
+            <div class="cosmic-title">On-chain ντετέκτιβ<br><span>για το staking</span></div>
             <div class="cosmic-body">
               <p>Το Watchtower παρακολουθεί την κίνηση staking σε όλο το Cosmos, παίρνοντας snapshots κάθε 6 ώρες. Κατηγοριοποιεί τους validators σε τρεις ομάδες: exchanges (Binance, Coinbase, OKX), staking providers (επαγγελματικά node services) και independents (community validators).</p>
               <p>Όταν αλλάζει το voting power, εμφανίζεται πού κινούνται τα tokens. Inflow σε exchanges → πιθανό sell pressure. Outflow → long-term hodling.</p>
