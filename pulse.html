@@ -273,6 +273,21 @@
     display:inline-block;margin-left:4px;color:var(--gold);
     font-size:11px;opacity:0.7;cursor:help;font-family:'JetBrains Mono',monospace
   }
+  .movers-expand{
+    width:100%;padding:11px 14px;
+    background:rgba(255,255,255,0.015);
+    border:none;border-top:0.5px solid rgba(255,255,255,0.04);
+    color:var(--muted);font-size:11px;font-weight:500;
+    font-family:inherit;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:background 0.15s, color 0.15s;
+    letter-spacing:0.02em
+  }
+  .movers-expand:hover{
+    background:rgba(232,184,74,0.04);
+    color:var(--gold)
+  }
+  .movers-expand svg{opacity:0.7}
 
   /* ───────── Whale unbondings (inline expand) ───────── */
   .whale-toggle{
@@ -1913,12 +1928,17 @@ function renderMovers(){
   
   // Sort by absolute delta_atom desc
   movers.sort((a,b) => Math.abs(b.delta_atom) - Math.abs(a.delta_atom));
-  movers = movers.slice(0, 10);
+  movers = movers.slice(0, 20);
   
   if (!movers.length) {
     root.innerHTML = emptyState("No movers data yet", "Waiting for analyze-validator-flows to run.");
     return;
   }
+  
+  const VISIBLE_INITIAL = 10;
+  const isExpanded = state.moversExpanded === true;
+  const hasMore = movers.length > VISIBLE_INITIAL;
+  const visibleMovers = isExpanded ? movers : movers.slice(0, VISIBLE_INITIAL);
   
   const categoryColors = {
     "exchange": { bg: "rgba(245,194,74,0.1)", color: "#f5c24a" },
@@ -1927,7 +1947,7 @@ function renderMovers(){
     "foundation": { bg: "rgba(100,181,255,0.1)", color: "#64b5ff" },
   };
   
-  root.innerHTML = movers.map(m => {
+  root.innerHTML = visibleMovers.map(m => {
     const cat = categoryColors[m.category] || categoryColors.independent;
     const isGain = m.kind === "gain";
     const sign = isGain ? "+" : "";
@@ -1953,7 +1973,23 @@ function renderMovers(){
         </div>
       </div>
     `;
-  }).join("");
+  }).join("") + (hasMore ? `
+    <button class="movers-expand" id="moversExpandBtn" type="button">
+      ${isExpanded
+        ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Show less`
+        : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg> Show ${movers.length - VISIBLE_INITIAL} more`
+      }
+    </button>
+  ` : "");
+  
+  // Wire up expand button
+  const expandBtn = $("#moversExpandBtn");
+  if (expandBtn) {
+    expandBtn.addEventListener("click", () => {
+      state.moversExpanded = !state.moversExpanded;
+      renderMovers();
+    });
+  }
 }
 
 /* ───────── category breakdown (validators) ───────── */
@@ -2305,6 +2341,7 @@ $$("#chainFilter button").forEach(b=>{
     b.classList.add("active");
     state.chain = b.dataset.chain;
     state.expandedSignal = null;
+    state.moversExpanded = false;
     renderStats();
     renderSignals();
     renderMovers();
@@ -2320,6 +2357,7 @@ $$("#periodToggle button").forEach(b=>{
     $$("#periodToggle button").forEach(x=>x.classList.remove("active"));
     b.classList.add("active");
     state.period = b.dataset.period;
+    state.moversExpanded = false;
     $("#signalsWindow").textContent = `${state.period} window`;
     renderStats();
     renderSignals();
