@@ -1,4 +1,4 @@
-<!-- v3.0 zigzag-paragraphs -->
+<!-- v3.1 aggregate-movers -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -269,6 +269,10 @@
   }
   .mover-amount{font-size:13.5px;font-weight:600;text-align:right;line-height:1.3}
   .mover-pct{display:block;margin-top:2px}
+  .mover-vol{
+    display:inline-block;margin-left:4px;color:var(--gold);
+    font-size:11px;opacity:0.7;cursor:help;font-family:'JetBrains Mono',monospace
+  }
 
   /* ───────── Whale unbondings (inline expand) ───────── */
   .whale-toggle{
@@ -981,7 +985,9 @@ const SB_HEADERS = { "apikey": SB_ANON, "Authorization": "Bearer " + SB_ANON };
 
 async function fetchFlows() {
   try {
-    const r = await fetch(`${SB_URL}/rest/v1/vw_validator_flows?select=*&order=computed_at.desc&limit=30`, { headers: SB_HEADERS });
+    // Φέρε ΟΛΑ τα flows τελευταίων 8 ημερών για να μπορούμε να αθροίσουμε 7d window
+    const since = new Date(Date.now() - 8 * 24 * 3600 * 1000).toISOString();
+    const r = await fetch(`${SB_URL}/rest/v1/vw_validator_flows?select=*&computed_at=gte.${since}&order=computed_at.desc`, { headers: SB_HEADERS });
     if (!r.ok) return [];
     return await r.json();
   } catch(e) { console.error("[fetchFlows]", e); return []; }
@@ -1111,55 +1117,108 @@ async function loadBackendSignals() {
     BACKEND_SIGNALS = [];
     return;
   }
-  
-  // Group by (chain, period) — keep latest computed_at για κάθε combo
+
+  // Group by (chain, period) — aggregate ALL snapshots για να δείξουμε
+  // cumulative movers στο διάστημα (όχι μόνο latest snapshot)
   const byKey = new Map();
   for (const f of flows) {
     const uiChain = CHAIN_MAP[f.chain_id];
     if (!uiChain) continue;
     const key = `${uiChain}|${f.period}`;
-    
-    const existing = byKey.get(key);
-    if (!existing || new Date(f.computed_at) > new Date(existing.computed_at)) {
-      byKey.set(key, f);
-    }
+
+    if (!byKey.has(key)) byKey.set(key, []);
+    byKey.get(key).push(f);
   }
-  
-  // Map to SIGNALS format
-  BACKEND_SIGNALS = [...byKey.values()].map((flow) => {
-    const uiChain = CHAIN_MAP[flow.chain_id];
-    const sym = (CHAINS[uiChain]?.sym) || flow.chain_id.toUpperCase();
-    const totalChange = (flow.exchange_delta || 0) + (flow.staking_provider_delta || 0) + (flow.independent_delta || 0);
-    
-    // Build sparkline tone from verdict
-    const tone = flow.verdict === "bullish" ? 0.6 : flow.verdict === "bearish" ? -0.6 : 0;
-    
+
+  // For each (chain, period), aggregate flows into one consolidated signal
+  BACKEND_SIGNALS = [...byKey.entries()].map(([key, flowList]) => {
+    // Sort latest first so latest verdict/confidence wins
+    flowList.sort((a, b) => new Date(b.computed_at) - new Date(a.computed_at));
+    const latest = flowList[0];
+    const uiChain = CHAIN_MAP[latest.chain_id];
+    const sym = (CHAINS[uiChain]?.sym) || latest.chain_id.toUpperCase();
+
+    // Period filter: για 24h αρκεί 1 snapshot (latest), για 7d aggregate ΟΛΑ
+    const aggregateList = latest.period === '24h' ? [latest] : flowList;
+
+    // Sum category deltas across snapshots
+    const exchange_delta        = aggregateList.reduce((s, f) => s + (parseFloat(f.exchange_delta) || 0), 0);
+    const staking_provider_delta= aggregateList.reduce((s, f) => s + (parseFloat(f.staking_provider_delta) || 0), 0);
+    const independent_delta     = aggregateList.reduce((s, f) => s + (parseFloat(f.independent_delta) || 0), 0);
+    const foundation_delta      = aggregateList.reduce((s, f) => s + (parseFloat(f.foundation_delta) || 0), 0);
+
+    // Aggregate movers — sum delta_atom per validator, also count appearances για volatility
+    const validatorMap = new Map();  // address -> {moniker, category, totalDelta, appearances}
+    for (const f of aggregateList) {
+      const allMovers = [...(f.top_gainers || []), ...(f.top_losers || [])];
+      for (const m of allMovers) {
+        const cur = validatorMap.get(m.address);
+        if (cur) {
+          cur.totalDelta += (parseFloat(m.delta_atom) || 0);
+          cur.appearances += 1;
+          cur.sumPct += (parseFloat(m.delta_pct) || 0);
+        } else {
+          validatorMap.set(m.address, {
+            address: m.address,
+            moniker: m.moniker,
+            category: m.category,
+            totalDelta: parseFloat(m.delta_atom) || 0,
+            sumPct: parseFloat(m.delta_pct) || 0,
+            appearances: 1,
+          });
+        }
+      }
+    }
+
+    // Sort gainers/losers by |totalDelta|, top 5 each
+    const allValidators = [...validatorMap.values()].map(v => ({
+      address: v.address,
+      moniker: v.moniker,
+      category: v.category,
+      delta_atom: v.totalDelta,
+      delta_pct: v.sumPct / Math.max(v.appearances, 1),
+      // volatility flag: appeared σε >=2 snapshots ΑΛΛΑ με opposite signs ή σχετικά μικρό net
+      // (δείκτης ότι "κουνήθηκε" αλλά πολύ έκλεισε)
+      volatile: v.appearances >= 2,
+      appearances: v.appearances,
+    }));
+
+    const top_gainers = allValidators.filter(v => v.delta_atom > 0).sort((a, b) => b.delta_atom - a.delta_atom).slice(0, 8);
+    const top_losers  = allValidators.filter(v => v.delta_atom < 0).sort((a, b) => a.delta_atom - b.delta_atom).slice(0, 8);
+
+    // Aggregate validator counts (use sets to avoid double-count)
+    const gainingAddrs = new Set(allValidators.filter(v => v.delta_atom > 0).map(v => v.address));
+    const losingAddrs  = new Set(allValidators.filter(v => v.delta_atom < 0).map(v => v.address));
+
+    const totalChange = exchange_delta + staking_provider_delta + independent_delta;
+    const tone = latest.verdict === "bullish" ? 0.6 : latest.verdict === "bearish" ? -0.6 : 0;
+
     return {
-      id: `${uiChain}-${flow.period}`,
+      id: `${uiChain}-${latest.period}`,
       chain: uiChain,
-      flow_id: flow.id,
-      period: flow.period,
-      verdict: flow.verdict,
-      confidence: flow.confidence,
-      label: `${flow.confidence}% confidence · ${flow.period} window`,
+      flow_id: latest.id,
+      period: latest.period,
+      verdict: latest.verdict,
+      confidence: latest.confidence,
+      label: `${latest.confidence}% confidence · ${latest.period} window`,
       spark: makeSpark(tone),
-      // Raw deltas για renderStats
-      exchange_delta: flow.exchange_delta || 0,
-      staking_provider_delta: flow.staking_provider_delta || 0,
-      independent_delta: flow.independent_delta || 0,
-      foundation_delta: flow.foundation_delta || 0,
-      validators_gaining: flow.validators_gaining || 0,
-      validators_losing: flow.validators_losing || 0,
+      exchange_delta,
+      staking_provider_delta,
+      independent_delta,
+      foundation_delta,
+      validators_gaining: gainingAddrs.size,
+      validators_losing: losingAddrs.size,
       notes: {
-        "Exchange validators": fmtDelta(flow.exchange_delta || 0, sym),
-        "Staking providers": fmtDelta(flow.staking_provider_delta || 0, sym),
-        "Independent": fmtDelta(flow.independent_delta || 0, sym),
+        "Exchange validators": fmtDelta(exchange_delta, sym),
+        "Staking providers": fmtDelta(staking_provider_delta, sym),
+        "Independent": fmtDelta(independent_delta, sym),
         "Net change": fmtDelta(totalChange, sym),
-        "Validators ↑": flow.validators_gaining || 0,
-        "Validators ↓": flow.validators_losing || 0,
+        "Validators ↑": gainingAddrs.size,
+        "Validators ↓": losingAddrs.size,
       },
-      top_gainers: flow.top_gainers || [],
-      top_losers: flow.top_losers || [],
+      top_gainers,
+      top_losers,
+      snapshot_count: aggregateList.length,
     };
   });
 }
@@ -1938,12 +1997,12 @@ function renderMovers(){
           }
         </div>
         <div class="mover-name">
-          <div class="mover-title">${m.moniker}</div>
+          <div class="mover-title">${m.moniker}${m.volatile && m.appearances >= 2 ? ` <span class="mover-vol" title="Appeared in ${m.appearances} snapshots — moving across days">↻</span>` : ''}</div>
           <div class="mover-tag" style="background:${cat.bg};color:${cat.color}">${m.category.replace("_"," ")}</div>
         </div>
         <div class="mover-amount mono" style="color:${arrowColor}">
           ${sign}${formattedAtom} ${m.sym}
-          <div class="mover-pct mono" style="color:var(--muted);font-size:10.5px;font-weight:400">${sign}${m.delta_pct}%</div>
+          <div class="mover-pct mono" style="color:var(--muted);font-size:10.5px;font-weight:400">${sign}${m.delta_pct.toFixed(2)}%</div>
         </div>
       </div>
     `;
