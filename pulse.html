@@ -1950,7 +1950,7 @@ function renderMovers(){
   root.innerHTML = visibleMovers.map(m => {
     const cat = categoryColors[m.category] || categoryColors.independent;
     const isGain = m.kind === "gain";
-    const sign = isGain ? "+" : "";
+    const sign = isGain ? "+" : "−";
     const arrowColor = isGain ? "var(--green)" : "var(--red)";
     const formattedAtom = Math.abs(m.delta_atom) >= 1000
       ? (Math.abs(m.delta_atom) / 1000).toFixed(0) + "k"
@@ -1969,7 +1969,7 @@ function renderMovers(){
         </div>
         <div class="mover-amount mono" style="color:${arrowColor}">
           ${sign}${formattedAtom} ${m.sym}
-          <div class="mover-pct mono" style="color:var(--muted);font-size:10.5px;font-weight:400">${sign}${m.delta_pct.toFixed(2)}%</div>
+          <div class="mover-pct mono" style="color:var(--muted);font-size:10.5px;font-weight:400">${m.delta_pct >= 0 ? '+' : ''}${m.delta_pct.toFixed(2)}%</div>
         </div>
       </div>
     `;
