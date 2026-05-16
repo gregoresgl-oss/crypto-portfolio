@@ -2458,6 +2458,7 @@ async function _renderPriceAlerts(){
 
   // 1) Φόρτωσε prefs (ποια coins έχει διαλέξει)
   let enabledCoins = PRICE_ALERT_COINS.map(c => c.id); // default: all
+  let hadPrefs = false;
   try {
     const uid = (typeof _user !== 'undefined' && _user && _user.id) || null;
     if(uid && typeof _sb !== 'undefined'){
@@ -2468,9 +2469,28 @@ async function _renderPriceAlerts(){
       if(error) console.warn('[price-alerts] prefs error:', error);
       if(data && Array.isArray(data.coins) && data.coins.length){
         enabledCoins = data.coins;
+        hadPrefs = true;
       }
     }
   } catch(e){ console.warn('[price-alerts] prefs load fail', e); }
+
+  // 1b) Αν δεν υπάρχουν prefs, κάνε auto-save τα defaults (όλα ενεργά)
+  if(!hadPrefs){
+    const uid = (typeof _user !== 'undefined' && _user && _user.id) || null;
+    if(uid && typeof _sb !== 'undefined'){
+      try {
+        await _sb.from('price_alert_prefs').upsert({
+          user_id: uid,
+          coins: enabledCoins,
+          enabled: true,
+          notify_email: true,
+          notify_push: true,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+        console.log('[price-alerts] auto-created default prefs');
+      } catch(e){ console.warn('[price-alerts] auto-save fail', e); }
+    }
+  }
 
   // 2) Φόρτωσε live 24h pct change για κάθε coin
   let pctMap = {};
