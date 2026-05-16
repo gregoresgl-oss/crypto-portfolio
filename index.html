@@ -2459,12 +2459,13 @@ async function _renderPriceAlerts(){
   // 1) Φόρτωσε prefs (ποια coins έχει διαλέξει)
   let enabledCoins = PRICE_ALERT_COINS.map(c => c.id); // default: all
   try {
-    const uid = (window._user && window._user.id) || null;
-    if(uid && window._sb){
-      const { data } = await window._sb.from('price_alert_prefs')
+    const uid = (typeof _user !== 'undefined' && _user && _user.id) || null;
+    if(uid && typeof _sb !== 'undefined'){
+      const { data, error } = await _sb.from('price_alert_prefs')
         .select('coins, enabled')
         .eq('user_id', uid)
         .maybeSingle();
+      if(error) console.warn('[price-alerts] prefs error:', error);
       if(data && Array.isArray(data.coins) && data.coins.length){
         enabledCoins = data.coins;
       }
@@ -2474,10 +2475,13 @@ async function _renderPriceAlerts(){
   // 2) Φόρτωσε live 24h pct change για κάθε coin
   let pctMap = {};
   try {
-    if(window._sb){
-      const { data } = await window._sb.from('vw_price_changes_24h')
+    if(typeof _sb !== 'undefined'){
+      const coinIds = PRICE_ALERT_COINS.map(c => c.id);
+      const { data, error } = await _sb.from('vw_price_changes_24h')
         .select('coin_id, pct_change_24h')
-        .in('coin_id', PRICE_ALERT_COINS.map(c => c.id));
+        .in('coin_id', coinIds);
+      if(error) console.warn('[price-alerts] pct error:', error);
+      console.log('[price-alerts] pct data:', data);
       (data || []).forEach(r => { pctMap[r.coin_id] = parseFloat(r.pct_change_24h) || 0; });
     }
   } catch(e){ console.warn('[price-alerts] pct load fail', e); }
@@ -2485,9 +2489,9 @@ async function _renderPriceAlerts(){
   // 3) Φόρτωσε αν έχει ενεργό alert (band > 0)
   let firedMap = {};
   try {
-    const uid = (window._user && window._user.id) || null;
-    if(uid && window._sb){
-      const { data } = await window._sb.from('price_alert_state')
+    const uid = (typeof _user !== 'undefined' && _user && _user.id) || null;
+    if(uid && typeof _sb !== 'undefined'){
+      const { data } = await _sb.from('price_alert_state')
         .select('coin_id, current_band')
         .eq('user_id', uid)
         .neq('current_band', 0);
@@ -2516,12 +2520,12 @@ async function _renderPriceAlerts(){
 }
 
 async function _savePriceAlertCoins(){
-  const uid = (window._user && window._user.id) || null;
-  if(!uid || !window._sb) return;
+  const uid = (typeof _user !== 'undefined' && _user && _user.id) || null;
+  if(!uid || typeof _sb === 'undefined') return;
   const checked = Array.from(document.querySelectorAll('#price-alerts-grid input[type="checkbox"]:checked'))
     .map(el => el.dataset.coin);
   try {
-    await window._sb.from('price_alert_prefs').upsert({
+    await _sb.from('price_alert_prefs').upsert({
       user_id: uid,
       coins: checked,
       updated_at: new Date().toISOString(),
