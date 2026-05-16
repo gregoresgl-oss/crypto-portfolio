@@ -471,6 +471,22 @@ iframe[id^="slot-iframe-"]{
 .notif-type-c-desc{font-size:9px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .notif-recent-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
 
+/* Price Alerts (profile notif tab) */
+.price-alerts-card{background:rgba(13,10,28,0.4);border:1px solid rgba(245,194,74,0.18);border-radius:10px;padding:10px;}
+.price-alerts-desc{font-size:9.5px;color:rgba(167,139,250,0.7);margin-bottom:9px;line-height:1.55;}
+.price-alerts-desc strong{color:rgba(245,194,74,0.95);font-weight:500;}
+.price-alerts-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.price-alert-row{display:flex;align-items:center;gap:7px;padding:7px 9px;background:rgba(245,194,74,0.04);border:1px solid rgba(245,194,74,0.15);border-radius:7px;cursor:pointer;transition:all .15s;}
+.price-alert-row:hover{background:rgba(245,194,74,0.08);border-color:rgba(245,194,74,0.28);}
+.price-alert-row input[type="checkbox"]{margin:0;accent-color:#f5c24a;cursor:pointer;}
+.price-alert-row .coin-name{font-size:11px;color:var(--cream);font-weight:500;}
+.price-alert-row .coin-pct{margin-left:auto;font-size:9px;font-family:'JetBrains Mono',monospace;}
+.price-alert-row .coin-pct.up{color:rgba(52,211,153,0.85);}
+.price-alert-row .coin-pct.down{color:rgba(251,113,133,0.85);}
+.price-alert-row .coin-pct.flat{color:rgba(167,139,250,0.6);}
+.price-alert-row .ring{margin-left:3px;}
+.price-alerts-foot{margin-top:9px;padding-top:8px;border-top:1px solid rgba(245,194,74,0.1);display:flex;align-items:center;gap:6px;font-size:9px;color:rgba(167,139,250,0.55);}
+
 /* IBC Chain Selection (profile wallet tab) */
 .chains-list{background:rgba(13,10,28,.4);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:5px;margin-top:8px;max-height:240px;overflow-y:auto;}
 .chain-row{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;transition:all .15s;cursor:pointer;}
@@ -935,6 +951,24 @@ iframe[id^="slot-iframe-"]{
               <span class="notif-type-c-title">Νέο σήμα</span>
               <span class="notif-type-c-desc">Άγνωστο token στο wallet</span>
             </div>
+          </div>
+        </div>
+
+        <!-- Price alerts section -->
+        <div class="notif-section-label" style="display:flex;align-items:center;gap:6px;">
+          <span>⚡ Παλμοί τιμών</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:500;color:var(--gold,#f5c24a);background:rgba(245,194,74,0.08);border:1px solid rgba(245,194,74,0.22);padding:2px 7px;border-radius:99px;letter-spacing:.5px;">24H</span>
+        </div>
+        <div class="price-alerts-card">
+          <div class="price-alerts-desc">
+            Σήμα όταν μια τιμή κινηθεί <strong>±20%, ±40%, ±60%, ±80% ή ±100%</strong> τις τελευταίες 24 ώρες.
+          </div>
+          <div class="price-alerts-grid" id="price-alerts-grid">
+            <!-- populated by _renderPriceAlerts() -->
+          </div>
+          <div class="price-alerts-foot" id="price-alerts-foot">
+            <span class="status-dot" style="width:5px;height:5px;border-radius:50%;background:var(--gold,#f5c24a);box-shadow:0 0 5px rgba(245,194,74,.5);"></span>
+            <span id="price-alerts-foot-text">Έλεγχος κάθε 5 λεπτά</span>
           </div>
         </div>
 
@@ -1931,10 +1965,10 @@ function _setCmpRange(d){_cmpRange=d;localStorage.setItem("ggwall_cmp_range",Str
 (function(){var _wasMobile=window.innerWidth<=600;var _t=null;window.addEventListener("resize",function(){clearTimeout(_t);_t=setTimeout(function(){var nowMobile=window.innerWidth<=600;if(nowMobile!==_wasMobile&&_cmpChart){_wasMobile=nowMobile;_cmpChart.destroy();_cmpChart=null;loadHistoricalData(_cmpRange);}},300);});})();
 
 // ─── User Overlay ─────────────────────────────────────────────────
-function openUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.add("open");_updatePushBtn();_loadNotifHist();}
+function openUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.add("open");_updatePushBtn();_loadNotifHist();_renderPriceAlerts();}
 function closeUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.remove("open");}
 document.getElementById("user-overlay")?.addEventListener("click",e=>{if(e.target===document.getElementById("user-overlay"))closeUserOverlay();});
-function switchUpTab(tab){document.querySelectorAll(".up-tab").forEach((b,i)=>b.classList.toggle("active",["profile","wallet","notifications"][i]===tab));document.querySelectorAll(".up-content").forEach(el=>el.classList.toggle("active",el.id==="ut-"+tab));}
+function switchUpTab(tab){document.querySelectorAll(".up-tab").forEach((b,i)=>b.classList.toggle("active",["profile","wallet","notifications"][i]===tab));document.querySelectorAll(".up-content").forEach(el=>el.classList.toggle("active",el.id==="ut-"+tab));if(tab==='notifications')_renderPriceAlerts();}
 
 var _newPhoto=null;
 function _onPhotoChange(inp){var file=inp.files[0];if(!file)return;var rd=new FileReader();rd.onload=e=>{_newPhoto=e.target.result;var av=document.getElementById("ov-avatar");if(av)av.innerHTML='<img src="'+_newPhoto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';};rd.readAsDataURL(file);}
@@ -2409,6 +2443,93 @@ async function _toggleNotif(id,uid){
     }
   }
 }
+// ─── Price Alerts (24h) ───────────────────────────────────────
+const PRICE_ALERT_COINS = [
+  { id:'cosmos',       label:'ATOM' },
+  { id:'osmosis',      label:'OSMO' },
+  { id:'juno-network', label:'JUNO' },
+  { id:'saga-2',       label:'SAGA' },
+  { id:'dymension',    label:'DYM'  },
+];
+
+async function _renderPriceAlerts(){
+  const grid = document.getElementById('price-alerts-grid');
+  if(!grid) return;
+
+  // 1) Φόρτωσε prefs (ποια coins έχει διαλέξει)
+  let enabledCoins = PRICE_ALERT_COINS.map(c => c.id); // default: all
+  try {
+    const uid = (window._user && window._user.id) || null;
+    if(uid && window._sb){
+      const { data } = await window._sb.from('price_alert_prefs')
+        .select('coins, enabled')
+        .eq('user_id', uid)
+        .maybeSingle();
+      if(data && Array.isArray(data.coins) && data.coins.length){
+        enabledCoins = data.coins;
+      }
+    }
+  } catch(e){ console.warn('[price-alerts] prefs load fail', e); }
+
+  // 2) Φόρτωσε live 24h pct change για κάθε coin
+  let pctMap = {};
+  try {
+    if(window._sb){
+      const { data } = await window._sb.from('vw_price_changes_24h')
+        .select('coin_id, pct_change_24h')
+        .in('coin_id', PRICE_ALERT_COINS.map(c => c.id));
+      (data || []).forEach(r => { pctMap[r.coin_id] = parseFloat(r.pct_change_24h) || 0; });
+    }
+  } catch(e){ console.warn('[price-alerts] pct load fail', e); }
+
+  // 3) Φόρτωσε αν έχει ενεργό alert (band > 0)
+  let firedMap = {};
+  try {
+    const uid = (window._user && window._user.id) || null;
+    if(uid && window._sb){
+      const { data } = await window._sb.from('price_alert_state')
+        .select('coin_id, current_band')
+        .eq('user_id', uid)
+        .neq('current_band', 0);
+      (data || []).forEach(r => { firedMap[r.coin_id] = r.current_band; });
+    }
+  } catch(e){}
+
+  // 4) Render rows
+  grid.innerHTML = PRICE_ALERT_COINS.map(c => {
+    const checked = enabledCoins.includes(c.id) ? 'checked' : '';
+    const pct = pctMap[c.id];
+    let pctClass = 'flat', pctTxt = '—';
+    if(pct !== undefined && !isNaN(pct)){
+      pctClass = pct > 0.5 ? 'up' : pct < -0.5 ? 'down' : 'flat';
+      pctTxt = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+    }
+    const ring = firedMap[c.id] ? '<span class="ring">🔔</span>' : '';
+    return `
+      <label class="price-alert-row">
+        <input type="checkbox" ${checked} data-coin="${c.id}" onchange="_savePriceAlertCoins()">
+        <span class="coin-name">${c.label}</span>
+        <span class="coin-pct ${pctClass}">${pctTxt}${ring}</span>
+      </label>
+    `;
+  }).join('');
+}
+
+async function _savePriceAlertCoins(){
+  const uid = (window._user && window._user.id) || null;
+  if(!uid || !window._sb) return;
+  const checked = Array.from(document.querySelectorAll('#price-alerts-grid input[type="checkbox"]:checked'))
+    .map(el => el.dataset.coin);
+  try {
+    await window._sb.from('price_alert_prefs').upsert({
+      user_id: uid,
+      coins: checked,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+    if(typeof toast === 'function') toast('Παλμοί τιμών αποθηκεύτηκαν');
+  } catch(e){ console.error('[price-alerts] save fail', e); }
+}
+
 function _toggleNotifMaster(){
   var t=document.getElementById('notif-master-toggle');
   var statusText=document.getElementById('notif-master-status-text');
