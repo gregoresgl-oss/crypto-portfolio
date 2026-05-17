@@ -1053,7 +1053,7 @@ async function fetchLogo(id){
   try{const r=await fetch("https://api.coingecko.com/api/v3/search?query="+encodeURIComponent(id),{signal:AbortSignal.timeout(5000)});if(r.ok){const d=await r.json();const c=(d.coins||[]).find(x=>x.id===id);if(c?.large){LOGO_CACHE[id]=c.large;return c.large;}}}catch(e){}
   return null;
 }
-const CHAIN_APR={"cosmos":14.5,"osmosis":12.0,"juno-network":35.0,"dymension":40.0,"saga-2":25.0,"celestia":12.0,"stargaze":30.0,"akash-network":20.0,"secret":22.0,"injective-protocol":8.0,"kava":18.0,"evmos":50.0};
+const CHAIN_APR={"cosmos":14.5,"osmosis":12.0,"juno-network":35.0,"dymension":40.0,"saga-2":25.0,"celestia":12.0,"stargaze":30.0,"akash-network":20.0,"secret":22.0,"injective-protocol":8.0,"kava":18.0,"evmos":50.0,"cardano":3.0};
 const COSMOS_CHAINS=[
   {id:"cosmos",name:"Cosmos",sym:"ATOM",prefix:"cosmos",denom:"uatom",dec:6,ep:["https://rest.cosmos.directory/cosmoshub","https://cosmos-rest.publicnode.com"]},
   {id:"osmosis",name:"Osmosis",sym:"OSMO",prefix:"osmo",denom:"uosmo",dec:6,ep:["https://rest.cosmos.directory/osmosis"]},
@@ -1631,7 +1631,61 @@ function _renderCosmos(main,right){
 
 function _renderCardano(main,right){
   if(!main)return;
-  main.innerHTML='<div class="card"><div class="card-head"><span class="card-title">&#128309; CARDANO WALLET</span></div><div style="font-size:11px;color:var(--muted);padding:8px 0;">Coming soon...</div></div>';
+  var ud=userdata['cardano']||{liquid:0,staked:0,rewards:0,addrs:[]};
+  var p=prices['cardano']||0;
+  var ch=changes['cardano']||0;
+  var total=(ud.liquid||0)+(ud.staked||0)+(ud.rewards||0);
+  var totalEur=total*p;
+  var stakedEur=(ud.staked||0)*p;
+  var rewardsEur=(ud.rewards||0)*p;
+  var liquidEur=(ud.liquid||0)*p;
+  var apr=CHAIN_APR['cardano']||3.0;
+  var dailyEur=(ud.staked||0)*apr/100/365*p;
+  var addr=(ud.addrs&&ud.addrs[0])||'';
+  var addrShort=addr?(addr.slice(0,12)+'...'+addr.slice(-8)):'—';
+  
+  main.innerHTML=''
+    +'<div class="card" style="background:linear-gradient(135deg,rgba(13,157,232,.04),rgba(13,157,232,.01));border:1px solid rgba(13,157,232,.18);">'
+      +'<div class="card-head" style="border-bottom:1px solid rgba(13,157,232,.12);">'
+        +'<span class="card-title" style="color:#0d9de8;">&#128309; CARDANO WALLET</span>'
+        +(addr?'<span class="mono" style="font-size:9px;color:rgba(167,139,250,.5);">'+addrShort+'</span>':'')
+      +'</div>'
+      +'<div style="padding:14px 0;">'
+        +'<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;">'
+          +'<span class="mono" style="font-size:28px;font-weight:700;color:var(--cream);">'+_fmtExact(totalEur)+'</span>'
+          +'<span class="mono '+(ch>=0?"text-green":"text-red")+'" style="font-size:12px;">'+(ch>=0?"+":"")+ch.toFixed(2)+'%</span>'
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;">'+total.toFixed(2)+' ADA · €'+p.toFixed(4)+' / ADA</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">'
+        +'<div style="background:rgba(13,10,28,.4);border:1px solid rgba(167,139,250,.1);border-radius:8px;padding:11px;">'
+          +'<div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-family:\'JetBrains Mono\',monospace;">Liquid</div>'
+          +'<div class="mono" style="font-size:14px;font-weight:600;color:var(--cream);margin-top:3px;">'+(ud.liquid||0).toFixed(2)+'</div>'
+          +'<div class="mono" style="font-size:10px;color:var(--muted);">'+_fmt(liquidEur)+'</div>'
+        +'</div>'
+        +'<div style="background:rgba(13,157,232,.05);border:1px solid rgba(13,157,232,.18);border-radius:8px;padding:11px;">'
+          +'<div style="font-size:9px;color:#0d9de8;text-transform:uppercase;letter-spacing:.5px;font-family:\'JetBrains Mono\',monospace;">Staked</div>'
+          +'<div class="mono" style="font-size:14px;font-weight:600;color:var(--cream);margin-top:3px;">'+(ud.staked||0).toFixed(2)+'</div>'
+          +'<div class="mono" style="font-size:10px;color:var(--muted);">'+_fmt(stakedEur)+'</div>'
+        +'</div>'
+        +'<div style="background:rgba(52,211,153,.04);border:1px solid rgba(52,211,153,.18);border-radius:8px;padding:11px;">'
+          +'<div style="font-size:9px;color:#34d399;text-transform:uppercase;letter-spacing:.5px;font-family:\'JetBrains Mono\',monospace;">Rewards</div>'
+          +'<div class="mono" style="font-size:14px;font-weight:600;color:var(--cream);margin-top:3px;">+'+(ud.rewards||0).toFixed(2)+'</div>'
+          +'<div class="mono" style="font-size:10px;color:#34d399;">+'+_fmt(rewardsEur)+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="background:rgba(245,194,74,.04);border:1px solid rgba(245,194,74,.18);border-radius:8px;padding:12px;">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
+          +'<span style="font-size:10px;color:rgba(245,194,74,.85);font-family:\'JetBrains Mono\',monospace;letter-spacing:.5px;text-transform:uppercase;">⚡ Staking Rewards</span>'
+          +'<span style="font-size:9px;color:rgba(167,139,250,.5);">APR ~'+apr.toFixed(1)+'%</span>'
+        +'</div>'
+        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;">'
+          +'<div><div style="font-size:9px;color:var(--muted);">ΗΜΕΡΑ</div><div class="mono text-green" style="font-size:12px;font-weight:600;">+'+_fmt(dailyEur)+'</div></div>'
+          +'<div><div style="font-size:9px;color:var(--muted);">ΕΒΔΟΜΑΔΑ</div><div class="mono text-green" style="font-size:12px;font-weight:600;">+'+_fmt(dailyEur*7)+'</div></div>'
+          +'<div><div style="font-size:9px;color:var(--muted);">ΧΡΟΝΟΣ</div><div class="mono text-green" style="font-size:12px;font-weight:600;">+'+_fmt(dailyEur*365)+'</div></div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
   if(right)right.innerHTML="";
 }
 
