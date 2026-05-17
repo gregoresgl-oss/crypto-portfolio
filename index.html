@@ -469,7 +469,6 @@ iframe[id^="slot-iframe-"]{
 .notif-type-c-text{flex:1;min-width:0;display:flex;align-items:baseline;gap:7px;}
 .notif-type-c-title{font-size:10px;font-weight:600;color:var(--cream);white-space:nowrap;}
 .notif-type-c-desc{font-size:9px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.notif-recent-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
 
 /* Price Alerts (profile notif tab) */
 .price-alerts-card{background:rgba(13,10,28,0.4);border:1px solid rgba(245,194,74,0.18);border-radius:10px;padding:10px;}
@@ -789,7 +788,7 @@ iframe[id^="slot-iframe-"]{
     <div class="up-tabs">
       <button class="up-tab active" onclick="switchUpTab('profile')">&#128100; Προφίλ</button>
       <button class="up-tab" onclick="switchUpTab('wallet')">&#127974; Wallet</button>
-      <button class="up-tab" onclick="switchUpTab('notifications')">&#128276; Notif<span id="notif-tab-badge"></span></button>
+      <button class="up-tab" onclick="switchUpTab('notifications')">&#128276; Notif</button>
     </div>
     <div class="up-body">
 
@@ -972,14 +971,6 @@ iframe[id^="slot-iframe-"]{
           </div>
         </div>
 
-        <div style="height:1px;background:rgba(167,139,250,0.08);margin:14px 0 11px;"></div>
-
-        <!-- Recent notifications -->
-        <div class="notif-recent-header">
-          <span class="notif-section-label" style="margin:0;">Σήματα από το δίκτυο</span>
-          <span id="notif-unread-badge"></span>
-        </div>
-        <div id="notif-hist" style="background:rgba(13,10,28,0.4);border:1px solid rgba(167,139,250,0.1);border-radius:9px;padding:4px 10px;max-height:240px;overflow-y:auto;"></div>
       </div>
 
     </div>
@@ -1965,7 +1956,7 @@ function _setCmpRange(d){_cmpRange=d;localStorage.setItem("ggwall_cmp_range",Str
 (function(){var _wasMobile=window.innerWidth<=600;var _t=null;window.addEventListener("resize",function(){clearTimeout(_t);_t=setTimeout(function(){var nowMobile=window.innerWidth<=600;if(nowMobile!==_wasMobile&&_cmpChart){_wasMobile=nowMobile;_cmpChart.destroy();_cmpChart=null;loadHistoricalData(_cmpRange);}},300);});})();
 
 // ─── User Overlay ─────────────────────────────────────────────────
-function openUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.add("open");_updatePushBtn();_loadNotifHist();_renderPriceAlerts();}
+function openUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.add("open");_updatePushBtn();_renderPriceAlerts();}
 function closeUserOverlay(){var o=document.getElementById("user-overlay");if(o)o.classList.remove("open");}
 document.getElementById("user-overlay")?.addEventListener("click",e=>{if(e.target===document.getElementById("user-overlay"))closeUserOverlay();});
 function switchUpTab(tab){document.querySelectorAll(".up-tab").forEach((b,i)=>b.classList.toggle("active",["profile","wallet","notifications"][i]===tab));document.querySelectorAll(".up-content").forEach(el=>el.classList.toggle("active",el.id==="ut-"+tab));if(tab==='notifications')_renderPriceAlerts();}
@@ -2328,121 +2319,8 @@ async function _syncWalletNow(){
   if(btn){btn.disabled=false;btn.textContent="↻ Συγχρονισμός";}
 }
 // ── Galactic Watch (Cosmic-themed notifications) ────────────────────
-// Per-user notifications with read state in DB (not localStorage)
-// Type icon mapping aligned with new schema
-// Update Notif tab badge (red dot/count next to "Notif" tab text)
-function _updateNotifTabBadge(unread){
-  var el=document.getElementById('notif-tab-badge');
-  if(!el)return;
-  if(!unread||unread<=0){el.innerHTML='';return;}
-  el.innerHTML='<span class="tab-count-badge">'+(unread>99?'99+':unread)+'</span>';
-}
+// (notification history removed — push/email only system now)
 
-// Lightweight check — fetches only count for tab badge (called on dashboard load)
-async function _checkUnreadNotifCount(){
-  if(!_user||!_user.id)return;
-  try{
-    var r=await fetch(_SB_URL+"/rest/v1/notifications?select=id&user_id=eq."+_user.id+"&app_id=eq.ggwall&read_at=is.null&limit=100",{
-      headers:Object.assign({},_SB_H,{'Prefer':'count=exact'}),
-      signal:AbortSignal.timeout(5000)
-    });
-    if(!r.ok)return;
-    // Use Content-Range header for count if available
-    var range=r.headers.get('content-range');
-    var count=range?parseInt(range.split('/')[1]||'0',10):0;
-    if(!count){
-      var d=await r.json().catch(function(){return [];});
-      count=Array.isArray(d)?d.length:0;
-    }
-    _updateNotifTabBadge(count);
-  }catch(e){console.warn('[_checkUnreadNotifCount]',e);}
-}
-
-async function _loadNotifHist(){
-  var el=document.getElementById("notif-hist");if(!el)return;
-  if(!_user||!_user.id){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:14px;">Δεν είσαι συνδεδεμένος</div>';return;}
-  try{
-    // Per-user query with new schema (user_id filter + 50 latest)
-    var url=_SB_URL+"/rest/v1/notifications?select=id,type,severity,title,body,detail,chain_id,validator_id,read_at,created_at&user_id=eq."+_user.id+"&app_id=eq.ggwall&order=created_at.desc&limit=50";
-    var r=await fetch(url,{headers:_SB_H,signal:AbortSignal.timeout(5000)});
-    if(!r.ok){el.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:14px;">— σφάλμα φόρτωσης —</div>';return;}
-    var d=await r.json();
-    if(!d||!d.length){
-      el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:18px 12px;line-height:1.6;">Καθαρός ορίζοντας<br><span style="font-size:10px;color:rgba(220,214,255,.4);">Δεν υπάρχουν ενεργά σήματα</span></div>';
-      var badge=document.getElementById("notif-unread-badge");
-      if(badge)badge.innerHTML='';
-      _updateNotifTabBadge(0);
-      return;
-    }
-    // Count unread (read_at IS NULL)
-    var unread=d.filter(function(n){return !n.read_at;}).length;
-    var badge=document.getElementById("notif-unread-badge");
-    if(badge)badge.innerHTML=unread>0?('<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:8px;padding:2px 7px;border-radius:99px;font-family:\'JetBrains Mono\',monospace;letter-spacing:.5px;">'+unread+' ΝΕΑ</span>'):'';
-    _updateNotifTabBadge(unread);
-    // Render rows
-    el.innerHTML=d.map(function(n){
-      var isRead=!!n.read_at;
-      // Map type → icon (aligned with new schema)
-      var typeIcons={
-        unbonding:'⚠️',
-        validator_jailed:'🚨',
-        validator_unjailed:'✅',
-        new_token:'🪙',
-        system:'⚡'
-      };
-      var typeColors={
-        unbonding:{bg:'rgba(251,113,133,.1)',bd:'rgba(251,113,133,.25)'},
-        validator_jailed:{bg:'rgba(251,191,36,.1)',bd:'rgba(251,191,36,.25)'},
-        validator_unjailed:{bg:'rgba(52,211,153,.1)',bd:'rgba(52,211,153,.25)'},
-        new_token:{bg:'rgba(167,139,250,.12)',bd:'rgba(167,139,250,.25)'},
-        system:{bg:'rgba(245,194,74,.1)',bd:'rgba(245,194,74,.25)'}
-      };
-      var ico=typeIcons[n.type]||'⚡';
-      var col=typeColors[n.type]||typeColors.system;
-      var dt=new Date(n.created_at).toLocaleString('el-GR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-      var uid='nh-'+n.id;
-      return '<div style="display:flex;gap:8px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(167,139,250,.06);cursor:pointer;" onclick="_toggleNotif('+JSON.stringify(n.id)+',\''+uid+'\')">'
-        +(!isRead?'<div id="dot-'+n.id+'" style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px;box-shadow:0 0 5px rgba(245,194,74,.5);"></div>':'<div style="width:6px;flex-shrink:0;"></div>')
-        +'<div style="width:28px;height:28px;border-radius:7px;background:'+col.bg+';border:1px solid '+col.bd+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">'+ico+'</div>'
-        +'<div style="flex:1;min-width:0;">'
-          +'<div style="font-size:11px;font-weight:600;color:'+(isRead?'var(--muted)':'var(--cream)')+';">'+_esc(n.title||'—')+'</div>'
-          +'<div style="font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_esc(n.body||'')+'</div>'
-          +(n.detail?'<div id="'+uid+'" style="display:none;font-size:10px;color:var(--muted);background:rgba(13,10,28,.5);border-radius:6px;padding:6px 8px;margin-top:5px;line-height:1.5;">'+_esc(n.detail||'')+'</div>':'')
-          +'<div style="font-size:9px;color:rgba(220,214,255,.4);margin-top:2px;font-family:\'JetBrains Mono\',monospace;">'+dt+(n.detail?' · <span id="arr-'+uid+'" style="font-size:9px;">▼</span>':'')+'</div>'
-        +'</div>'
-      +'</div>';
-    }).join("");
-  }catch(e){console.warn('[_loadNotifHist] err:',e);}
-}
-async function _toggleNotif(id,uid){
-  // Toggle expand UI
-  var el=document.getElementById(uid);
-  if(el)el.style.display=el.style.display==='block'?'none':'block';
-  var arr=document.getElementById('arr-'+uid);
-  if(arr)arr.textContent=el&&el.style.display==='block'?'▲':'▼';
-  // Mark read in DB via RPC
-  var dot=document.getElementById('dot-'+id);
-  if(dot){
-    try{
-      var authHdr=await _getAuthHdr?.();
-      var hdrs=authHdr||_SB_H;
-      await fetch(_SB_URL+'/rest/v1/rpc/mark_notification_read',{
-        method:'POST',
-        headers:hdrs,
-        body:JSON.stringify({p_notif_id:id})
-      });
-    }catch(e){console.warn('[_toggleNotif] mark read err:',e);}
-    dot.style.display='none';
-    // Update unread-badge inside modal
-    var badge=document.getElementById('notif-unread-badge');
-    var current=parseInt((badge?.textContent||'0').replace(/[^0-9]/g,''))||0;
-    if(badge&&current>0){
-      var newCount=current-1;
-      badge.innerHTML=newCount>0?'<span style="background:rgba(245,194,74,.15);color:var(--gold);border:1px solid rgba(245,194,74,.2);font-size:8px;padding:2px 7px;border-radius:99px;font-family:\'JetBrains Mono\',monospace;letter-spacing:.5px;">'+newCount+' ΝΕΑ</span>':'';
-      _updateNotifTabBadge(newCount);
-    }
-  }
-}
 // ─── Price Alerts (24h) ───────────────────────────────────────
 const PRICE_ALERT_COINS = [
   { id:'cosmos',       label:'ATOM' },
@@ -3348,9 +3226,6 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   setTimeout(()=>{_syncUserToCloud(au);},2000);
   setTimeout(()=>{_startPresence(au);_updateUserStats(au);},3000);
   setTimeout(()=>{checkUnbonding();},1500);
-  // Notif tab badge: initial + every 60s
-  setTimeout(()=>{_checkUnreadNotifCount();},5000);
-  setInterval(()=>{if(_user)_checkUnreadNotifCount();},60000);
 })();
 </script>
   <!-- PWA Install Banner -->
