@@ -12,6 +12,20 @@
 
 <!-- ═══ MAINTENANCE CHECK (auto-redirect if active) ═══ -->
 <script>
+// ─── THEME BOOT (must run before first paint to avoid FOUC) ───
+(function(){
+  try{
+    var stored = localStorage.getItem('ggwall-theme');
+    // Default: dark (production behavior).
+    // To opt into system preference, change to: stored || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+    var theme = stored || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+  }catch(e){
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<script>
 (function(){
   if (location.pathname.endsWith('/maintenance.html')) return;
   if (location.search.indexOf('bypass=GGWALL2026') > -1) {
@@ -51,24 +65,60 @@
 /* ═══════════════════════════════════════════════════════
    GGWALL v2.0 — Design System
    ═══════════════════════════════════════════════════════ */
-:root {
-  --gold:      #f5c24a;
-  --gold-deep: #d4af5a;
-  --cream:     #f7e7b8;
-  --red:       #ff5f6d;
-  --green:     #7dd67d;
-  --bg:        #0b0d12;
-  --surface:   #12151d;
-  --surface2:  #1a1f2b;
-  --text:      #e7e4d8;
-  --muted:     rgba(231,228,216,.5);
-  --border:    rgba(245,194,74,.12);
-  --border2:   rgba(255,255,255,.06);
-  --sidebar-w: 220px;
-  --topbar-h:  52px;
-  --right-w:   340px;
-  --radius:    12px;
-  --radius-sm: 8px;
+:root,
+[data-theme="dark"] {
+  /* ─── DARK theme (default — current production) ─── */
+  --gold:        #f5c24a;
+  --gold-deep:   #d4af5a;
+  --gold-soft:   rgba(245,194,74,.12);
+  --cream:       #f7e7b8;
+  --red:         #ff5f6d;
+  --red-soft:    rgba(255,95,109,.12);
+  --green:       #7dd67d;
+  --green-soft:  rgba(125,214,125,.12);
+  --purple:      #a78bfa;
+  --purple-soft: rgba(167,139,250,.12);
+  --bg:          #0b0d12;
+  --surface:     #12151d;
+  --surface2:    #1a1f2b;
+  --text:        #e7e4d8;
+  --text-hi:     #ffffff;
+  --muted:       rgba(231,228,216,.5);
+  --muted-soft:  rgba(231,228,216,.3);
+  --border:      rgba(245,194,74,.12);
+  --border2:     rgba(255,255,255,.06);
+  --card-shadow: none;
+  --focus-ring:  0 0 0 3px rgba(245,194,74,.25);
+  --sidebar-w:   220px;
+  --topbar-h:    52px;
+  --right-w:     340px;
+  --radius:      12px;
+  --radius-sm:   8px;
+}
+
+[data-theme="light"] {
+  /* ─── LIGHT theme (Clean · Paper) ─── */
+  --gold:        #9d7426;
+  --gold-deep:   #7a591b;
+  --gold-soft:   rgba(157,116,38,.10);
+  --cream:       #f0d98a;
+  --red:         #c0344a;
+  --red-soft:    rgba(192,52,74,.10);
+  --green:       #2f7d3a;
+  --green-soft:  rgba(47,125,58,.12);
+  --purple:      #6d4ad6;
+  --purple-soft: rgba(109,74,214,.10);
+  --bg:          #faf6e9;
+  --surface:     #ffffff;
+  --surface2:    #f5efde;
+  --text:        #1a1814;
+  --text-hi:     #000000;
+  --muted:       rgba(60,52,38,.62);
+  --muted-soft:  rgba(60,52,38,.40);
+  --border:      rgba(157,116,38,.22);
+  --border2:     rgba(26,24,20,.08);
+  --card-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 1px 2px rgba(60,40,10,.04), 0 4px 16px rgba(60,40,10,.04);
+  --focus-ring:  0 0 0 3px rgba(157,116,38,.25);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:"Space Grotesk",sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
@@ -83,7 +133,7 @@ body{visibility:hidden;}
 .text-red{color:var(--red);}
 
 /* ── Card ── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;animation:card-in .3s ease both;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;animation:card-in .3s ease both;box-shadow:var(--card-shadow);}
 /* Slot iframes: control height ourselves, prevent UA/extension overrides */
 iframe[id^="slot-iframe-"]{
   min-height:0 !important;
@@ -137,6 +187,29 @@ iframe[id^="slot-iframe-"]{
 .topbar-btn:hover{background:rgba(245,194,74,.1);color:var(--gold);border-color:rgba(245,194,74,.3);}
 .currency-pill{padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(255,255,255,.05);border:1px solid var(--border2);color:var(--muted);cursor:pointer;font-family:"JetBrains Mono",monospace;transition:all .2s;}
 .currency-pill:hover{border-color:rgba(245,194,74,.3);color:var(--gold);}
+
+/* ─── THEME TOGGLE BUTTON ─── */
+.theme-toggle{
+  width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--border2);border-radius:7px;background:rgba(255,255,255,.04);
+  color:var(--muted);cursor:pointer;transition:background-color .18s,border-color .18s,color .18s;
+  flex-shrink:0;padding:0;
+}
+[data-theme="light"] .theme-toggle{background:transparent;}
+.theme-toggle:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-soft);}
+.theme-toggle:focus-visible{outline:none;box-shadow:var(--focus-ring);}
+.theme-toggle svg{display:block;}
+.eclipse-disc{transition:cx .35s cubic-bezier(.5,.1,.3,1);}
+[data-theme="dark"] .eclipse-disc{cx:6.5;}
+[data-theme="light"] .eclipse-disc{cx:14.5;}
+[data-theme="dark"] .theme-spark{display:none;}
+
+/* ─── THEME TRANSITIONS (smooth fade) ─── */
+html,body{transition:background-color .4s ease,color .4s ease;}
+.card,.pill,.btn-ghost,.nav-item,.inp,select,.topbar-btn,.currency-pill,.theme-toggle{
+  transition:background-color .35s ease,border-color .35s ease,color .35s ease,box-shadow .35s ease;
+}
+svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke .35s ease;}
 
 /* ═══════════════════════════════════════════════════════
    LAYOUT
@@ -671,6 +744,18 @@ iframe[id^="slot-iframe-"]{
   <div class="topbar-actions">
     <span class="pill pill-live" id="live-pill">&#9679; LIVE <span id="live-time" style="font-size:9px;opacity:.6;margin-left:2px;"></span></span>
     <span class="currency-pill">EUR</span>
+    <button class="theme-toggle" id="theme-toggle" onclick="_toggleTheme()" aria-label="Toggle theme" title="Αλλαγή θέματος">
+      <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
+        <defs>
+          <clipPath id="eclipse-mask"><circle cx="9" cy="9" r="6.2"/></clipPath>
+        </defs>
+        <circle cx="9" cy="9" r="6.2" fill="none" stroke="currentColor" stroke-width="1.3"/>
+        <g clip-path="url(#eclipse-mask)">
+          <circle class="eclipse-disc" cx="14.5" cy="9" r="6.2" fill="currentColor"/>
+        </g>
+        <circle class="theme-spark" cx="14" cy="4.5" r="0.9" fill="var(--gold)"/>
+      </svg>
+    </button>
     <button class="topbar-btn" onclick="openUserOverlay()" id="user-btn" title="Ρυθμίσεις">
       <span id="tb-avatar" style="font-size:15px;">&#128100;</span>
     </button>
@@ -2485,6 +2570,35 @@ async function _savePriceAlertCoins(){
     if(typeof toast === 'function') toast('Παλμοί τιμών αποθηκεύτηκαν');
   } catch(e){ console.error('[price-alerts] save fail', e); }
 }
+
+// ─── THEME TOGGLE ─────────────────────────────────────────────
+function _toggleTheme(){
+  var root = document.documentElement;
+  var current = root.getAttribute('data-theme') || 'dark';
+  var next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  try{ localStorage.setItem('ggwall-theme', next); }catch(e){}
+  // Propagate to iframes via postMessage
+  try{
+    document.querySelectorAll('iframe').forEach(function(f){
+      try{ f.contentWindow.postMessage({type:'theme',theme:next},'*'); }catch(e){}
+    });
+  }catch(e){}
+  // Update button aria
+  var btn = document.getElementById('theme-toggle');
+  if(btn){
+    btn.setAttribute('aria-label', next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+}
+// On iframe load, send current theme so they sync immediately
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+    document.querySelectorAll('iframe').forEach(function(f){
+      try{ f.contentWindow.postMessage({type:'theme',theme:current},'*'); }catch(e){}
+    });
+  }, 500);
+});
 
 function _toggleNotifMaster(){
   var t=document.getElementById('notif-master-toggle');
