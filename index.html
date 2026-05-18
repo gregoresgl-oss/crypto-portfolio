@@ -94,6 +94,20 @@
   --right-w:     340px;
   --radius:      12px;
   --radius-sm:   8px;
+  /* ─── tint surfaces (auto-flip per theme) ─── */
+  --topbar-bg:        rgba(11,13,18,.93);
+  --sidebar-bg:       rgba(9,11,17,.7);
+  --nav-text:         #d8d6df;
+  --nav-text-dim:     #6a6973;
+  --nav-label:        #5a5963;
+  --bnav-dot-border:  #0a0a0d;
+  --chip-bg:          rgba(255,255,255,.04);
+  --chip-bg-hover:    rgba(245,194,74,.10);
+  --track-bg:         rgba(255,255,255,.07);
+  --modal-overlay:    rgba(11,13,18,.55);
+  --modal-card:       rgba(18,21,29,.85);
+  --inline-tint:      rgba(255,255,255,.04);
+  --inline-tint-soft: rgba(255,255,255,.02);
 }
 
 [data-theme="light"] {
@@ -119,6 +133,37 @@
   --border2:     rgba(26,24,20,.08);
   --card-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 1px 2px rgba(60,40,10,.04), 0 4px 16px rgba(60,40,10,.04);
   --focus-ring:  0 0 0 3px rgba(157,116,38,.25);
+  /* ─── tint surfaces (light) ─── */
+  --topbar-bg:        rgba(255,253,247,.92);
+  --sidebar-bg:       rgba(245,239,222,.55);
+  --nav-text:         #3c3426;
+  --nav-text-dim:     #8a7e63;
+  --nav-label:        #9d9281;
+  --bnav-dot-border:  #faf6e9;
+  --chip-bg:          rgba(60,52,38,.05);
+  --chip-bg-hover:    rgba(157,116,38,.10);
+  --track-bg:         rgba(60,52,38,.10);
+  --modal-overlay:    rgba(60,52,38,.35);
+  --modal-card:       rgba(255,253,247,.95);
+  --inline-tint:      rgba(60,52,38,.04);
+  --inline-tint-soft: rgba(60,52,38,.02);
+}
+
+/* ─── Light theme overrides for elements with compound dark gradients ─── */
+[data-theme="light"] #user-panel{
+  background:linear-gradient(135deg,#ffffff 0%,#f5efde 100%);
+  border:1px solid var(--border);
+  box-shadow:0 30px 80px -20px rgba(60,40,10,.18),0 0 60px -20px rgba(157,116,38,.10),inset 0 1px 0 rgba(255,255,255,.6);
+}
+[data-theme="light"] .up-close{
+  background:var(--chip-bg);
+  border:1px solid var(--border2);
+  color:var(--muted);
+}
+[data-theme="light"] .bnav-inner{
+  background:linear-gradient(180deg,rgba(255,253,247,.95),rgba(245,239,222,.95));
+  border:1px solid var(--border);
+  box-shadow:0 8px 24px rgba(60,40,10,.10),inset 0 1px 0 rgba(255,255,255,.6);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:"Space Grotesk",sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
@@ -173,7 +218,7 @@ iframe[id^="slot-iframe-"]{
   position:fixed;top:0;left:0;right:0;
   padding-top:env(safe-area-inset-top,0px);
   height:calc(var(--topbar-h) + env(safe-area-inset-top,0px));
-  background:rgba(11,13,18,.93);backdrop-filter:blur(14px);
+  background:var(--topbar-bg);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:10px;padding:0 14px;z-index:300;
 }
@@ -183,15 +228,15 @@ iframe[id^="slot-iframe-"]{
 .topbar-title{font-size:14px;font-weight:700;letter-spacing:2.5px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .topbar-spacer{flex:1;}
 .topbar-actions{display:flex;align-items:center;gap:7px;}
-.topbar-btn{width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid var(--border2);color:var(--muted);font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;text-decoration:none;}
-.topbar-btn:hover{background:rgba(245,194,74,.1);color:var(--gold);border-color:rgba(245,194,74,.3);}
-.currency-pill{padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(255,255,255,.05);border:1px solid var(--border2);color:var(--muted);cursor:pointer;font-family:"JetBrains Mono",monospace;transition:all .2s;}
+.topbar-btn{width:30px;height:30px;border-radius:7px;background:var(--chip-bg);border:1px solid var(--border2);color:var(--muted);font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+.topbar-btn:hover{background:var(--chip-bg-hover);color:var(--gold);border-color:rgba(245,194,74,.3);}
+.currency-pill{padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:var(--chip-bg);border:1px solid var(--border2);color:var(--muted);cursor:pointer;font-family:"JetBrains Mono",monospace;transition:all .2s;}
 .currency-pill:hover{border-color:rgba(245,194,74,.3);color:var(--gold);}
 
 /* ─── THEME TOGGLE BUTTON ─── */
 .theme-toggle{
   width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;
-  border:1px solid var(--border2);border-radius:7px;background:rgba(255,255,255,.04);
+  border:1px solid var(--border2);border-radius:7px;background:var(--chip-bg);
   color:var(--muted);cursor:pointer;transition:background-color .18s,border-color .18s,color .18s;
   flex-shrink:0;padding:0;
 }
@@ -227,21 +272,21 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 
 /* ── Sidebar ── */
 #sidebar{
-  background:rgba(9,11,17,.7);
+  background:var(--sidebar-bg);
   border-right:1px solid var(--border);
   overflow-y:auto;display:flex;flex-direction:column;padding:14px 0;
 }
 .nav-section{padding:0 0;margin-bottom:18px;}
-.nav-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#5a5963;padding:0 14px;margin-bottom:5px;font-family:"JetBrains Mono",monospace;}
-.nav-item{display:flex;align-items:center;gap:10px;margin:0 8px;padding:8px 10px;border-radius:9px;cursor:pointer;color:#d8d6df;font-size:12px;font-weight:500;text-decoration:none;margin-bottom:2px;border:1px solid transparent;background:transparent;transition:all .2s;}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--nav-label);padding:0 14px;margin-bottom:5px;font-family:"JetBrains Mono",monospace;}
+.nav-item{display:flex;align-items:center;gap:10px;margin:0 8px;padding:8px 10px;border-radius:9px;cursor:pointer;color:var(--nav-text);font-size:12px;font-weight:500;text-decoration:none;margin-bottom:2px;border:1px solid transparent;background:transparent;transition:all .2s;}
 .nav-item:hover{background:rgba(232,184,74,.06);}
 .nav-item.active{background:rgba(232,184,74,.12);border-color:rgba(232,184,74,.28);color:#E8B84A;font-weight:600;}
-.nav-item .nav-svg{width:17px;height:17px;flex-shrink:0;color:#6a6973;transition:color .2s;}
-.nav-item:hover .nav-svg{color:#d8d6df;}
+.nav-item .nav-svg{width:17px;height:17px;flex-shrink:0;color:var(--nav-text-dim);transition:color .2s;}
+.nav-item:hover .nav-svg{color:var(--nav-text);}
 /* New TX indicator dot */
 .new-tx-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#E8B84A;box-shadow:0 0 8px rgba(232,184,74,0.7);margin-left:auto;flex-shrink:0;animation:dotPulse 2s ease-in-out infinite;}
 @keyframes dotPulse{0%,100%{box-shadow:0 0 8px rgba(232,184,74,0.7);}50%{box-shadow:0 0 12px rgba(232,184,74,0.95);}}
-.bnav-dot{position:absolute;top:6px;right:calc(50% - 18px);width:7px;height:7px;border:1.5px solid #0a0a0d;}
+.bnav-dot{position:absolute;top:6px;right:calc(50% - 18px);width:7px;height:7px;border:1.5px solid var(--bnav-dot-border);}
 .nav-item.active .nav-svg{color:#E8B84A;}
 .nav-icon{width:18px;text-align:center;font-size:14px;flex-shrink:0;}
 .nav-badge{margin-left:auto;padding:1px 5px;border-radius:4px;background:rgba(62,207,107,.15);color:#3ECF6B;font-size:8.5px;font-weight:700;font-family:"JetBrains Mono",monospace;}
@@ -358,12 +403,12 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 
 /* Allocation bars */
 .alloc-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
-.alloc-bar-wrap{flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;}
+.alloc-bar-wrap{flex:1;height:3px;background:var(--track-bg);border-radius:99px;overflow:hidden;}
 .alloc-bar{height:100%;border-radius:99px;transition:width .6s ease;}
 .alloc-pct{font-size:10px;font-weight:600;color:var(--muted);font-family:"JetBrains Mono",monospace;min-width:32px;text-align:right;}
 
 /* Asset rows */
-.asset-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.asset-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border2);}
 .asset-row:last-child{border-bottom:none;}
 .asset-logo{width:26px;height:26px;border-radius:50%;overflow:hidden;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
 .asset-logo img{width:100%;height:100%;object-fit:cover;}
@@ -374,13 +419,13 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .asset-chg{font-size:9px;font-family:"JetBrains Mono",monospace;}
 
 /* Summary rows */
-.sum-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border2);}
 .sum-row:last-child{border-bottom:none;}
 .sum-label{font-size:11px;color:var(--muted);}
 .sum-val{font-size:12px;font-weight:600;font-family:"JetBrains Mono",monospace;}
 
 /* Staking rows */
-.stake-row{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.stake-row{padding:9px 0;border-bottom:1px solid var(--border2);}
 .stake-row:last-child{border-bottom:none;}
 .stake-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
 .stake-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
@@ -599,7 +644,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .toast-green{background:rgba(125,214,125,.16);border:1px solid rgba(125,214,125,.28);color:var(--green);}
 .toast-red{background:rgba(255,95,109,.16);border:1px solid rgba(255,95,109,.28);color:var(--red);}
 .toast-gold{background:rgba(245,194,74,.16);border:1px solid rgba(245,194,74,.28);color:var(--gold);}
-.toast-muted{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--text);}
+.toast-muted{background:var(--chip-bg);border:1px solid var(--border2);color:var(--text);}
 @keyframes t-in{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
@@ -609,7 +654,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
    ════════════════════════════════════════════════════════════════ */
 .gg-modal-loader{
   position:fixed;inset:0;z-index:9999;
-  background:rgba(11,13,18,.55);
+  background:var(--modal-overlay);
   backdrop-filter:blur(8px) saturate(140%);
   -webkit-backdrop-filter:blur(8px) saturate(140%);
   display:flex;align-items:center;justify-content:center;
@@ -618,7 +663,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .gg-modal-loader.done{opacity:0;visibility:hidden;pointer-events:none;}
 
 .gg-modal-card{
-  background:rgba(18,21,29,.85);
+  background:var(--modal-card);
   border:1px solid rgba(245,194,74,.15);
   border-radius:18px;
   padding:36px 44px;
@@ -646,7 +691,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   position:absolute;left:0;right:0;
   font-family:"JetBrains Mono",monospace;
   font-size:11px;letter-spacing:1.5px;
-  color:#e7e4d8;opacity:0;
+  color:var(--text);opacity:0;
   animation:ggStepFade 4.8s infinite;
 }
 .gg-modal-steps span:nth-child(1){animation-delay:0s}
@@ -660,7 +705,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 }
 
 .gg-modal-bar{
-  height:2px;background:rgba(255,255,255,.08);
+  height:2px;background:var(--track-bg);
   border-radius:2px;overflow:hidden;
   width:200px;position:relative;
 }
@@ -1658,7 +1703,7 @@ function _renderMarkets(main,right){
       var logo=g.logo_url?('<div style="width:100%;height:100%;border-radius:50%;background:url('+g.logo_url+') center/cover;"></div>'):('<span style="font-size:12px;">🔵</span>');
       var p=prices[g.cg_id||""]||0,ch=changes[g.cg_id||""]||0,wc=g.wallets.length,uid="disc-"+gi;
       var wRows=g.wallets.map(function(w){return '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:10px;font-family:JetBrains Mono,monospace;"><span style="color:var(--muted);">'+w.addr.slice(0,12)+'...</span><span>'+w.amount.toFixed(2)+' '+sym+'</span></div>';}).join("");
-      var noPrice='<span style="font-size:8px;background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-family:monospace;">no price</span>';
+      var noPrice='<span style="font-size:8px;background:var(--chip-bg);color:var(--muted);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-family:monospace;">no price</span>';
       discRows+='<div class="asset-row" style="background:rgba(245,194,74,.02);cursor:pointer;" onclick="_togDisc(\''+uid+'\')">'
         +'<div class="asset-logo">'+logo+'</div>'
         +'<div style="flex:1;min-width:0;">'
@@ -1676,7 +1721,7 @@ function _renderMarkets(main,right){
       discRows+='<div style="padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-top:1px solid var(--border2);" onclick="_togUnk();">'
         +'<span style="font-size:11px;color:var(--muted);">+ '+unknown.length+' tokens χωρίς αναγνώριση</span>'
         +'<span id="unk-arr" style="font-size:10px;color:var(--muted);">▼</span></div>'
-        +'<div id="unk-list" style="display:none;padding:8px 14px;background:rgba(255,255,255,.01);border-top:1px solid var(--border2);">'
+        +'<div id="unk-list" style="display:none;padding:8px 14px;background:var(--inline-tint-soft);border-top:1px solid var(--border2);">'
         +'<div style="font-size:10px;color:var(--muted);font-family:JetBrains Mono,monospace;line-height:2;">'
         +unknown.map(function(g){return g.denom.slice(0,22)+'...';}).join(' · ')
         +'</div></div>';
@@ -2029,7 +2074,7 @@ async function loadPortfolioHistory(days){
     if(sp)sp.style.display="none";
     if(_phChart&&typeof _phChart.destroy==="function"){_phChart.destroy();_phChart=null;}
 
-    _phChart=new Chart(canv,{type:"line",data:{labels,datasets:[{data:vals,borderColor:"#f5c24a",borderWidth:2.5,tension:.4,fill:"origin",backgroundColor:ctx=>{var chart=ctx.chart;var{ctx:cx,chartArea}=chart;if(!chartArea)return null;var g=cx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);g.addColorStop(0,"rgba(245,194,74,.55)");g.addColorStop(0.5,"rgba(245,194,74,.25)");g.addColorStop(1,"rgba(245,194,74,.02)");return g;},pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:"#f5c24a"}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600,easing:"easeOutQuart"},interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:"rgba(11,13,18,.95)",titleColor:"#f5c24a",bodyColor:"#e7e4d8",borderColor:"rgba(245,194,74,.3)",borderWidth:1,padding:10,titleFont:{family:"JetBrains Mono",size:10,weight:"600"},bodyFont:{family:"JetBrains Mono",size:11},callbacks:{label:ctx=>{var v=ctx.parsed.y;return Math.round(v).toLocaleString('el-GR')+'€';}}}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:9,family:"JetBrains Mono"},maxTicksLimit:_phDays===1?6:_phDays<=7?7:_phDays<=30?8:_phDays<=60?6:_phDays<=90?6:6,maxRotation:0}},y:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:9,family:"JetBrains Mono"},callback:function(v){return Math.round(v).toLocaleString('el-GR')+'€';},maxTicksLimit:5},position:"right"}}}});
+    _phChart=new Chart(canv,{type:"line",data:{labels,datasets:[{data:vals,borderColor:_chartColors().gold,borderWidth:2.5,tension:.4,fill:"origin",backgroundColor:ctx=>{var chart=ctx.chart;var{ctx:cx,chartArea}=chart;if(!chartArea)return null;var cc=_chartColors();var g=cx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);g.addColorStop(0,cc.gradTop);g.addColorStop(0.5,cc.gradMid);g.addColorStop(1,cc.gradBot);return g;},pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:_chartColors().gold}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600,easing:"easeOutQuart"},interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:_chartColors().tooltipBg,titleColor:_chartColors().gold,bodyColor:_chartColors().text,borderColor:_chartColors().goldBorder,borderWidth:1,padding:10,titleFont:{family:"JetBrains Mono",size:10,weight:"600"},bodyFont:{family:"JetBrains Mono",size:11},callbacks:{label:ctx=>{var v=ctx.parsed.y;return Math.round(v).toLocaleString('el-GR')+'€';}}}},scales:{x:{grid:{color:_chartColors().grid},ticks:{color:_chartColors().muted,font:{size:9,family:"JetBrains Mono"},maxTicksLimit:_phDays===1?6:_phDays<=7?7:_phDays<=30?8:_phDays<=60?6:_phDays<=90?6:6,maxRotation:0}},y:{grid:{color:_chartColors().grid},ticks:{color:_chartColors().muted,font:{size:9,family:"JetBrains Mono"},callback:function(v){return Math.round(v).toLocaleString('el-GR')+'€';},maxTicksLimit:5},position:"right"}}}});
 
     if(vals.length>=2){var first=vals[0],last=vals[vals.length-1],chg=first?(last-first)/first*100:0;var vl=document.getElementById("ph-lbl"),cl=document.getElementById("ph-chg");if(vl)vl.textContent="Τρέχον: "+_fmt(last);if(cl){cl.textContent=(chg>=0?"+":"")+chg.toFixed(2)+"%";cl.className="mono "+(chg>=0?"text-green":"text-red");}}
   }catch(e){if(sp)sp.style.display="none";console.warn("[ph]",e.message);}
@@ -2061,7 +2106,7 @@ async function loadHistoricalData(days){
     var cmpLabels=allTs.map(function(t){var dt=new Date(t);return _cmpRange===1?dt.toLocaleTimeString("el-GR",{hour:"2-digit",minute:"2-digit"}):dt.toLocaleDateString("el-GR",{day:"numeric",month:"short"});});
     var isMobile=window.innerWidth<=600;
     var maxTicks=isMobile?(_cmpRange===1?4:_cmpRange<=7?5:_cmpRange<=30?5:6):(_cmpRange===1?6:_cmpRange<=7?7:_cmpRange<=30?8:10);
-    _cmpChart=new Chart(canv,{type:"line",data:{labels:cmpLabels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500,easing:"easeOutQuart"},interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:"rgba(11,13,18,.95)",titleColor:"#f5c24a",bodyColor:"#e7e4d8",borderColor:"rgba(245,194,74,.3)",borderWidth:1,padding:isMobile?8:10,titleFont:{family:"JetBrains Mono",size:10,weight:"600"},bodyFont:{family:"JetBrains Mono",size:isMobile?10:11},callbacks:{label:function(ctx){var v=ctx.parsed.y;if(v===null||v===undefined)return null;var sign=v>=0?"+":"";return ctx.dataset.label+": "+sign+v.toFixed(2)+"%";}}}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:isMobile?8:9,family:"JetBrains Mono"},maxTicksLimit:maxTicks,autoSkip:true,maxRotation:0}},y:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"rgba(231,228,216,.35)",font:{size:isMobile?8:9,family:"JetBrains Mono"},callback:function(v){return (v>=0?"+":"")+v.toFixed(0)+"%";},maxTicksLimit:isMobile?4:5},position:"right"}}}});
+    _cmpChart=new Chart(canv,{type:"line",data:{labels:cmpLabels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500,easing:"easeOutQuart"},interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:_chartColors().tooltipBg,titleColor:_chartColors().gold,bodyColor:_chartColors().text,borderColor:_chartColors().goldBorder,borderWidth:1,padding:isMobile?8:10,titleFont:{family:"JetBrains Mono",size:10,weight:"600"},bodyFont:{family:"JetBrains Mono",size:isMobile?10:11},callbacks:{label:function(ctx){var v=ctx.parsed.y;if(v===null||v===undefined)return null;var sign=v>=0?"+":"";return ctx.dataset.label+": "+sign+v.toFixed(2)+"%";}}}},scales:{x:{grid:{color:_chartColors().grid},ticks:{color:_chartColors().muted,font:{size:isMobile?8:9,family:"JetBrains Mono"},maxTicksLimit:maxTicks,autoSkip:true,maxRotation:0}},y:{grid:{color:_chartColors().grid},ticks:{color:_chartColors().muted,font:{size:isMobile?8:9,family:"JetBrains Mono"},callback:function(v){return (v>=0?"+":"")+v.toFixed(0)+"%";},maxTicksLimit:isMobile?4:5},position:"right"}}}});
     _buildCmpLegend(datasets);
   }catch(e){console.warn("[cmp]",e.message);}
 }
@@ -2572,6 +2617,26 @@ async function _savePriceAlertCoins(){
 }
 
 // ─── THEME TOGGLE ─────────────────────────────────────────────
+// ─── Chart theme helper ─────────────────────────────────────────
+function _chartColors(){
+  var cs = getComputedStyle(document.documentElement);
+  var pick = function(name, fallback){ var v = cs.getPropertyValue(name).trim(); return v || fallback; };
+  var isLight = (document.documentElement.getAttribute('data-theme')||'dark') === 'light';
+  return {
+    gold:        pick('--gold','#f5c24a'),
+    goldDeep:    pick('--gold-deep','#d4af5a'),
+    text:        pick('--text','#e7e4d8'),
+    muted:       pick('--muted-soft', isLight?'rgba(60,52,38,.40)':'rgba(231,228,216,.35)'),
+    grid:        pick('--border2', isLight?'rgba(26,24,20,.08)':'rgba(255,255,255,.04)'),
+    tooltipBg:   isLight ? 'rgba(255,253,247,.96)' : 'rgba(11,13,18,.95)',
+    goldBorder:  'rgba(245,194,74,.3)',
+    // gradient stops for area fill — gold-based in both themes
+    gradTop:     isLight ? 'rgba(157,116,38,.30)' : 'rgba(245,194,74,.55)',
+    gradMid:     isLight ? 'rgba(157,116,38,.15)' : 'rgba(245,194,74,.25)',
+    gradBot:     isLight ? 'rgba(157,116,38,.02)' : 'rgba(245,194,74,.02)'
+  };
+}
+
 function _toggleTheme(){
   var root = document.documentElement;
   var current = root.getAttribute('data-theme') || 'dark';
@@ -2589,6 +2654,26 @@ function _toggleTheme(){
   if(btn){
     btn.setAttribute('aria-label', next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
   }
+  // Rebuild active charts so they pick up new theme colors
+  try{
+    if(typeof loadPortfolioHistory==='function' && _phChart){
+      loadPortfolioHistory(_phDays||1);
+    }
+  }catch(e){}
+  try{
+    if(typeof _cmpChart!=='undefined' && _cmpChart){
+      _cmpChart.destroy(); _cmpChart=null;
+      if(typeof loadHistoricalData==='function' && typeof _cmpDays!=='undefined'){
+        loadHistoricalData(_cmpDays);
+      }
+    }
+  }catch(e){}
+  try{
+    if(typeof _coinChart!=='undefined' && _coinChart){
+      _coinChart.destroy(); _coinChart=null;
+      if(typeof _loadCoinChartData==='function') _loadCoinChartData();
+    }
+  }catch(e){}
 }
 // On iframe load, send current theme so they sync immediately
 window.addEventListener('load', function(){
@@ -2871,48 +2956,48 @@ function _showUnbondDetail(){
         var val=valMap[u.validator]||{};
         var moniker=val.moniker||'Unknown Validator';
         var valLogoUrl=val.logo_url||'';
-        var valLogoHtml=valLogoUrl?'<img src="'+valLogoUrl+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,.08);" onerror="this.outerHTML=\'<div style=&quot;width:30px;height:30px;border-radius:50%;background:#888;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0;&quot;>'+(moniker||'V').slice(0,2).toUpperCase()+'</div>\'">':'<div style="width:30px;height:30px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0;border:1px solid rgba(255,255,255,.08);">'+(moniker||'V').slice(0,2).toUpperCase()+'</div>';
+        var valLogoHtml=valLogoUrl?'<img src="'+valLogoUrl+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border2);" onerror="this.outerHTML=\'<div style=&quot;width:30px;height:30px;border-radius:50%;background:#888;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0;&quot;>'+(moniker||'V').slice(0,2).toUpperCase()+'</div>\'">':'<div style="width:30px;height:30px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0;border:1px solid var(--border2);">'+(moniker||'V').slice(0,2).toUpperCase()+'</div>';
         
-        html+='<div style="background:rgba(245,194,74,.04);border:1px solid rgba(245,194,74,.12);border-radius:10px;padding:14px;">'
+        html+='<div style="background:var(--gold-soft);border:1px solid var(--border);border-radius:10px;padding:14px;">'
           // Top: chain + amount + days
           +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">'
             +'<div style="display:flex;align-items:center;gap:9px;">'
               +'<div style="width:26px;height:26px;border-radius:50%;flex-shrink:0;">'+coinAvHtml+'</div>'
               +'<div>'
-                +'<div style="font-size:13px;font-weight:600;color:#f7e7b8;">'+sym+(eurVal>0?' <span style="font-size:10px;color:rgba(125,214,125,.7);font-weight:500;margin-left:3px;">~'+_fmt(eurVal)+'</span>':'')+'</div>'
-                +'<div style="font-size:10px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+amt+' '+sym+'</div>'
+                +'<div style="font-size:13px;font-weight:600;color:var(--cream);">'+sym+(eurVal>0?' <span style="font-size:10px;color:var(--green);opacity:.75;font-weight:500;margin-left:3px;">~'+_fmt(eurVal)+'</span>':'')+'</div>'
+                +'<div style="font-size:10px;color:var(--muted-soft);font-family:\'JetBrains Mono\',monospace;">'+amt+' '+sym+'</div>'
               +'</div>'
             +'</div>'
             +'<div style="text-align:right;">'
-              +'<div style="font-size:13px;font-weight:600;color:#f5c24a;font-family:\'JetBrains Mono\',monospace;">'+daysRemaining+' ημ.</div>'
-              +'<div style="font-size:10px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+dateStrFull+'</div>'
+              +'<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:\'JetBrains Mono\',monospace;">'+daysRemaining+' ημ.</div>'
+              +'<div style="font-size:10px;color:var(--muted-soft);font-family:\'JetBrains Mono\',monospace;">'+dateStrFull+'</div>'
             +'</div>'
           +'</div>'
           // Validator block
-          +'<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-bottom:10px;">'
-            +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Validator</div>'
+          +'<div style="border-top:1px solid var(--border2);padding-top:10px;margin-bottom:10px;">'
+            +'<div style="font-size:9px;color:var(--muted-soft);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Validator</div>'
             +'<div style="display:flex;align-items:center;gap:8px;">'
               +valLogoHtml
               +'<div style="min-width:0;flex:1;">'
-                +'<div style="font-size:12px;font-weight:600;color:#e7e4d8;">'+_esc(moniker)+'</div>'
-                +'<div style="font-size:9px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;word-break:break-all;line-height:1.4;">'+_esc(u.validator||'')+'</div>'
+                +'<div style="font-size:12px;font-weight:600;color:var(--text);">'+_esc(moniker)+'</div>'
+                +'<div style="font-size:9px;color:var(--muted-soft);font-family:\'JetBrains Mono\',monospace;word-break:break-all;line-height:1.4;">'+_esc(u.validator||'')+'</div>'
               +'</div>'
             +'</div>'
           +'</div>'
           // Address block
-          +'<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-bottom:10px;">'
-            +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Address</div>'
-            +'<div style="font-size:10px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;word-break:break-all;line-height:1.4;">'+_esc(u.address||'')+'</div>'
+          +'<div style="border-top:1px solid var(--border2);padding-top:10px;margin-bottom:10px;">'
+            +'<div style="font-size:9px;color:var(--muted-soft);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Address</div>'
+            +'<div style="font-size:10px;color:var(--text);font-family:\'JetBrains Mono\',monospace;word-break:break-all;line-height:1.4;">'+_esc(u.address||'')+'</div>'
           +'</div>'
           // Countdown bar
-          +'<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;">'
-            +'<div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(231,228,216,.4);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace;">'
+          +'<div style="border-top:1px solid var(--border2);padding-top:10px;">'
+            +'<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted-soft);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace;">'
               +'<span>Έναρξη '+startStr+'</span>'
-              +'<span style="color:rgba(245,194,74,.7);font-weight:600;">Ημέρα '+(totalDays-daysRemaining)+'/'+totalDays+'</span>'
+              +'<span style="color:var(--gold);opacity:.85;font-weight:600;">Ημέρα '+(totalDays-daysRemaining)+'/'+totalDays+'</span>'
               +'<span>Λήξη '+endStr+'</span>'
             +'</div>'
-            +'<div style="position:relative;height:5px;background:rgba(255,255,255,.05);border-radius:3px;">'
-              +'<div style="position:absolute;left:0;top:0;bottom:0;width:'+pctElapsed.toFixed(1)+'%;background:linear-gradient(90deg,#f5c24a,#fbbf24);border-radius:3px;"></div>'
+            +'<div style="position:relative;height:5px;background:var(--track-bg);border-radius:3px;">'
+              +'<div style="position:absolute;left:0;top:0;bottom:0;width:'+pctElapsed.toFixed(1)+'%;background:linear-gradient(90deg,var(--gold),var(--gold-deep));border-radius:3px;"></div>'
             +'</div>'
           +'</div>'
         +'</div>';
@@ -3104,29 +3189,29 @@ function _showCoinChart(coinId){
         +'<div style="font-size:16px;font-weight:700;color:#7dd67d;font-family:\'JetBrains Mono\',monospace;">'+_fmtExact(val)+'</div>'
         +'<div style="font-size:11px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+amt.toFixed(2)+' '+sym+'</div>'
       +'</div>':'')
-      +'<button onclick="document.querySelectorAll(\'.coin-chart-overlay\').forEach(function(el){el.remove();});if(_coinChart){_coinChart.destroy();_coinChart=null;}" style="background:none;border:none;color:rgba(231,228,216,.5);font-size:20px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;flex-shrink:0;">✕</button>'
+      +'<button onclick="document.querySelectorAll(\'.coin-chart-overlay\').forEach(function(el){el.remove();});if(_coinChart){_coinChart.destroy();_coinChart=null;}" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;flex-shrink:0;">✕</button>'
     +'</div>'
     // ── Time tabs ──────────────────────────
-    +'<div id="coin-chart-tabs" style="display:flex;gap:4px;margin-bottom:14px;padding:3px;background:rgba(255,255,255,.03);border-radius:6px;width:fit-content;">'
-      +[1,7,30,90,365].map(function(d){return '<button class="ccrange'+(d===365?' active':'')+'" data-d="'+d+'" onclick="_setCoinChartRange('+d+')" style="background:'+(d===365?'rgba(245,194,74,.15)':'none')+';border:'+(d===365?'1px solid rgba(245,194,74,.3)':'none')+';color:'+(d===365?'#f5c24a':'rgba(231,228,216,.5)')+';font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;'+(d===365?'font-weight:700;':'')+'">'+(d===1?'1D':d===7?'7D':d===30?'30D':d===90?'3M':'1Y')+'</button>';}).join('')
+    +'<div id="coin-chart-tabs" style="display:flex;gap:4px;margin-bottom:14px;padding:3px;background:var(--inline-tint);border-radius:6px;width:fit-content;">'
+      +[1,7,30,90,365].map(function(d){return '<button class="ccrange'+(d===365?' active':'')+'" data-d="'+d+'" onclick="_setCoinChartRange('+d+')" style="background:'+(d===365?'var(--gold-soft)':'none')+';border:'+(d===365?'1px solid rgba(245,194,74,.3)':'none')+';color:'+(d===365?'var(--gold)':'var(--muted)')+';font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;'+(d===365?'font-weight:700;':'')+'">'+(d===1?'1D':d===7?'7D':d===30?'30D':d===90?'3M':'1Y')+'</button>';}).join('')
     +'</div>'
     // ── Chart canvas ───────────────────────
     +'<div style="height:min(440px,55vh);position:relative;margin-bottom:14px;"><canvas id="coin-chart-canvas" style="width:100%;height:100%;"></canvas></div>'
     // ── Footer stats ───────────────────────
-    +'<div id="coin-chart-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 0;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:14px;">'
-      +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Low</div><div style="font-size:13px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-low">—</div></div>'
-      +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">High</div><div style="font-size:13px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-high">—</div></div>'
-      +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Change</div><div style="font-size:13px;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-change">—</div></div>'
-      +'<div><div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Avg</div><div style="font-size:13px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-avg">—</div></div>'
+    +'<div id="coin-chart-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);margin-bottom:14px;">'
+      +'<div><div style="font-size:9px;color:var(--muted-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Low</div><div style="font-size:13px;color:var(--text);font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-low">—</div></div>'
+      +'<div><div style="font-size:9px;color:var(--muted-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">High</div><div style="font-size:13px;color:var(--text);font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-high">—</div></div>'
+      +'<div><div style="font-size:9px;color:var(--muted-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Change</div><div style="font-size:13px;font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-change">—</div></div>'
+      +'<div><div style="font-size:9px;color:var(--muted-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Avg</div><div style="font-size:13px;color:var(--text);font-family:\'JetBrains Mono\',monospace;font-weight:600;" id="cc-avg">—</div></div>'
     +'</div>'
     // ── Support/Resistance levels box (only shown for 1Y) ──
-    +'<div id="coin-chart-sr" style="display:none;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:12px 14px;margin-bottom:14px;">'
-      +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">📊 Levels (1Y)</div>'
+    +'<div id="coin-chart-sr" style="display:none;background:var(--inline-tint-soft);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin-bottom:14px;">'
+      +'<div style="font-size:9px;color:var(--muted-soft);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">📊 Levels (1Y)</div>'
       +'<div id="coin-chart-sr-content" style="display:flex;gap:24px;flex-wrap:wrap;"></div>'
     +'</div>'
     // ── CoinGecko link ─────────────────────
     +'<div style="display:flex;justify-content:flex-end;">'
-      +'<a href="https://www.coingecko.com/en/coins/'+_esc(coinId)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:rgba(245,194,74,.85);text-decoration:none;padding:5px 9px;border:1px solid rgba(245,194,74,.2);border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-weight:600;">CoinGecko <span style="font-size:9px;">↗</span></a>'
+      +'<a href="https://www.coingecko.com/en/coins/'+_esc(coinId)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--gold);opacity:.9;text-decoration:none;padding:5px 9px;border:1px solid rgba(245,194,74,.2);border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-weight:600;">CoinGecko <span style="font-size:9px;">↗</span></a>'
     +'</div>'
   +'</div>';
   overlay.addEventListener('click',function(e){if(e.target===overlay){overlay.remove();if(_coinChart){_coinChart.destroy();_coinChart=null;}}});
@@ -3261,7 +3346,7 @@ async function _loadCoinChartData(){
       plugins:[srPlugin],
       data:{labels:labels,datasets:[{
         data:vals,
-        borderColor:'#f5c24a',
+        borderColor:_chartColors().gold,
         borderWidth:2.5,
         tension:.4,
         fill:'origin',
@@ -3269,15 +3354,16 @@ async function _loadCoinChartData(){
         backgroundColor:function(ctx){
           var chart=ctx.chart;var{ctx:cx,chartArea}=chart;
           if(!chartArea)return null;
+          var cc=_chartColors();
           var g=cx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);
-          g.addColorStop(0,'rgba(245,194,74,.55)');
-          g.addColorStop(0.5,'rgba(245,194,74,.25)');
-          g.addColorStop(1,'rgba(245,194,74,.02)');
+          g.addColorStop(0,cc.gradTop);
+          g.addColorStop(0.5,cc.gradMid);
+          g.addColorStop(1,cc.gradBot);
           return g;
         },
         pointRadius:0,
         pointHoverRadius:5,
-        pointHoverBackgroundColor:'#f5c24a'
+        pointHoverBackgroundColor:_chartColors().gold
       }]},
       options:{
         responsive:true,maintainAspectRatio:false,
@@ -3287,10 +3373,10 @@ async function _loadCoinChartData(){
           srLines:srLevels,
           legend:{display:false},
           tooltip:{
-            backgroundColor:'rgba(11,13,18,.95)',
-            titleColor:'#f5c24a',
-            bodyColor:'#e7e4d8',
-            borderColor:'rgba(245,194,74,.3)',
+            backgroundColor:_chartColors().tooltipBg,
+            titleColor:_chartColors().gold,
+            bodyColor:_chartColors().text,
+            borderColor:_chartColors().goldBorder,
             borderWidth:1,padding:10,
             titleFont:{family:'JetBrains Mono',size:10,weight:'600'},
             bodyFont:{family:'JetBrains Mono',size:11},
@@ -3299,18 +3385,18 @@ async function _loadCoinChartData(){
         },
         scales:{
           x:{
-            grid:{color:'rgba(255,255,255,.04)'},
+            grid:{color:_chartColors().grid},
             ticks:{
-              color:'rgba(231,228,216,.35)',
+              color:_chartColors().muted,
               font:{size:9,family:'JetBrains Mono'},
               maxTicksLimit:_coinChartRange===1?6:_coinChartRange<=7?7:_coinChartRange<=30?8:_coinChartRange<=90?6:8,
               autoSkip:true,maxRotation:0
             }
           },
           y:{
-            grid:{color:'rgba(255,255,255,.04)'},
+            grid:{color:_chartColors().grid},
             ticks:{
-              color:'rgba(231,228,216,.35)',
+              color:_chartColors().muted,
               font:{size:9,family:'JetBrains Mono'},
               callback:function(v){return _fmtP(v);},
               maxTicksLimit:5
