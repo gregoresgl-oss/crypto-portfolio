@@ -392,16 +392,183 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
    WIDGETS
    ═══════════════════════════════════════════════════════ */
 
-/* Hero */
+/* ──────────────────────────────────────────────────────────
+   HERO — ticker-grid banner with state-aware accent
+   Based on Claude Design handoff (May 2026)
+   ────────────────────────────────────────────────────────── */
 #hero-card{
-  background:var(--hero-grad);
-  border:1px solid rgba(245,194,74,.15);border-radius:var(--radius);padding:18px;
-  position:relative;overflow:hidden;
+  position:relative;
+  height:130px;
+  padding:18px 28px;
+  overflow:hidden;
+  isolation:isolate;
+  border-radius:var(--radius);
+  /* DARK = default. Light theme overrides via [data-theme="light"] below. */
+  background:
+    repeating-linear-gradient(90deg,
+      transparent 0 119px,
+      rgba(255,255,255,0.025) 119px 120px
+    ),
+    linear-gradient(180deg, #0B0B10, #07070A);
+  display:flex; align-items:stretch;
+  box-sizing:border-box;
+  transition:background .35s ease, border-color .35s ease;
 }
-#hero-card::before{content:"";position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(245,194,74,.1),transparent 70%);pointer-events:none;}
-.hero-label{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,194,74,.45);font-family:"JetBrains Mono",monospace;margin-bottom:6px;}
-.hero-value{font-size:36px;font-weight:700;letter-spacing:-1px;color:var(--text-hi);font-family:"JetBrains Mono",monospace;line-height:1;}
-.hero-delta{display:flex;align-items:center;gap:7px;margin-top:7px;}
+[data-theme="light"] #hero-card{
+  background:
+    repeating-linear-gradient(90deg,
+      transparent 0 119px,
+      rgba(60,40,10,0.05) 119px 120px
+    ),
+    linear-gradient(180deg, #faf6e9, #f0e7c8);
+  border:1px solid rgba(157,116,38,.18);
+}
+
+/* Bottom hairline + glow — colored by state */
+#hero-card::before{
+  content:"";
+  position:absolute; left:0; right:0; bottom:0;
+  height:1px;
+  background:linear-gradient(90deg, transparent, var(--hero-accent), transparent);
+  box-shadow:0 0 12px var(--hero-accent-glow);
+  z-index:1;
+  pointer-events:none;
+}
+
+/* Left rail — colored by state */
+#hero-card::after{
+  content:"";
+  position:absolute; left:0; top:0; bottom:0;
+  width:2px;
+  background:linear-gradient(180deg,
+    transparent,
+    var(--hero-accent) 40%,
+    var(--hero-accent) 60%,
+    transparent
+  );
+  opacity:.5;
+  z-index:1;
+  pointer-events:none;
+}
+
+/* Radial state wash (right side) */
+#hero-card .hero-wash{
+  position:absolute; inset:0; z-index:0;
+  background:radial-gradient(80% 160% at 100% 50%, var(--hero-accent-wash), transparent 60%);
+  pointer-events:none;
+  transition:background .35s ease;
+}
+
+/* State variables */
+#hero-card.neg{
+  --hero-accent:      #FF5C7A;
+  --hero-accent-glow: rgba(255,92,122,.4);
+  --hero-accent-wash: rgba(255,92,122,.08);
+}
+#hero-card.pos{
+  --hero-accent:      #4ADE80;
+  --hero-accent-glow: rgba(74,222,128,.4);
+  --hero-accent-wash: rgba(74,222,128,.08);
+}
+[data-theme="light"] #hero-card.neg{
+  --hero-accent:      #c0344a;
+  --hero-accent-glow: rgba(192,52,74,.35);
+  --hero-accent-wash: rgba(192,52,74,.06);
+}
+[data-theme="light"] #hero-card.pos{
+  --hero-accent:      #2f7d3a;
+  --hero-accent-glow: rgba(47,125,58,.35);
+  --hero-accent-wash: rgba(47,125,58,.06);
+}
+/* Neutral (exactly 0% — rare but spec'd) */
+#hero-card.neu{
+  --hero-accent:      rgba(255,255,255,.15);
+  --hero-accent-glow: rgba(255,255,255,.10);
+  --hero-accent-wash: transparent;
+}
+[data-theme="light"] #hero-card.neu{
+  --hero-accent:      rgba(60,52,38,.15);
+  --hero-accent-glow: rgba(60,52,38,.08);
+  --hero-accent-wash: transparent;
+}
+
+/* Content stack (z above wash) */
+#hero-card .hero-content{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; justify-content:space-between;
+  width:100%;
+}
+
+.hero-label{
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:#8A8A93;
+  font-family:"JetBrains Mono",monospace;
+  display:flex; gap:10px; align-items:center;
+}
+[data-theme="light"] .hero-label{ color:rgba(60,52,38,.55); }
+.hero-label .sep{ opacity:.4; }
+
+.hero-value{
+  font-size:44px;
+  font-weight:300;
+  letter-spacing:-.02em;
+  line-height:1;
+  margin-top:4px;
+  font-family:"JetBrains Mono",monospace;
+  font-variant-numeric:tabular-nums;
+  /* Brand: keep gold even in the new ticker design */
+  color:var(--gold);
+}
+[data-theme="light"] .hero-value{ color:var(--gold-deep); }
+
+.hero-delta{
+  display:flex; align-items:center; gap:14px;
+  margin-top:10px;
+  font-size:13px;
+  font-variant-numeric:tabular-nums;
+}
+.hero-delta .delta-eur{ font-weight:500; }
+.hero-delta .delta-eur.neg{ color:#FF5C7A; }
+.hero-delta .delta-eur.pos{ color:#4ADE80; }
+.hero-delta .delta-eur.neu{ color:#8A8A93; }
+[data-theme="light"] .hero-delta .delta-eur.neg{ color:#c0344a; }
+[data-theme="light"] .hero-delta .delta-eur.pos{ color:#2f7d3a; }
+[data-theme="light"] .hero-delta .delta-eur.neu{ color:rgba(60,52,38,.55); }
+.hero-delta .delta-pct{
+  padding:3px 8px;
+  border-radius:4px;
+  font-weight:500;
+  font-family:"JetBrains Mono",monospace;
+}
+.hero-delta .delta-pct.neg{ background:#4A1424; color:#FFC6D0; }
+.hero-delta .delta-pct.pos{ background:rgba(74,222,128,.15); color:#B6F1C9; }
+.hero-delta .delta-pct.neu{ background:rgba(255,255,255,.08); color:#8A8A93; }
+[data-theme="light"] .hero-delta .delta-pct.neg{ background:rgba(192,52,74,.16); color:#7a1f30; }
+[data-theme="light"] .hero-delta .delta-pct.pos{ background:rgba(47,125,58,.18); color:#1f5226; }
+[data-theme="light"] .hero-delta .delta-pct.neu{ background:rgba(60,52,38,.08); color:rgba(60,52,38,.65); }
+.hero-delta .delta-suffix{
+  color:#8A8A93;
+  font-family:"JetBrains Mono",monospace;
+}
+[data-theme="light"] .hero-delta .delta-suffix{ color:rgba(60,52,38,.55); }
+
+/* Unbond pill (top-right of hero) */
+#hero-unbond-pill:hover{
+  background:rgba(255,255,255,.08) !important;
+  border-color:rgba(255,255,255,.16) !important;
+}
+[data-theme="light"] #hero-unbond-pill{
+  background:rgba(60,52,38,.05) !important;
+  border-color:rgba(60,52,38,.12) !important;
+  color:rgba(60,52,38,.62) !important;
+}
+[data-theme="light"] #hero-unbond-pill:hover{
+  background:rgba(60,52,38,.10) !important;
+  border-color:rgba(60,52,38,.22) !important;
+}
 
 /* Period tabs */
 .period-tabs{display:flex;gap:2px;}
@@ -1543,17 +1710,42 @@ function _buildWidget(id,ctx){
 }
 
 function _wgtHero(total,delta24h,pct24h){
-  var el=document.createElement("div");el.id="hero-card";el.style.position="relative";
-  el.innerHTML='<div class="hero-label">ΣΥΝΟΛΙΚΗ ΑΞΙΑ · EUR</div>'
-    +'<div class="hero-value mono" id="hero-total">'+_fmtExact(total)+'</div>'
-    +'<div class="hero-delta"><span class="mono '+(delta24h>=0?"text-green":"text-red")+'" style="font-size:13px;font-weight:700;">'+(delta24h>=0?"+":"")+_fmt(delta24h)+"</span>"
-    +'<span class="pill '+(pct24h>=0?"pill-green":"pill-red")+' mono">'+(pct24h>=0?"+":"")+pct24h.toFixed(2)+"%</span>"
-    +'<span class="text-muted mono" style="font-size:10px;">24h</span></div>'
+  var el=document.createElement("div");
+  el.id="hero-card";
+  // State class drives the accent line/rail/wash + delta colors.
+  // Exactly zero → neutral (per design spec).
+  var state;
+  if(delta24h > 0)      state = 'pos';
+  else if(delta24h < 0) state = 'neg';
+  else                  state = 'neu';
+  el.className = state;
+  // Real minus sign U+2212 (spec) instead of hyphen
+  var deltaSign = delta24h > 0 ? '+' : (delta24h < 0 ? '−' : '');
+  var pctSign   = pct24h   > 0 ? '+' : (pct24h   < 0 ? '−' : '');
+  var deltaAbs  = Math.abs(delta24h);
+  var pctAbs    = Math.abs(pct24h);
+  // For neutral, paint deltas with the muted suffix color (no pill bg)
+  var deltaCls  = state === 'neu' ? 'neu' : state;
+  el.innerHTML =
+      '<div class="hero-wash"></div>'
+    + '<div class="hero-content">'
+    +   '<div class="hero-label">'
+    +     '<span>ΣΥΝΟΛΙΚΗ ΑΞΙΑ</span><span class="sep">·</span><span>EUR</span>'
+    +   '</div>'
+    +   '<div>'
+    +     '<div class="hero-value" id="hero-total">'+_fmtExact(total)+'</div>'
+    +     '<div class="hero-delta">'
+    +       '<span class="delta-eur '+deltaCls+'">'+deltaSign+_fmt(deltaAbs)+'</span>'
+    +       '<span class="delta-pct '+deltaCls+'">'+pctSign+pctAbs.toFixed(2)+'%</span>'
+    +       '<span class="delta-suffix">24h</span>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>'
     // Unbonding pill (top-right corner, hidden by default — toggled by checkUnbonding())
-    +'<div id="hero-unbond-pill" onclick="_showUnbondDetail()" style="display:none;position:absolute;top:14px;right:14px;align-items:center;gap:6px;background:rgba(245,194,74,.08);border:1px solid rgba(245,194,74,.22);padding:5px 10px;border-radius:20px;cursor:pointer;transition:background .2s;" onmouseenter="this.style.background=\'rgba(245,194,74,.14)\'" onmouseleave="this.style.background=\'rgba(245,194,74,.08)\'">'
-    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f5c24a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
-    +'<span id="hero-unbond-count" style="font-size:10px;color:#f5c24a;font-weight:600;font-family:\'JetBrains Mono\',monospace;">0</span>'
-    +'</div>';
+    + '<div id="hero-unbond-pill" onclick="_showUnbondDetail()" style="display:none;position:absolute;top:18px;right:24px;z-index:3;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:#8A8A93;transition:background .2s,border-color .2s;">'
+    +   '<svg width="11" height="11" viewBox="0 0 16 16" fill="none" style="opacity:.8;"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 4.5V8L10.5 9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
+    +   '<span id="hero-unbond-count">0</span>'
+    + '</div>';
   return el;
 }
 
