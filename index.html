@@ -403,13 +403,14 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   overflow:hidden;
   isolation:isolate;
   border-radius:var(--radius);
-  /* DARK = default. Light theme overrides via [data-theme="light"] below. */
+  /* DARK = default. Slightly elevated above app bg (#0b0d12) — not a black hole. */
   background:
     repeating-linear-gradient(90deg,
       transparent 0 119px,
       rgba(255,255,255,0.025) 119px 120px
     ),
-    linear-gradient(180deg, #0B0B10, #07070A);
+    linear-gradient(180deg, #10131c, #0b0d12);
+  border:1px solid rgba(245,194,74,.10);
   display:flex; align-items:stretch;
   box-sizing:border-box;
   transition:background .35s ease, border-color .35s ease;
@@ -420,7 +421,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
       transparent 0 119px,
       rgba(60,40,10,0.05) 119px 120px
     ),
-    linear-gradient(180deg, #faf6e9, #f0e7c8);
+    linear-gradient(180deg, #fffbf0, #f5efde);
   border:1px solid rgba(157,116,38,.18);
 }
 
@@ -491,11 +492,11 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   width:340px; height:170px;
   z-index:1;
   pointer-events:none;
-  color:rgba(245,194,74,.08);   /* dark default */
+  color:rgba(245,194,74,.11);   /* dark default — bumped from .08 */
   transition:color .35s ease;
 }
 [data-theme="light"] .hero-orbit{
-  color:rgba(157,116,38,.14);
+  color:rgba(157,116,38,.17);   /* bumped from .14 */
 }
 
 /* Content stack (z above wash) */
