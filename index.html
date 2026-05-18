@@ -484,6 +484,20 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   --hero-accent-wash: transparent;
 }
 
+/* Orbital rings (bottom-right) — echo of GGWALL logo */
+.hero-orbit{
+  position:absolute;
+  right:0; bottom:0;
+  width:340px; height:170px;
+  z-index:1;
+  pointer-events:none;
+  color:rgba(245,194,74,.08);   /* dark default */
+  transition:color .35s ease;
+}
+[data-theme="light"] .hero-orbit{
+  color:rgba(157,116,38,.14);
+}
+
 /* Content stack (z above wash) */
 #hero-card .hero-content{
   position:relative; z-index:2;
@@ -1732,6 +1746,14 @@ function _wgtHero(total,delta24h,pct24h){
     +     '</div>'
     +   '</div>'
     + '</div>'
+    // Orbital rings (bottom-right) — echo of GGWALL logo, brand-coherent backdrop
+    + '<svg class="hero-orbit" viewBox="0 0 400 200" preserveAspectRatio="xMaxYMax slice" aria-hidden="true">'
+    +   '<g fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke">'
+    +     '<circle cx="380" cy="240" r="80"/>'
+    +     '<circle cx="380" cy="240" r="140"/>'
+    +     '<circle cx="380" cy="240" r="200"/>'
+    +   '</g>'
+    + '</svg>'
     // Unbonding pill (top-right corner, hidden by default — toggled by checkUnbonding())
     + '<div id="hero-unbond-pill" onclick="_showUnbondDetail()" style="display:none;position:absolute;top:18px;right:24px;z-index:3;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:#8A8A93;transition:background .2s,border-color .2s;">'
     +   '<svg width="11" height="11" viewBox="0 0 16 16" fill="none" style="opacity:.8;"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 4.5V8L10.5 9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
