@@ -430,12 +430,12 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   position:absolute; left:0; right:0; bottom:0;
   height:1px;
   background:linear-gradient(90deg, transparent, var(--hero-accent), transparent);
-  box-shadow:0 0 12px var(--hero-accent-glow);
+  box-shadow:0 0 8px var(--hero-accent-glow);
   z-index:1;
   pointer-events:none;
 }
 
-/* Left rail — colored by state */
+/* Left rail — colored by state (subtle peripheral cue) */
 #hero-card::after{
   content:"";
   position:absolute; left:0; top:0; bottom:0;
@@ -446,17 +446,9 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
     var(--hero-accent) 60%,
     transparent
   );
-  opacity:.5;
+  opacity:.25;
   z-index:1;
   pointer-events:none;
-}
-
-/* Radial state wash (right side) */
-#hero-card .hero-wash{
-  position:absolute; inset:0; z-index:0;
-  background:radial-gradient(80% 160% at 100% 50%, var(--hero-accent-wash), transparent 60%);
-  pointer-events:none;
-  transition:background .35s ease;
 }
 
 /* State variables */
@@ -1727,8 +1719,7 @@ function _wgtHero(total,delta24h,pct24h){
   // For neutral, paint deltas with the muted suffix color (no pill bg)
   var deltaCls  = state === 'neu' ? 'neu' : state;
   el.innerHTML =
-      '<div class="hero-wash"></div>'
-    + '<div class="hero-content">'
+      '<div class="hero-content">'
     +   '<div class="hero-label">'
     +     '<span>ΣΥΝΟΛΙΚΗ ΑΞΙΑ</span><span class="sep">·</span><span>EUR</span>'
     +   '</div>'
