@@ -108,6 +108,16 @@
   --modal-card:       rgba(18,21,29,.85);
   --inline-tint:      rgba(255,255,255,.04);
   --inline-tint-soft: rgba(255,255,255,.02);
+  /* ─── inputs, labels, tinted cards (used in user overlay + cardano) ─── */
+  --input-bg:         rgba(13,10,28,.6);
+  --input-border:     rgba(167,139,250,.18);
+  --label-text:       rgba(220,214,255,.7);
+  --label-text-dim:   rgba(220,214,255,.4);
+  --tint-card-bg:     rgba(13,10,28,.4);
+  --tint-card-border: rgba(167,139,250,.1);
+  --tint-card-bg2:    rgba(13,10,28,.5);
+  --tint-card-border2:rgba(167,139,250,.15);
+  --hero-grad:        linear-gradient(135deg,#060d1f 0%,#0e1930 60%,#180928 100%);
 }
 
 [data-theme="light"] {
@@ -147,6 +157,16 @@
   --modal-card:       rgba(255,253,247,.95);
   --inline-tint:      rgba(60,52,38,.04);
   --inline-tint-soft: rgba(60,52,38,.02);
+  /* ─── inputs, labels, tinted cards (light) ─── */
+  --input-bg:         rgba(60,52,38,.05);
+  --input-border:     rgba(157,116,38,.22);
+  --label-text:       rgba(60,52,38,.70);
+  --label-text-dim:   rgba(60,52,38,.50);
+  --tint-card-bg:     rgba(60,52,38,.04);
+  --tint-card-border: rgba(157,116,38,.16);
+  --tint-card-bg2:    rgba(60,52,38,.05);
+  --tint-card-border2:rgba(157,116,38,.22);
+  --hero-grad:        linear-gradient(135deg,#ffffff 0%,#faf6e9 55%,#f0e7c8 100%);
 }
 
 /* ─── Light theme overrides for elements with compound dark gradients ─── */
@@ -374,13 +394,13 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 
 /* Hero */
 #hero-card{
-  background:linear-gradient(135deg,#060d1f 0%,#0e1930 60%,#180928 100%);
+  background:var(--hero-grad);
   border:1px solid rgba(245,194,74,.15);border-radius:var(--radius);padding:18px;
   position:relative;overflow:hidden;
 }
 #hero-card::before{content:"";position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(245,194,74,.1),transparent 70%);pointer-events:none;}
 .hero-label{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,194,74,.45);font-family:"JetBrains Mono",monospace;margin-bottom:6px;}
-.hero-value{font-size:36px;font-weight:700;letter-spacing:-1px;color:#fff;font-family:"JetBrains Mono",monospace;line-height:1;}
+.hero-value{font-size:36px;font-weight:700;letter-spacing:-1px;color:var(--text-hi);font-family:"JetBrains Mono",monospace;line-height:1;}
 .hero-delta{display:flex;align-items:center;gap:7px;margin-top:7px;}
 
 /* Period tabs */
@@ -466,8 +486,8 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .up-close{
   position:absolute;top:14px;right:14px;
   width:30px;height:30px;border-radius:50%;
-  background:rgba(13,10,28,0.6);
-  border:1px solid rgba(167,139,250,0.18);
+  background:var(--input-bg);
+  border:1px solid var(--input-border);
   color:rgba(220,214,255,0.55);cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   font-size:13px;z-index:10;transition:all 0.15s;
@@ -571,16 +591,16 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .notif-master.off .notif-master-status{color:var(--muted);}
 .notif-master.off .notif-master-status .status-dot{background:var(--muted);box-shadow:none;animation:none;}
 @keyframes notif-pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-.toggle{width:36px;height:20px;background:rgba(13,10,28,.6);border:1px solid rgba(167,139,250,.2);border-radius:99px;position:relative;flex-shrink:0;cursor:pointer;transition:all .2s;}
+.toggle{width:36px;height:20px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:99px;position:relative;flex-shrink:0;cursor:pointer;transition:all .2s;}
 .toggle::after{content:'';position:absolute;top:1px;left:1px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:all .2s;}
 .toggle.on{background:rgba(52,211,153,.25);border-color:var(--green);}
 .toggle.on::after{left:17px;background:var(--green);}
 .notif-channels{display:flex;gap:6px;margin-top:11px;padding-top:11px;border-top:1px solid rgba(167,139,250,.1);}
-.notif-channel{flex:1;display:flex;align-items:center;gap:5px;padding:6px 8px;background:rgba(13,10,28,.5);border:1px solid rgba(167,139,250,.15);border-radius:8px;font-size:10px;color:var(--cream);}
+.notif-channel{flex:1;display:flex;align-items:center;gap:5px;padding:6px 8px;background:var(--tint-card-bg2);border:1px solid var(--tint-card-border2);border-radius:8px;font-size:10px;color:var(--cream);}
 .notif-channel .ch-status{margin-left:auto;font-size:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;color:var(--green);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);padding:1px 5px;border-radius:99px;}
 .notif-channel .ch-status.off{color:var(--muted);background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.18);}
-.notif-section-label{display:block;font-size:10px;font-weight:600;letter-spacing:.5px;color:rgba(220,214,255,.7);margin:14px 0 8px;text-transform:uppercase;}
-.notif-types-compact{background:rgba(13,10,28,.4);border:1px solid rgba(167,139,250,.1);border-radius:10px;padding:4px 8px;}
+.notif-section-label{display:block;font-size:10px;font-weight:600;letter-spacing:.5px;color:var(--label-text);margin:14px 0 8px;text-transform:uppercase;}
+.notif-types-compact{background:var(--tint-card-bg);border:1px solid var(--tint-card-border);border-radius:10px;padding:4px 8px;}
 .notif-type-c{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid rgba(167,139,250,.05);}
 .notif-type-c:last-child{border-bottom:none;}
 .notif-type-c-ico{width:22px;height:22px;border-radius:6px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
@@ -589,9 +609,9 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .notif-type-c-desc{font-size:9px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* Price Alerts (profile notif tab) */
-.price-alerts-card{background:rgba(13,10,28,0.4);border:1px solid rgba(245,194,74,0.18);border-radius:10px;padding:10px;}
-.price-alerts-desc{font-size:9.5px;color:rgba(167,139,250,0.7);margin-bottom:9px;line-height:1.55;}
-.price-alerts-desc strong{color:rgba(245,194,74,0.95);font-weight:500;}
+.price-alerts-card{background:var(--tint-card-bg);border:1px solid rgba(245,194,74,0.18);border-radius:10px;padding:10px;}
+.price-alerts-desc{font-size:9.5px;color:var(--label-text);margin-bottom:9px;line-height:1.55;}
+.price-alerts-desc strong{color:var(--gold);font-weight:500;}
 .price-alerts-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
 .price-alert-row{display:flex;align-items:center;gap:7px;padding:7px 9px;background:rgba(245,194,74,0.04);border:1px solid rgba(245,194,74,0.15);border-radius:7px;cursor:pointer;transition:all .15s;}
 .price-alert-row:hover{background:rgba(245,194,74,0.08);border-color:rgba(245,194,74,0.28);}
@@ -602,14 +622,14 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .price-alert-row .coin-pct.down{color:rgba(251,113,133,0.85);}
 .price-alert-row .coin-pct.flat{color:rgba(167,139,250,0.6);}
 .price-alert-row .ring{margin-left:3px;}
-.price-alerts-foot{margin-top:9px;padding-top:8px;border-top:1px solid rgba(245,194,74,0.1);display:flex;align-items:center;gap:6px;font-size:9px;color:rgba(167,139,250,0.55);}
+.price-alerts-foot{margin-top:9px;padding-top:8px;border-top:1px solid rgba(245,194,74,0.1);display:flex;align-items:center;gap:6px;font-size:9px;color:var(--label-text-dim);}
 
 /* IBC Chain Selection (profile wallet tab) */
-.chains-list{background:rgba(13,10,28,.4);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:5px;margin-top:8px;max-height:240px;overflow-y:auto;}
+.chains-list{background:var(--tint-card-bg);border:1px solid var(--tint-card-border2);border-radius:10px;padding:5px;margin-top:8px;max-height:240px;overflow-y:auto;}
 .chain-row{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;transition:all .15s;cursor:pointer;}
 .chain-row:hover{background:rgba(245,194,74,.05);}
 .chain-row.disabled{opacity:.4;}
-.chain-check{width:17px;height:17px;border-radius:5px;border:1.5px solid rgba(167,139,250,.35);background:rgba(13,10,28,.6);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;position:relative;}
+.chain-check{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--input-border);background:var(--input-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;position:relative;}
 .chain-check.checked{background:var(--gold);border-color:var(--gold);box-shadow:0 0 6px rgba(245,194,74,.4);}
 .chain-check.checked::after{content:'';width:9px;height:5px;border-left:2px solid #0b0d12;border-bottom:2px solid #0b0d12;transform:rotate(-45deg) translate(1px,-1px);}
 .chain-row.locked{opacity:.85;cursor:not-allowed;}
@@ -631,7 +651,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .chain-summary{display:flex;justify-content:space-between;align-items:center;padding:7px 11px;margin-top:8px;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.15);border-radius:9px;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.5px;}
 .chain-summary .count{color:var(--gold);font-weight:700;}
 .chain-actions{display:flex;gap:5px;margin-top:8px;}
-.chain-action-btn{flex:1;padding:5px 8px;background:rgba(13,10,28,.6);border:1px solid rgba(167,139,250,.18);border-radius:7px;color:var(--muted);font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .15s;text-align:center;}
+.chain-action-btn{flex:1;padding:5px 8px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:7px;color:var(--muted);font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .15s;text-align:center;}
 .chain-action-btn:hover{border-color:rgba(245,194,74,.4);color:var(--gold);}
 .up-content{padding:13px 15px;display:none;}
 .up-content.active{display:block;}
@@ -928,15 +948,15 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
           <input type="file" id="pr-photo-inp" accept="image/*" style="display:none;" onchange="_onPhotoChange(this)"/>
 
           <div>
-            <label style="display:block;font-size:10px;font-weight:600;letter-spacing:0.5px;color:rgba(220,214,255,0.7);margin-bottom:7px;text-transform:uppercase;">Όνομα Χρήστη</label>
-            <input class="inp" id="pr-name-inp" placeholder="Όνομα χρήστη" style="width:100%;padding:11px 13px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);border-radius:11px;color:var(--cream);font-size:13px;"/>
-            <div style="font-size:10px;color:rgba(220,214,255,0.4);margin-top:5px;">Εμφανίζεται στο dashboard και στους άλλους χρήστες.</div>
+            <label style="display:block;font-size:10px;font-weight:600;letter-spacing:0.5px;color:var(--label-text);margin-bottom:7px;text-transform:uppercase;">Όνομα Χρήστη</label>
+            <input class="inp" id="pr-name-inp" placeholder="Όνομα χρήστη" style="width:100%;padding:11px 13px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:11px;color:var(--text);font-size:13px;"/>
+            <div style="font-size:10px;color:var(--label-text-dim);margin-top:5px;">Εμφανίζεται στο dashboard και στους άλλους χρήστες.</div>
           </div>
 
           <div>
-            <label style="display:block;font-size:10px;font-weight:600;letter-spacing:0.5px;color:rgba(220,214,255,0.7);margin-bottom:7px;text-transform:uppercase;">Νέο PIN <span style="text-transform:none;color:rgba(220,214,255,0.4);font-weight:400;">(προαιρετικά)</span></label>
-            <input class="inp" id="pr-pin-inp" type="text" inputmode="numeric" maxlength="4" placeholder="4 ψηφία · κενό = αμετάβλητο" autocomplete="off" style="width:100%;padding:11px 13px;background:rgba(13,10,28,0.6);border:1px solid rgba(167,139,250,0.18);border-radius:11px;color:var(--cream);font-size:13px;font-family:'JetBrains Mono',monospace;letter-spacing:0.4em;"/>
-            <div style="font-size:10px;color:rgba(220,214,255,0.4);margin-top:5px;">Άφησε κενό για να μην αλλάξει.</div>
+            <label style="display:block;font-size:10px;font-weight:600;letter-spacing:0.5px;color:var(--label-text);margin-bottom:7px;text-transform:uppercase;">Νέο PIN <span style="text-transform:none;color:var(--label-text-dim);font-weight:400;">(προαιρετικά)</span></label>
+            <input class="inp" id="pr-pin-inp" type="text" inputmode="numeric" maxlength="4" placeholder="4 ψηφία · κενό = αμετάβλητο" autocomplete="off" style="width:100%;padding:11px 13px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:11px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;letter-spacing:0.4em;"/>
+            <div style="font-size:10px;color:var(--label-text-dim);margin-top:5px;">Άφησε κενό για να μην αλλάξει.</div>
           </div>
 
           <button class="btn btn-gold" onclick="_saveProfile()" style="width:100%;margin-top:4px;">&#128190; Αποθήκευση</button>
@@ -1788,7 +1808,7 @@ function _renderCardano(main,right){
         +'<div style="font-size:11px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;">'+total.toFixed(2)+' ADA · €'+p.toFixed(4)+' / ADA</div>'
       +'</div>'
       +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">'
-        +'<div style="background:rgba(13,10,28,.4);border:1px solid rgba(167,139,250,.1);border-radius:8px;padding:11px;">'
+        +'<div style="background:var(--tint-card-bg);border:1px solid var(--tint-card-border);border-radius:8px;padding:11px;">'
           +'<div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-family:\'JetBrains Mono\',monospace;">Liquid</div>'
           +'<div class="mono" style="font-size:14px;font-weight:600;color:var(--cream);margin-top:3px;">'+(ud.liquid||0).toFixed(2)+'</div>'
           +'<div class="mono" style="font-size:10px;color:var(--muted);">'+_fmt(liquidEur)+'</div>'
