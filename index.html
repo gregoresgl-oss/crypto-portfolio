@@ -216,8 +216,66 @@ iframe[id^="slot-iframe-"]{
 .pill-green{background:rgba(125,214,125,.12);color:var(--green);}
 .pill-red{background:rgba(255,95,109,.12);color:var(--red);}
 .pill-gold{background:rgba(245,194,74,.12);color:var(--gold);}
-.pill-live{background:rgba(125,214,125,.1);color:var(--green);animation:blink 2s ease infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.55}}
+.pill-live{
+  background:rgba(125,214,125,.06);
+  color:rgba(125,214,125,.85);
+  border:1px solid rgba(125,214,125,.18);
+  padding:3px 8px;
+  font-size:9.5px;
+  font-weight:600;
+  letter-spacing:.04em;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  transition:background .35s ease,border-color .35s ease,color .35s ease;
+}
+.pill-live::before{
+  content:"";
+  width:5px;height:5px;border-radius:50%;
+  background:#7dd67d;
+  animation:liveDot 1.5s ease infinite;
+  flex-shrink:0;
+}
+.pill-live #live-time{
+  color:var(--muted);
+  font-weight:500;
+  font-size:9px;
+  margin-left:1px;
+  opacity:1 !important;
+}
+[data-theme="light"] .pill-live{
+  background:rgba(47,125,58,.06);
+  color:rgba(47,125,58,.85);
+  border-color:rgba(47,125,58,.22);
+}
+[data-theme="light"] .pill-live::before{ background:#2f7d3a; }
+@keyframes liveDot{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Mobile: strip pill chrome — leave just the pulsing dot + time.
+   "LIVE" word hidden; the dot itself carries the signal. */
+@media (max-width:640px){
+  .pill-live{
+    background:transparent;
+    border:none;
+    padding:3px 4px;
+    color:var(--muted);
+    font-size:10px;
+    gap:5px;
+  }
+  .pill-live::before{
+    width:6px;height:6px;
+    box-shadow:0 0 6px rgba(125,214,125,.5);
+  }
+  [data-theme="light"] .pill-live::before{
+    box-shadow:0 0 6px rgba(47,125,58,.5);
+  }
+  .pill-live .live-word{display:none;}
+  .pill-live #live-time{
+    color:var(--muted);
+    font-size:10px;
+    margin-left:0;
+  }
+}
 
 /* ── Button ── */
 .btn{padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:none;font-family:"Space Grotesk",sans-serif;}
@@ -989,7 +1047,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   </button>
   <div class="topbar-spacer"></div>
   <div class="topbar-actions">
-    <span class="pill pill-live" id="live-pill">&#9679; LIVE <span id="live-time" style="font-size:9px;opacity:.6;margin-left:2px;"></span></span>
+    <span class="pill pill-live" id="live-pill"><span class="live-word">LIVE</span> <span id="live-time"></span></span>
     <button class="theme-toggle" id="theme-toggle" onclick="_toggleTheme()" aria-label="Toggle theme" title="Αλλαγή θέματος">
       <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
         <defs>
