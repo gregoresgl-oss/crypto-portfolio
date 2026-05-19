@@ -3666,8 +3666,17 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   // Render portfolio (addresses are parsed, prices loading async)
   navTo("portfolio");
   // Periodic refresh
-  // Listen for iframe resize messages
+  // Listen for iframe resize messages + external link opens
   window.addEventListener('message',function(e){
+    // Iframe-requested external link open (target=_blank fallback)
+    if(e.data&&e.data.type==='openExternal'&&typeof e.data.url==='string'){
+      var url=e.data.url;
+      // Only allow http(s) URLs — guard against javascript: schemes from any iframe
+      if(/^https?:\/\//i.test(url)){
+        try{ window.open(url,'_blank','noopener,noreferrer'); }catch(err){}
+      }
+      return;
+    }
     if(e.data&&e.data.type==='iframeResize'){
       // Find the iframe that sent this message
       var sourceIframe=null;
