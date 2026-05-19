@@ -245,7 +245,10 @@ iframe[id^="slot-iframe-"]{
 .topbar-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex-shrink:0;}
 .orbit-mark{width:30px;height:30px;position:relative;flex-shrink:0;}
 .orbit-mark svg{width:100%;height:100%;overflow:visible;}
-.topbar-title{font-size:14px;font-weight:700;letter-spacing:2.5px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-title{font-size:14px;font-weight:700;letter-spacing:2.5px;background:linear-gradient(90deg,#d4af5a,#f7e7b8 50%,#d4af5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;transition:filter .35s ease;}
+[data-theme="light"] .topbar-title{background:linear-gradient(90deg,#7a591b,#9d7426 50%,#7a591b);-webkit-background-clip:text;background-clip:text;}
+[data-theme="light"] #tb-ver-num{color:var(--gold-deep);opacity:.85;}
+[data-theme="light"] #tb-ver-tag{background:rgba(47,125,58,.12) !important;color:#2f7d3a !important;border-color:rgba(47,125,58,.28) !important;}
 .topbar-spacer{flex:1;}
 .topbar-actions{display:flex;align-items:center;gap:7px;}
 .topbar-btn{width:30px;height:30px;border-radius:7px;background:var(--chip-bg);border:1px solid var(--border2);color:var(--muted);font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;text-decoration:none;}
@@ -978,7 +981,12 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
     </div>
     <span class="topbar-title">GGWALL</span>
   </a>
-  <span id="tb-ver" style="font-size:9px;color:rgba(245,194,74,.35);font-family:'JetBrains Mono',monospace;margin-left:2px;"></span>
+  <button id="tb-ver" onclick="_openVersionModal()" type="button" aria-label="Έκδοση & Changelog"
+    style="display:inline-flex;align-items:center;gap:6px;margin-left:2px;padding:3px 4px 3px 8px;background:transparent;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:opacity .15s;"
+    onmouseenter="this.style.opacity='.75';" onmouseleave="this.style.opacity='1';">
+    <span id="tb-ver-num" style="font-size:10px;color:var(--gold);opacity:.65;letter-spacing:.04em;">v2.0</span>
+    <span id="tb-ver-tag" style="font-size:8px;font-weight:700;letter-spacing:.08em;padding:1px 5px 1px 5px;border-radius:3px;background:rgba(125,214,125,.10);color:#7dd67d;border:1px solid rgba(125,214,125,.22);">STABLE</span>
+  </button>
   <div class="topbar-spacer"></div>
   <div class="topbar-actions">
     <span class="pill pill-live" id="live-pill">&#9679; LIVE <span id="live-time" style="font-size:9px;opacity:.6;margin-left:2px;"></span></span>
@@ -1308,7 +1316,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 <script>
 "use strict";
 // ─── Constants ────────────────────────────────────────────────────
-const _VER     = "v2.0";
+const _VER     = "v2.0";   // stable release — see _openVersionModal() for changelog
 
 // ─── Loading Screen Helpers ───
 function _showLoader(){
@@ -1327,6 +1335,193 @@ function _hideLoader(){
   // Remove from DOM after fade
   setTimeout(function(){if(l)l.style.display="none";},500);
 }
+
+// ─── Version Modal & Changelog ────────────────────────────────────
+function _openVersionModal(){
+  // Build once, reuse on subsequent clicks
+  var existing=document.getElementById("gg-ver-modal");
+  if(existing){existing.style.display="flex";return;}
+
+  // Changelog entries: most recent first. Tone = informative + light humour.
+  // Schema: {ver, date, title, tagline, entries:[{icon, title, body}]}
+  var changelog = [
+    {ver:"v2.0", tag:"STABLE", date:"19 Μαΐου 2026", title:"Stable Release",
+     tagline:"Από beta σε stable. Επιτέλους το λέμε έτοιμο χωρίς να σταυρώνουμε τα δάχτυλα.",
+     entries:[
+       {icon:"☀",  title:"Light theme",             body:"Ολόκληρο dual-theme σύστημα. Το app πια ξέρει να ζει και την ημέρα και τη νύχτα."},
+       {icon:"🎨", title:"Νέο portfolio banner",     body:"Terminal-grade με ticker grid, state-aware accents (κόκκινο όταν χάνεις, πράσινο όταν κερδίζεις) και orbital rings που αντηχούν το logo."},
+       {icon:"⚡", title:"Παλμοί τιμών",              body:"Notifications στα ±20/40/60/80/100%. Με hysteresis — δεν θα σε ξυπνά κάθε λίγο και λιγάκι."},
+       {icon:"🔷", title:"Cardano integration",      body:"Native staking, rewards, dedicated page. Η οικογένεια Eternl βρήκε σπίτι."},
+       {icon:"📈", title:"Theme-aware charts",       body:"3 Chart.js charts που γίνονται cream/charcoal αυτόματα όταν αλλάζεις theme."},
+       {icon:"🔗", title:"Mintscan links fix",       body:"Δεν ανοίγανε από iframes (browser security). Τώρα ανοίγουν σαν παλιοί φίλοι."},
+       {icon:"🎯", title:"Adaptive transaction scan",body:"75 κρυφές συναλλαγές βρέθηκαν στο ιστορικό και επέστρεψαν στο φως."},
+       {icon:"🏛", title:"Governance card",          body:"Top assets & προτάσεις των chains που έχεις stake. Όλη η δημοκρατία σε μία στήλη."}
+     ]},
+    {ver:"v1.9", date:"Απρίλιος 2026", title:"Watchtower AI",
+     tagline:"Όταν το dashboard άρχισε να μιλάει.",
+     entries:[
+       {icon:"🤖", title:"AI explain για validator flows", body:"Όταν 200K ATOM φεύγουν από έναν validator σε μία μέρα, τώρα σου εξηγεί γιατί."},
+       {icon:"🛰", title:"Snapshots κάθε ώρα",              body:"Pipeline που κρατάει τα voting powers ιστορικά. Δες ποιος έχασε και ποιος κέρδισε."},
+       {icon:"📊", title:"Top 20 movers",                   body:"Λίστα με τους validators που είδαν τη μεγαλύτερη ροή — in ή out."}
+     ]},
+    {ver:"v1.7", date:"Μάρτιος 2026", title:"Push & Email",
+     tagline:"Το πρώτο unread badge που πραγματικά διάβασες.",
+     entries:[
+       {icon:"🔔", title:"Web push notifications",  body:"Service worker + VAPID. Δέχεσαι notifications ακόμα και με κλειστό το tab."},
+       {icon:"📧", title:"Email digest fallback",   body:"Αν δεν δεις το push σε 30', φτάνει email. Backup channel για τη συνείδησή σου."}
+     ]},
+    {ver:"v1.5", date:"Φεβρουάριος 2026", title:"Cosmos ecosystem",
+     tagline:"Από Cosmos μόνο σε 10 chains. Θα κρατήσει αυτό το pace; Ποιος ξέρει.",
+     entries:[
+       {icon:"🌌", title:"Osmosis, Juno, Saga, Dymension", body:"Validators, rewards, unbondings, proposals. Το πλήρες πακέτο."},
+       {icon:"☁",  title:"Celestia, Stargaze, Akash",      body:"Επιπλέον υποστήριξη για ολόκληρο το ecosystem."},
+       {icon:"🗳", title:"Governance unified",              body:"Όλες οι προτάσεις από όλα τα chains σε μία view."}
+     ]},
+    {ver:"v1.2", date:"Ιανουάριος 2026", title:"Backend rewrite",
+     tagline:"Όταν συνειδητοποίησες ότι το localStorage δεν είναι database.",
+     entries:[
+       {icon:"⚙",  title:"Supabase backend",       body:"Edge functions, postgres, RLS. Επιτέλους σοβαρή υποδομή."},
+       {icon:"⏱", title:"Cron jobs",                body:"pg_cron για prices, balances, transactions. Σχεδόν real-time."},
+       {icon:"🔐", title:"Auth migration",          body:"Από custom hashing σε Supabase Auth με JWT. Όπως όλοι οι άλλοι το έπρεπε."}
+     ]},
+    {ver:"v0.9", date:"Δεκέμβριος 2025", title:"Markets & History",
+     tagline:"Charts. Πολλά charts. Ίσως υπερβολικά πολλά charts.",
+     entries:[
+       {icon:"📉", title:"Price charts",            body:"1D/7D/30D/90D/1Y για κάθε coin. Με support/resistance auto-detect."},
+       {icon:"🕐", title:"Transaction history",     body:"Όλες οι κινήσεις, με αυτόματη ταξινόμηση τύπων και EUR αποτίμηση."}
+     ]},
+    {ver:"v0.5", date:"Νοέμβριος 2025", title:"Multi-chain",
+     tagline:"Όταν το BTC + ETH δεν αρκούσαν πια. Stack overflow incoming.",
+     entries:[
+       {icon:"🌍", title:"Cosmos Hub support",       body:"Η αρχή. Validators, staking, rewards για ATOM."},
+       {icon:"🔄", title:"Multi-address tracking",   body:"Παρακολούθηση πολλαπλών wallets ταυτόχρονα."}
+     ]},
+    {ver:"v0.2", date:"Οκτώβριος 2025", title:"First steps",
+     tagline:"BTC + ETH + ένα Excel. Καλύτερα από Excel σκέτο.",
+     entries:[
+       {icon:"₿",  title:"Bitcoin & Ethereum tracking", body:"Price + portfolio value. Το ελάχιστο που χρειάζεσαι."},
+       {icon:"📊", title:"Allocations bar",              body:"Γρήγορη εικόνα ποιο coin κουβαλάει το χαρτοφυλάκιο."}
+     ]},
+    {ver:"v0.1", date:"Σεπτέμβριος 2025", title:"Hello world",
+     tagline:"Static HTML + 50 γραμμές JS. Όλοι ξεκινάμε κάπου.",
+     entries:[
+       {icon:"✨", title:"Πρώτη γραμμή κώδικα",         body:"Ένα <div>, ένα fetch, μία ελπίδα."},
+       {icon:"💡", title:"Η ιδέα του GGWALL",             body:"Personal crypto wallet που δείχνει τα πάντα, χωρίς τρίτους."}
+     ]}
+  ];
+
+  var planetSvg = ''
+   + '<svg viewBox="0 0 320 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:320px;height:auto;display:block;margin:0 auto;opacity:.85;">'
+   +   '<defs>'
+   +     '<radialGradient id="gv-p1" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#f7e7b8"/><stop offset="55%" stop-color="#d4af5a"/><stop offset="100%" stop-color="#7a591b"/></radialGradient>'
+   +     '<radialGradient id="gv-p2" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#4c1d95"/></radialGradient>'
+   +     '<radialGradient id="gv-p3" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#7dd67d"/><stop offset="100%" stop-color="#14532d"/></radialGradient>'
+   +     '<radialGradient id="gv-p4" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ff9aa2"/><stop offset="100%" stop-color="#7a1c2a"/></radialGradient>'
+   +   '</defs>'
+   +   '<g stroke="currentColor" stroke-width=".5" fill="none" opacity=".18">'
+   +     '<ellipse cx="160" cy="45" rx="150" ry="14"/>'
+   +     '<ellipse cx="160" cy="45" rx="110" ry="10"/>'
+   +     '<ellipse cx="160" cy="45" rx="70"  ry="6"/>'
+   +   '</g>'
+   +   '<g stroke="currentColor" stroke-width=".7" fill="none" opacity=".35">'
+   +     '<ellipse cx="240" cy="34" rx="18" ry="5" transform="rotate(-18 240 34)"/>'
+   +   '</g>'
+   +   '<circle cx="40"  cy="48" r="6"   fill="url(#gv-p3)"/>'
+   +   '<circle cx="95"  cy="42" r="4"   fill="url(#gv-p4)"/>'
+   +   '<circle cx="160" cy="45" r="12"  fill="url(#gv-p1)" filter="drop-shadow(0 0 4px rgba(212,175,90,.5))"/>'
+   +   '<circle cx="240" cy="34" r="8"   fill="url(#gv-p2)"/>'
+   +   '<circle cx="290" cy="50" r="3"   fill="url(#gv-p3)"/>'
+   // Tiny stars
+   +   '<g fill="currentColor" opacity=".4">'
+   +     '<circle cx="15"  cy="20" r=".8"/><circle cx="65"  cy="15" r=".6"/><circle cx="125" cy="22" r=".7"/>'
+   +     '<circle cx="200" cy="18" r=".5"/><circle cx="270" cy="13" r=".8"/><circle cx="305" cy="25" r=".6"/>'
+   +     '<circle cx="30"  cy="78" r=".7"/><circle cx="110" cy="80" r=".5"/><circle cx="185" cy="75" r=".6"/>'
+   +     '<circle cx="265" cy="78" r=".7"/>'
+   +   '</g>'
+   + '</svg>';
+
+  // Build modal HTML
+  var releasesHtml = changelog.map(function(rel, idx){
+    var isLatest = idx === 0;
+    var tagPill = rel.tag ? ('<span style="font-size:8px;font-weight:700;letter-spacing:.08em;padding:1px 5px;border-radius:3px;background:rgba(125,214,125,.10);color:#7dd67d;border:1px solid rgba(125,214,125,.22);margin-left:6px;vertical-align:middle;">'+rel.tag+'</span>') : '';
+    var entriesHtml = rel.entries.map(function(e){
+      return '<div style="display:flex;gap:10px;padding:8px 0;align-items:flex-start;">'
+        +    '<div style="flex-shrink:0;width:22px;text-align:center;font-size:14px;line-height:1.4;">'+e.icon+'</div>'
+        +    '<div style="flex:1;min-width:0;">'
+        +      '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.35;">'+e.title+'</div>'
+        +      '<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px;">'+e.body+'</div>'
+        +    '</div>'
+        + '</div>';
+    }).join('');
+    return ''
+      + '<div style="position:relative;padding:14px 0 18px 26px;border-left:1px solid var(--border2);'+(idx===changelog.length-1?'':'margin-bottom:2px;')+'">'
+      // Timeline dot
+      +   '<div style="position:absolute;left:-5px;top:18px;width:9px;height:9px;border-radius:50%;background:'+(isLatest?'var(--gold)':'var(--muted-soft)')+';box-shadow:'+(isLatest?'0 0 8px rgba(245,194,74,.45)':'none')+';border:2px solid var(--surface);"></div>'
+      // Header line
+      +   '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px;">'
+      +     '<span style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.02em;">'+rel.ver+'</span>'
+      +     tagPill
+      +     '<span style="font-size:10px;color:var(--muted-soft);font-family:\'JetBrains Mono\',monospace;letter-spacing:.04em;">· '+rel.date+'</span>'
+      +   '</div>'
+      +   '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">'+rel.title+'</div>'
+      +   '<div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.5;margin-bottom:8px;">'+rel.tagline+'</div>'
+      +   '<div style="margin-top:6px;">'+entriesHtml+'</div>'
+      + '</div>';
+  }).join('');
+
+  var modal=document.createElement("div");
+  modal.id="gg-ver-modal";
+  modal.style.cssText="position:fixed;inset:0;z-index:10000;background:var(--modal-overlay);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;animation:ggVerFadeIn .2s ease;";
+  modal.onclick=function(e){if(e.target===modal)_closeVersionModal();};
+
+  modal.innerHTML = ''
+    + '<style>'
+    +   '@keyframes ggVerFadeIn{from{opacity:0}to{opacity:1}}'
+    +   '@keyframes ggVerPopIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}'
+    +   '#gg-ver-card{animation:ggVerPopIn .25s cubic-bezier(.34,1.56,.64,1);}'
+    +   '#gg-ver-card::-webkit-scrollbar{width:6px;}'
+    +   '#gg-ver-card::-webkit-scrollbar-track{background:transparent;}'
+    +   '#gg-ver-card::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}'
+    + '</style>'
+    + '<div id="gg-ver-card" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 80px rgba(245,194,74,.05);">'
+    // Header
+    +   '<div style="position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border2);padding:18px 22px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;z-index:2;">'
+    +     '<div>'
+    +       '<div style="font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-family:\'JetBrains Mono\',monospace;margin-bottom:4px;">Release Timeline</div>'
+    +       '<div style="font-size:18px;font-weight:600;color:var(--text);line-height:1.2;">Πώς φτάσαμε στο '+_VER+'</div>'
+    +       '<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">Από τις 50 γραμμές κώδικα μέχρι το stable release. 8 μήνες, εκατοντάδες commits.</div>'
+    +     '</div>'
+    +     '<button onclick="_closeVersionModal()" type="button" aria-label="Κλείσιμο" style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--chip-bg);border:1px solid var(--border2);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit;" onmouseenter="this.style.color=\'var(--text)\';this.style.borderColor=\'var(--border)\';" onmouseleave="this.style.color=\'var(--muted)\';this.style.borderColor=\'var(--border2)\';">×</button>'
+    +   '</div>'
+    // Body: timeline
+    +   '<div style="padding:14px 22px 4px;">'+releasesHtml+'</div>'
+    // Footer: art + signature
+    +   '<div style="padding:18px 22px 22px;border-top:1px solid var(--border2);text-align:center;color:var(--muted-soft);">'
+    +     '<div style="margin-bottom:14px;">'+planetSvg+'</div>'
+    +     '<div style="font-size:9px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);font-family:\'JetBrains Mono\',monospace;margin-bottom:6px;">Created by</div>'
+    +     '<div style="font-size:22px;font-weight:300;letter-spacing:.05em;color:var(--gold);font-family:\'Space Grotesk\',sans-serif;margin-bottom:8px;">Askaar</div>'
+    +     '<div style="font-size:10px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;line-height:1.5;">'+_VER+' · Stable Release · Μάιος 2026<br><span style="opacity:.6;">Made with curiosity, caffeine, and a lot of git push --force</span></div>'
+    +   '</div>'
+    + '</div>';
+
+  document.body.appendChild(modal);
+
+  // Esc closes
+  document.addEventListener('keydown', _versionModalEscHandler);
+}
+
+function _closeVersionModal(){
+  var m=document.getElementById("gg-ver-modal");
+  if(m){m.remove();}
+  document.removeEventListener('keydown', _versionModalEscHandler);
+}
+
+function _versionModalEscHandler(e){
+  if(e.key==='Escape') _closeVersionModal();
+}
+
+window._openVersionModal=_openVersionModal;
+window._closeVersionModal=_closeVersionModal;
 const USERS_KEY= "ggwall_users_v1";
 const PIN_KEY  = "cp_pin_v1";
 const DEF_PIN  = "1234";
@@ -1499,7 +1694,7 @@ function applyActiveUser(user){
   if(tb){var ph=user.photo||(user.avatar?.startsWith("img:")?user.avatar.slice(4):null);if(ph)tb.innerHTML='<img src="'+ph+'" style="width:22px;height:22px;object-fit:cover;border-radius:50%;"/>';else tb.textContent=user.avatar&&!user.avatar.startsWith("img:")?user.avatar:user.initials||"👤";}
   // Admin link removed — admin tools are in offline GGWALLADMIN panel
   // Version
-  var vEl=document.getElementById("tb-ver");if(vEl)vEl.textContent=_VER;
+  var vEl=document.getElementById("tb-ver-num");if(vEl)vEl.textContent=_VER;
   // Populate overlay
   _populateOverlay(user);
   // Staking badge
