@@ -990,7 +990,6 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   <div class="topbar-spacer"></div>
   <div class="topbar-actions">
     <span class="pill pill-live" id="live-pill">&#9679; LIVE <span id="live-time" style="font-size:9px;opacity:.6;margin-left:2px;"></span></span>
-    <span class="currency-pill">EUR</span>
     <button class="theme-toggle" id="theme-toggle" onclick="_toggleTheme()" aria-label="Toggle theme" title="Αλλαγή θέματος">
       <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
         <defs>
@@ -1966,7 +1965,7 @@ function _wgtChart(){
     +'</div></div>'
     +'<div style="height:240px;position:relative;"><canvas id="ph-chart" style="width:100%;height:100%;"></canvas>'
     +'<div id="ph-spin" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);">Φόρτωση...</div></div>'
-    +'<div style="display:flex;justify-content:space-between;margin-top:7px;"><span class="mono text-muted" style="font-size:9px;" id="ph-lbl">—</span><span class="mono" style="font-size:9px;" id="ph-chg"></span></div>';
+    +'<div style="display:flex;justify-content:flex-end;margin-top:7px;"><span class="mono" style="font-size:9px;" id="ph-chg"></span></div>';
   return el;
 }
 
@@ -2497,7 +2496,7 @@ async function loadPortfolioHistory(days){
 
     _phChart=new Chart(canv,{type:"line",data:{labels,datasets:[{data:vals,borderColor:_chartColors().gold,borderWidth:2.5,tension:.4,fill:"origin",backgroundColor:ctx=>{var chart=ctx.chart;var{ctx:cx,chartArea}=chart;if(!chartArea)return null;var cc=_chartColors();var g=cx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);g.addColorStop(0,cc.gradTop);g.addColorStop(0.5,cc.gradMid);g.addColorStop(1,cc.gradBot);return g;},pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:_chartColors().gold}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600,easing:"easeOutQuart"},interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:_chartColors().tooltipBg,titleColor:_chartColors().gold,bodyColor:_chartColors().text,borderColor:_chartColors().goldBorder,borderWidth:1,padding:10,titleFont:{family:"JetBrains Mono",size:10,weight:"600"},bodyFont:{family:"JetBrains Mono",size:11},callbacks:{label:ctx=>{var v=ctx.parsed.y;return Math.round(v).toLocaleString('el-GR')+'€';}}}},scales:{x:{grid:{color:_chartColors().grid},ticks:{color:_chartColors().muted,font:{size:9,family:"JetBrains Mono"},maxTicksLimit:_phDays===1?6:_phDays<=7?7:_phDays<=30?8:_phDays<=60?6:_phDays<=90?6:6,maxRotation:0}},y:{grid:{color:_chartColors().grid},ticks:{color:_chartColors().muted,font:{size:9,family:"JetBrains Mono"},callback:function(v){return Math.round(v).toLocaleString('el-GR')+'€';},maxTicksLimit:5},position:"right"}}}});
 
-    if(vals.length>=2){var first=vals[0],last=vals[vals.length-1],chg=first?(last-first)/first*100:0;var vl=document.getElementById("ph-lbl"),cl=document.getElementById("ph-chg");if(vl)vl.textContent="Τρέχον: "+_fmt(last);if(cl){cl.textContent=(chg>=0?"+":"")+chg.toFixed(2)+"%";cl.className="mono "+(chg>=0?"text-green":"text-red");}}
+    if(vals.length>=2){var first=vals[0],last=vals[vals.length-1],chg=first?(last-first)/first*100:0;var cl=document.getElementById("ph-chg");if(cl){cl.textContent=(chg>=0?"+":"")+chg.toFixed(2)+"%";cl.className="mono "+(chg>=0?"text-green":"text-red");}}
   }catch(e){if(sp)sp.style.display="none";console.warn("[ph]",e.message);}
   _phLoading=false;
 }
