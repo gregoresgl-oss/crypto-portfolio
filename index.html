@@ -2397,22 +2397,51 @@ async function _loadFromCache(userId){
     var rows=await r.json();
     if(!rows||!rows.length)return false;
 
-    // Reset userdata chains που υπάρχουν στη βάση πριν φορτώσουμε
-    var chainIds=[...new Set(rows.map(function(r){return r.chain_id;}))];
-    chainIds.forEach(function(id){userdata[id]={liquid:0,staked:0,addrs:[],rewards:0};});
-    // Merge cache data into userdata
+    // 🐛 v4 DEFENSIVE FIX (2026-06-07): Mobile network glitches occasionally
+    // return partial rows from Supabase REST (e.g. only 1 of 4 OSMO addresses).
+    // Previous logic blindly reset the chain then summed only the partial rows,
+    // making coins "disappear" until next refresh.
+    //
+    // New logic: validate per-chain. If new rows for a chain have FEWER
+    // addresses than what we already have cached, KEEP the old values
+    // (treat as suspicious partial response). The next refresh will fix
+    // any genuine address removal (~5 minute delay max).
+    //
+    // Group response rows by chain_id
+    var rowsByChain = {};
     rows.forEach(function(row){
-      if(!userdata[row.chain_id])userdata[row.chain_id]={liquid:0,staked:0,addrs:[],rewards:0};
-      userdata[row.chain_id].liquid=(userdata[row.chain_id].liquid||0)+parseFloat(row.liquid||0);
-      userdata[row.chain_id].staked=(userdata[row.chain_id].staked||0)+parseFloat(row.staked||0);
-      userdata[row.chain_id].rewards=(userdata[row.chain_id].rewards||0)+parseFloat(row.rewards||0);
-      // Track address (deduplicated)
-      if(row.address && userdata[row.chain_id].addrs.indexOf(row.address)===-1){
-        userdata[row.chain_id].addrs.push(row.address);
-      }
-      // Add to activeCoinIds if not already there
-      if(!activeCoinIds.includes(row.chain_id))activeCoinIds.push(row.chain_id);
+      if(!rowsByChain[row.chain_id]) rowsByChain[row.chain_id] = [];
+      rowsByChain[row.chain_id].push(row);
     });
+
+    var skippedChains = [];
+    Object.keys(rowsByChain).forEach(function(cid){
+      var newRows = rowsByChain[cid];
+      var newAddrCount = new Set(newRows.map(function(r){return r.address;}).filter(Boolean)).size;
+      var oldAddrCount = (userdata[cid] && userdata[cid].addrs) ? userdata[cid].addrs.length : 0;
+
+      // Suspicious partial response: had N addresses, got fewer back
+      if (oldAddrCount > 0 && newAddrCount < oldAddrCount) {
+        skippedChains.push(cid + " (had " + oldAddrCount + ", got " + newAddrCount + ")");
+        return; // KEEP old userdata[cid] intact
+      }
+
+      // Accept update: reset this chain and sum new rows
+      userdata[cid] = {liquid:0,staked:0,addrs:[],rewards:0};
+      newRows.forEach(function(row){
+        userdata[cid].liquid  += parseFloat(row.liquid  || 0);
+        userdata[cid].staked  += parseFloat(row.staked  || 0);
+        userdata[cid].rewards += parseFloat(row.rewards || 0);
+        if (row.address && userdata[cid].addrs.indexOf(row.address) === -1) {
+          userdata[cid].addrs.push(row.address);
+        }
+      });
+      if (!activeCoinIds.includes(cid)) activeCoinIds.push(cid);
+    });
+
+    if (skippedChains.length > 0) {
+      console.warn("[cache] Defensive skip — kept old values for: " + skippedChains.join(", "));
+    }
     console.log("[cache] Loaded "+rows.length+" rows from balances_cache");
     // Check how fresh the cache is (compare UTC timestamps)
     var freshest=rows.reduce(function(max,r){return r.updated_at>max?r.updated_at:max;},"");
