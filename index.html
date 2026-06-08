@@ -626,7 +626,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 /* ── Mobile-only secondary metrics row (Liquid + Unclaimed Rewards) ── */
 /* Hidden on desktop (≥860px) — that view already has SYNOPSIS + UNCLAIMED REWARDS panels */
 .hero-mini-stats{
-  display:none;
+  display:none !important;
   align-items:center;
   gap:16px;
   margin-top:14px;
@@ -637,7 +637,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   flex-wrap:wrap;
 }
 [data-theme="light"] .hero-mini-stats{ border-top-color:rgba(60,52,38,.10); }
-@media (max-width:860px){ .hero-mini-stats{ display:flex; } }
+@media (max-width:860px){ .hero-mini-stats{ display:flex !important; } }
 
 .hero-mini-stats .mini-stat{
   display:inline-flex; align-items:center; gap:6px;
@@ -2028,7 +2028,9 @@ function _wgtHero(total,delta24h,pct24h,liquid,rewards){
   var deltaCls  = state === 'neu' ? 'neu' : state;
   // Smart format για τα secondary metrics: 2 decimals <10, integer <100, k notation >=1000
   var _fmtSmart = function(v){
-    v = v || 0;
+    // Explicit NaN/null/undefined guard — fall back to "—" like _fmt does
+    if (v === null || v === undefined || isNaN(v)) return '—';
+    v = Number(v);
     if (v >= 1000)   return (v/1000).toFixed(v >= 10000 ? 0 : 1) + 'k€';
     if (v >= 100)    return Math.round(v) + '€';
     if (v >= 10)     return v.toFixed(0) + '€';
