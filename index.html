@@ -1609,7 +1609,7 @@ const _VAPID   = "BKbem4bvPXa_8QtrpYuabJvgwEC9ZUAu1P8x0z5tocvV7GRe0f1pAWH3ktBDms
 
 // ─── Coin Data ────────────────────────────────────────────────────
 const PAL=["#2ecc8f","#ff7f50","#a78bfa","#22d3ee","#ec4899","#84cc16","#ff5f6d","#94a3b8","#60a5fa","#34d399","#fb923c","#c084fc","#fbbf24","#f472b6","#4ade80","#f87171","#a1a1aa","#38bdf8","#5b7fff","#e879f9"];
-const COIN_BRAND={"bitcoin":"#f7931a","ethereum":"#627eea","cosmos":"#818cf8","osmosis":"#ff6fd8","juno-network":"#e89444","dymension":"https://s2.coinmarketcap.com/static/img/coins/64x64/28932.png","saga-2":"#e84393","celestia":"#7b2bf9","stargaze":"#e4207c","akash-network":"#ff414b","secret":"#bf8f6f","injective-protocol":"#00b4d8","kava":"#e84142","evmos":"#ed4e33","cardano":"#0d9de8","gameswift":"#a0e040"};
+const COIN_BRAND={"bitcoin":"#f7931a","ethereum":"#627eea","cosmos":"#818cf8","osmosis":"#ff6fd8","juno-network":"#e89444","dymension":"#fc8d77","saga-2":"#e84393","celestia":"#7b2bf9","stargaze":"#e4207c","akash-network":"#ff414b","secret":"#bf8f6f","injective-protocol":"#00b4d8","kava":"#e84142","evmos":"#ed4e33","cardano":"#0d9de8","gameswift":"#a0e040"};
 const DEFAULT_GOLD=[{id:"cosmos",sym:"ATOM",name:"Cosmos"},{id:"osmosis",sym:"OSMO",name:"Osmosis"},{id:"juno-network",sym:"JUNO",name:"Juno"},{id:"saga-2",sym:"SAGA",name:"Saga"},{id:"dymension",sym:"DYM",name:"Dymension"},{id:"cardano",sym:"ADA",name:"Cardano"},{id:"gameswift",sym:"GSWIFT",name:"GameSwift"}];
 let GOLD_WATCH=JSON.parse(localStorage.getItem("gold_watch_v1")||"null")||DEFAULT_GOLD.map(c=>({...c}));
 function saveGoldWatch(){localStorage.setItem("gold_watch_v1",JSON.stringify(GOLD_WATCH));}
@@ -2052,7 +2052,10 @@ function _wgtAllocation(){
 
 function _buildAllocRows(){
   if(!activeCoinIds.length)return '<div style="font-size:10px;color:var(--muted);text-align:center;padding:8px;">—</div>';
-  var vals=activeCoinIds.filter(_shouldShow).map((id,i)=>{var ud=userdata[id]||{};return{id,sym:coinReg[id]?.sym||id.toUpperCase(),val:((ud.staked||0)+(ud.liquid||0))*(prices[id]||0),col:COIN_BRAND[id]||PAL[i%PAL.length]};});
+  // 🛡 Defensive: ensure col is a valid hex (#xxxxxx). If COIN_BRAND[id] is
+  // accidentally set to a URL/invalid value, fall back to PAL. Prevents
+  // colorless bars (see DYM bug: had image URL instead of hex).
+  var vals=activeCoinIds.filter(_shouldShow).map((id,i)=>{var ud=userdata[id]||{};var raw=COIN_BRAND[id];var col=(/^#[0-9a-fA-F]{6}$/.test(raw||""))?raw:PAL[i%PAL.length];return{id,sym:coinReg[id]?.sym||id.toUpperCase(),val:((ud.staked||0)+(ud.liquid||0))*(prices[id]||0),col};});
   var tot=vals.reduce((s,v)=>s+v.val,0);if(!tot)return '<div style="font-size:10px;color:var(--muted);text-align:center;padding:8px;">Δεν βρέθηκαν δεδομένα</div>';
   return vals.sort((a,b)=>b.val-a.val).slice(0,8).map(v=>{var pct=tot?v.val/tot*100:0;return '<div class="alloc-row"><span style="font-size:10px;font-weight:700;width:36px;font-family:JetBrains Mono,monospace;">'+v.sym+'</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:'+pct.toFixed(1)+'%;background:'+v.col+'33;border-right:2px solid '+v.col+'"></div></div><span class="alloc-pct">'+pct.toFixed(1)+'%</span></div>';}).join("");
 }
