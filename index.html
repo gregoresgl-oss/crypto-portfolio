@@ -623,6 +623,47 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 }
 [data-theme="light"] .hero-delta .delta-suffix{ color:rgba(60,52,38,.55); }
 
+/* ── Mobile-only secondary metrics row (Liquid + Unclaimed Rewards) ── */
+/* Hidden on desktop (≥860px) — that view already has SYNOPSIS + UNCLAIMED REWARDS panels */
+.hero-mini-stats{
+  display:none;
+  align-items:center;
+  gap:16px;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:0.5px solid rgba(232,184,74,.10);
+  font-family:"JetBrains Mono",monospace;
+  font-variant-numeric:tabular-nums;
+  flex-wrap:wrap;
+}
+[data-theme="light"] .hero-mini-stats{ border-top-color:rgba(60,52,38,.10); }
+@media (max-width:860px){ .hero-mini-stats{ display:flex; } }
+
+.hero-mini-stats .mini-stat{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:11px; letter-spacing:.04em;
+}
+.hero-mini-stats .mini-dot{
+  width:6px; height:6px; border-radius:50%; display:inline-block;
+}
+.hero-mini-stats .mini-dot-liq{ background:rgba(255,255,255,.55); }
+.hero-mini-stats .mini-dot-rew{ background:var(--gold); }
+[data-theme="light"] .hero-mini-stats .mini-dot-liq{ background:rgba(60,52,38,.45); }
+[data-theme="light"] .hero-mini-stats .mini-dot-rew{ background:var(--gold-deep); }
+
+.hero-mini-stats .mini-label{
+  color:rgba(255,255,255,.45);
+  text-transform:uppercase;
+  font-weight:500;
+}
+[data-theme="light"] .hero-mini-stats .mini-label{ color:rgba(60,52,38,.55); }
+
+.hero-mini-stats .mini-val{ font-weight:600; }
+.hero-mini-stats .mini-val-liq{ color:rgba(255,255,255,.88); }
+.hero-mini-stats .mini-val-rew{ color:var(--gold); }
+[data-theme="light"] .hero-mini-stats .mini-val-liq{ color:rgba(60,52,38,.88); }
+[data-theme="light"] .hero-mini-stats .mini-val-rew{ color:var(--gold-deep); }
+
 /* Unbond pill (top-right of hero) */
 #hero-unbond-pill:hover{
   background:rgba(255,255,255,.08) !important;
@@ -1635,7 +1676,7 @@ const COSMOS_CHAINS=[
   {id:"osmosis",name:"Osmosis",sym:"OSMO",prefix:"osmo",denom:"uosmo",dec:6,ep:["https://rest.cosmos.directory/osmosis"]},
   {id:"juno-network",name:"Juno",sym:"JUNO",prefix:"juno",denom:"ujuno",dec:6,ep:["https://rest.cosmos.directory/juno"]},
   {id:"dymension",name:"Dymension",sym:"DYM",prefix:"dym",denom:"adym",dec:18,ep:["https://rest.cosmos.directory/dymension","https://dymension-rest.publicnode.com","https://rest.dymension.xyz"],evm_chain:true},
-  {id:"saga-2",name:"Saga",sym:"SAGA",prefix:"saga",denom:"usaga",dec:6,ep:["https://rest.cosmos.directory/saga"]},
+  {id:"saga-2",name:"Saga",sym:"SAGA",prefix:"saga",denom:"uusaga",dec:6,ep:["https://rest.cosmos.directory/saga"]},
   {id:"celestia",name:"Celestia",sym:"TIA",prefix:"celestia",denom:"utia",dec:6,ep:["https://rest.cosmos.directory/celestia"]},
   {id:"stargaze",name:"Stargaze",sym:"STARS",prefix:"stars",denom:"ustars",dec:6,ep:["https://rest.cosmos.directory/stargaze"]},
   {id:"akash-network",name:"Akash",sym:"AKT",prefix:"akash",denom:"uakt",dec:6,ep:["https://rest.cosmos.directory/akash"]},
@@ -1873,8 +1914,8 @@ function _renderPortfolio(main,right){
   if(_cmpChart&&typeof _cmpChart.destroy==="function"){_cmpChart.destroy();_cmpChart=null;}
 
   // Calculate totals
-  var liquid=0,staked=0,delta24h=0;
-  activeCoinIds.forEach(function(id){var p=prices[id]||0,ud=userdata[id]||{};var liq=(ud.liquid||0)*p,stk=(ud.staked||0)*p;liquid+=liq;staked+=stk;delta24h+=(liq+stk)*((changes[id]||0)/100);});
+  var liquid=0,staked=0,rewards=0,delta24h=0;
+  activeCoinIds.forEach(function(id){var p=prices[id]||0,ud=userdata[id]||{};var liq=(ud.liquid||0)*p,stk=(ud.staked||0)*p,rw=(ud.rewards||0)*p;liquid+=liq;staked+=stk;rewards+=rw;delta24h+=(liq+stk)*((changes[id]||0)/100);});
   var total=liquid+staked,pct24h=total>0?delta24h/total*100:0;
 
   // Determine widgets from layout
@@ -1885,14 +1926,14 @@ function _renderPortfolio(main,right){
   // ── MAIN widgets ──
   main.innerHTML="";
   mainWidgets.forEach(function(wid){
-    var el=_buildWidget(wid,{total,liquid,staked,delta24h,pct24h});
+    var el=_buildWidget(wid,{total,liquid,staked,rewards,delta24h,pct24h});
     if(el)main.appendChild(el);
   });
   // ── RIGHT widgets ──
   if(right){
     right.innerHTML="";
     rightWidgets.forEach(function(wid){
-      var el=_buildWidget(wid,{total,liquid,staked,delta24h,pct24h});
+      var el=_buildWidget(wid,{total,liquid,staked,rewards,delta24h,pct24h});
       if(el)right.appendChild(el);
     });
   }
@@ -1910,8 +1951,8 @@ function _renderPortfolio(main,right){
 
 // ─── Widget Factory ───────────────────────────────────────────────
 function _buildWidget(id,ctx){
-  var {total,liquid,staked,delta24h,pct24h}=ctx||{};
-  if(id==="hero")return _wgtHero(total,delta24h,pct24h);
+  var {total,liquid,staked,rewards,delta24h,pct24h}=ctx||{};
+  if(id==="hero")return _wgtHero(total,delta24h,pct24h,liquid,rewards);
   if(id==="chart")return _wgtChart();
   if(id==="summary")return _wgtSummary(total,liquid,staked,delta24h);
   if(id==="allocation")return _wgtAllocation();
@@ -1968,7 +2009,7 @@ function _buildWidget(id,ctx){
   return null;
 }
 
-function _wgtHero(total,delta24h,pct24h){
+function _wgtHero(total,delta24h,pct24h,liquid,rewards){
   var el=document.createElement("div");
   el.id="hero-card";
   // State class drives the accent line/rail/wash + delta colors.
@@ -1985,6 +2026,14 @@ function _wgtHero(total,delta24h,pct24h){
   var pctAbs    = Math.abs(pct24h);
   // For neutral, paint deltas with the muted suffix color (no pill bg)
   var deltaCls  = state === 'neu' ? 'neu' : state;
+  // Smart format για τα secondary metrics: 2 decimals <10, integer <100, k notation >=1000
+  var _fmtSmart = function(v){
+    v = v || 0;
+    if (v >= 1000)   return (v/1000).toFixed(v >= 10000 ? 0 : 1) + 'k€';
+    if (v >= 100)    return Math.round(v) + '€';
+    if (v >= 10)     return v.toFixed(0) + '€';
+    return v.toFixed(2) + '€';
+  };
   el.innerHTML =
       '<div class="hero-content">'
     +   '<div class="hero-label">'
@@ -1996,6 +2045,20 @@ function _wgtHero(total,delta24h,pct24h){
     +       '<span class="delta-eur '+deltaCls+'">'+deltaSign+_fmt(deltaAbs)+'</span>'
     +       '<span class="delta-pct '+deltaCls+'">'+pctSign+pctAbs.toFixed(2)+'%</span>'
     +       '<span class="delta-suffix">24h</span>'
+    +     '</div>'
+    +     // ── Mobile-only secondary metrics row (Liquid + Unclaimed Rewards) ──
+          // Hidden on desktop (>=860px) via CSS — desktop has its own SYNOPSIS + UNCLAIMED REWARDS panels
+    +     '<div class="hero-mini-stats" id="hero-mini">'
+    +       '<span class="mini-stat">'
+    +         '<span class="mini-dot mini-dot-liq"></span>'
+    +         '<span class="mini-label">LIQUID</span>'
+    +         '<span class="mini-val mini-val-liq">'+_fmtSmart(liquid||0)+'</span>'
+    +       '</span>'
+    +       '<span class="mini-stat">'
+    +         '<span class="mini-dot mini-dot-rew"></span>'
+    +         '<span class="mini-label">REWARDS</span>'
+    +         '<span class="mini-val mini-val-rew">'+_fmtSmart(rewards||0)+'</span>'
+    +       '</span>'
     +     '</div>'
     +   '</div>'
     + '</div>'
