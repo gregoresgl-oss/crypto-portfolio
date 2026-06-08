@@ -637,7 +637,15 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   flex-wrap:wrap;
 }
 [data-theme="light"] .hero-mini-stats{ border-top-color:rgba(60,52,38,.10); }
-@media (max-width:860px){ .hero-mini-stats{ display:flex !important; } }
+
+/* Mobile: allow hero-card to grow taller to accommodate the mini-stats row */
+@media (max-width:860px){
+  .hero-mini-stats{ display:flex !important; }
+  #hero-card{
+    height:auto !important;
+    min-height:130px;
+  }
+}
 
 .hero-mini-stats .mini-stat{
   display:inline-flex; align-items:center; gap:6px;
