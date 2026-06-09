@@ -672,6 +672,77 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 [data-theme="light"] .hero-mini-stats .mini-val-liq{ color:rgba(60,52,38,.88); }
 [data-theme="light"] .hero-mini-stats .mini-val-rew{ color:var(--gold-deep); }
 
+/* ── F&G mini pill (mobile-only, lives inside .hero-delta) ── */
+/* Hidden on desktop — that view has its own FEAR & GREED card in sidebar */
+.hero-fg-pill{
+  display:none;
+  align-items:center;
+  gap:6px;
+  margin-left:auto;
+  padding:3px 9px;
+  border-radius:7px;
+  background:rgba(255,255,255,.04);
+  border:0.5px solid rgba(255,255,255,.12);
+  transition:background .3s ease, border-color .3s ease;
+  font-family:"JetBrains Mono",monospace;
+}
+@media (max-width:860px){ .hero-fg-pill{ display:inline-flex; } }
+
+.hero-fg-tag{
+  font-size:9px; letter-spacing:.08em;
+  color:rgba(255,255,255,.45);
+  text-transform:uppercase;
+  font-weight:500;
+}
+[data-theme="light"] .hero-fg-tag{ color:rgba(60,52,38,.55); }
+
+.hero-fg-seg{
+  display:inline-flex; gap:2px; align-items:center;
+}
+.hero-fg-seg > span{
+  width:7px; height:4px; border-radius:1px;
+  background:rgba(255,255,255,.10);
+  transition:background .3s ease, box-shadow .3s ease;
+}
+[data-theme="light"] .hero-fg-seg > span{ background:rgba(60,52,38,.10); }
+
+.hero-fg-num{
+  font-size:11px; font-weight:600;
+  color:rgba(255,255,255,.55);
+  font-variant-numeric:tabular-nums;
+  transition:color .3s ease;
+}
+[data-theme="light"] .hero-fg-num{ color:rgba(60,52,38,.6); }
+
+/* Zone colors: ef=Extreme Fear, f=Fear, n=Neutral, g=Greed, eg=Extreme Greed */
+.hero-fg-pill[data-zone="ef"]{ background:rgba(255,92,122,.05); border-color:rgba(255,92,122,.22); }
+.hero-fg-pill[data-zone="f"] { background:rgba(232,148,68,.05); border-color:rgba(232,148,68,.22); }
+.hero-fg-pill[data-zone="n"] { background:rgba(232,184,74,.06); border-color:rgba(232,184,74,.24); }
+.hero-fg-pill[data-zone="g"] { background:rgba(160,224,64,.06); border-color:rgba(160,224,64,.24); }
+.hero-fg-pill[data-zone="eg"]{ background:rgba(74,222,128,.07); border-color:rgba(74,222,128,.26); }
+
+.hero-fg-pill[data-zone="ef"] .hero-fg-num{ color:#ff5c7a; }
+.hero-fg-pill[data-zone="f"]  .hero-fg-num{ color:#e89444; }
+.hero-fg-pill[data-zone="n"]  .hero-fg-num{ color:#e8b84a; }
+.hero-fg-pill[data-zone="g"]  .hero-fg-num{ color:#a0e040; }
+.hero-fg-pill[data-zone="eg"] .hero-fg-num{ color:#4ade80; }
+
+.hero-fg-pill[data-zone="ef"] .hero-fg-seg > span.lit{ background:#ff5c7a; box-shadow:0 0 4px rgba(255,92,122,.6);  }
+.hero-fg-pill[data-zone="f"]  .hero-fg-seg > span.lit{ background:#e89444; box-shadow:0 0 4px rgba(232,148,68,.55); }
+.hero-fg-pill[data-zone="n"]  .hero-fg-seg > span.lit{ background:#e8b84a; box-shadow:0 0 4px rgba(232,184,74,.55); }
+.hero-fg-pill[data-zone="g"]  .hero-fg-seg > span.lit{ background:#a0e040; box-shadow:0 0 4px rgba(160,224,64,.55); }
+.hero-fg-pill[data-zone="eg"] .hero-fg-seg > span.lit{ background:#4ade80; box-shadow:0 0 4px rgba(74,222,128,.55); }
+
+/* Pulse animation only in extreme zones (≤24 or ≥75) */
+@keyframes hero-fg-pulse{
+  0%, 100% { opacity:1;   filter:brightness(1);    }
+  50%      { opacity:.55; filter:brightness(1.25); }
+}
+.hero-fg-pill[data-zone="ef"] .hero-fg-seg > span.lit,
+.hero-fg-pill[data-zone="eg"] .hero-fg-seg > span.lit{
+  animation: hero-fg-pulse 1.8s ease-in-out infinite;
+}
+
 /* Unbond pill (top-right of hero) */
 #hero-unbond-pill:hover{
   background:rgba(255,255,255,.08) !important;
@@ -2055,6 +2126,13 @@ function _wgtHero(total,delta24h,pct24h,liquid,rewards){
     +       '<span class="delta-eur '+deltaCls+'">'+deltaSign+_fmt(deltaAbs)+'</span>'
     +       '<span class="delta-pct '+deltaCls+'">'+pctSign+pctAbs.toFixed(2)+'%</span>'
     +       '<span class="delta-suffix">24h</span>'
+    +       '<span class="hero-fg-pill" id="hero-fg-pill" data-zone="">'
+    +         '<span class="hero-fg-tag">F&amp;G</span>'
+    +         '<span class="hero-fg-seg">'
+    +           '<span></span><span></span><span></span><span></span><span></span>'
+    +         '</span>'
+    +         '<span class="hero-fg-num" id="hero-fg-num">—</span>'
+    +       '</span>'
     +     '</div>'
     +     '<div class="hero-mini-stats" id="hero-mini">'
     +       '<span class="mini-stat">'
@@ -2373,7 +2451,20 @@ function _renderCardano(main,right){
 
 // ─── Fear & Greed ─────────────────────────────────────────────────
 async function fetchFearGreed(){
-  try{var r=await fetch("https://api.alternative.me/fng/?limit=1",{signal:AbortSignal.timeout(6000)});if(!r.ok)return;var d=await r.json();var val=parseInt(d?.data?.[0]?.value||50),cls=d?.data?.[0]?.value_classification||"Neutral";var n=document.getElementById("fg-needle"),l=document.getElementById("fg-lbl");if(n)n.style.left=val+"%";if(l){l.textContent=cls+" ("+val+")";l.className="card-title "+(val<30?"text-red":val>70?"text-green":"text-gold");}}catch(e){}
+  try{var r=await fetch("https://api.alternative.me/fng/?limit=1",{signal:AbortSignal.timeout(6000)});if(!r.ok)return;var d=await r.json();var val=parseInt(d?.data?.[0]?.value||50),cls=d?.data?.[0]?.value_classification||"Neutral";var n=document.getElementById("fg-needle"),l=document.getElementById("fg-lbl");if(n)n.style.left=val+"%";if(l){l.textContent=cls+" ("+val+")";l.className="card-title "+(val<30?"text-red":val>70?"text-green":"text-gold");}
+    // ── Mobile F&G pill updater (segmented bar inside hero card) ──
+    // Zones: ef=Extreme Fear (0-24), f=Fear (25-44), n=Neutral (45-55), g=Greed (56-74), eg=Extreme Greed (75-100)
+    var pill=document.getElementById("hero-fg-pill"),num=document.getElementById("hero-fg-num");
+    if(pill && num){
+      var zone = val<=24?"ef" : val<=44?"f" : val<=55?"n" : val<=74?"g" : "eg";
+      var segIdx = val<=24?0 : val<=44?1 : val<=55?2 : val<=74?3 : 4;
+      pill.setAttribute("data-zone", zone);
+      num.textContent = val;
+      // Clear all 'lit' classes from segments and add only to current zone segment
+      var segs = pill.querySelectorAll(".hero-fg-seg > span");
+      segs.forEach(function(s,i){ s.classList.toggle("lit", i===segIdx); });
+    }
+  }catch(e){}
 }
 
 // ─── Prices ───────────────────────────────────────────────────────
