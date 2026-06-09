@@ -644,6 +644,18 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   #hero-card{
     height:auto !important;
     min-height:130px;
+    padding:18px 20px;  /* tighter side padding on mobile */
+  }
+  /* Override desktop's `space-between` which causes artificial gaps when card grows */
+  #hero-card .hero-content{
+    justify-content:flex-start;
+    gap:14px;  /* controlled, consistent spacing between sections */
+  }
+  /* The value+delta+mini-stats inner div: tighter natural gap (not space-between) */
+  #hero-card .hero-content > div:last-child{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
   }
 }
 
@@ -2126,13 +2138,6 @@ function _wgtHero(total,delta24h,pct24h,liquid,rewards){
     +       '<span class="delta-eur '+deltaCls+'">'+deltaSign+_fmt(deltaAbs)+'</span>'
     +       '<span class="delta-pct '+deltaCls+'">'+pctSign+pctAbs.toFixed(2)+'%</span>'
     +       '<span class="delta-suffix">24h</span>'
-    +       '<span class="hero-fg-pill" id="hero-fg-pill" data-zone="">'
-    +         '<span class="hero-fg-tag">F&amp;G</span>'
-    +         '<span class="hero-fg-seg">'
-    +           '<span></span><span></span><span></span><span></span><span></span>'
-    +         '</span>'
-    +         '<span class="hero-fg-num" id="hero-fg-num">—</span>'
-    +       '</span>'
     +     '</div>'
     +     '<div class="hero-mini-stats" id="hero-mini">'
     +       '<span class="mini-stat">'
@@ -2144,6 +2149,13 @@ function _wgtHero(total,delta24h,pct24h,liquid,rewards){
     +         '<span class="mini-dot mini-dot-rew"></span>'
     +         '<span class="mini-label">REWARDS</span>'
     +         '<span class="mini-val mini-val-rew">'+_fmtSmart(rewards||0)+'</span>'
+    +       '</span>'
+    +       '<span class="hero-fg-pill" id="hero-fg-pill" data-zone="">'
+    +         '<span class="hero-fg-tag">F&amp;G</span>'
+    +         '<span class="hero-fg-seg">'
+    +           '<span></span><span></span><span></span><span></span><span></span>'
+    +         '</span>'
+    +         '<span class="hero-fg-num" id="hero-fg-num">—</span>'
     +       '</span>'
     +     '</div>'
     +   '</div>'
