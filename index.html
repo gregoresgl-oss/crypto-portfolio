@@ -629,8 +629,8 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   display:none !important;
   align-items:center;
   gap:16px;
-  margin-top:14px;
-  padding-top:12px;
+  margin-top:10px;
+  padding-top:8px;
   border-top:0.5px solid rgba(232,184,74,.10);
   font-family:"JetBrains Mono",monospace;
   font-variant-numeric:tabular-nums;
@@ -649,13 +649,13 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   /* Override desktop's `space-between` which causes artificial gaps when card grows */
   #hero-card .hero-content{
     justify-content:flex-start;
-    gap:14px;  /* controlled, consistent spacing between sections */
+    gap:10px;  /* tighter spacing between label and value+delta+stats */
   }
   /* The value+delta+mini-stats inner div: tighter natural gap (not space-between) */
   #hero-card .hero-content > div:last-child{
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:8px;
   }
 }
 
