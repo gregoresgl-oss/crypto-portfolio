@@ -4006,30 +4006,52 @@ async function _loadCoinChartData(){
         var ctx=chart.ctx,ya=chart.scales.y,xa=chart.scales.x;
         if(!ya||!xa)return;
         ctx.save();
+        // Helper: draw a tag pill in the Y-axis column (right of chart area)
+        // overlays any underlying Y-axis tick label
+        function drawTag(text,y,color,bgTint){
+          ctx.font="600 9px 'JetBrains Mono',monospace";
+          var w=ctx.measureText(text).width;
+          var padX=4,h=13;
+          var tagW=w+padX*2;
+          var tagX=xa.right+2;
+          var tagY=y-h/2;
+          // 1. Solid dark backdrop to cover any Y tick label underneath
+          ctx.fillStyle='rgba(13,17,23,.95)';
+          if(ctx.roundRect){ctx.beginPath();ctx.roundRect(tagX,tagY,tagW,h,3);ctx.fill();}
+          else{ctx.fillRect(tagX,tagY,tagW,h);}
+          // 2. Color tint overlay (red for resistance, green for support)
+          ctx.fillStyle=bgTint;
+          if(ctx.roundRect){ctx.beginPath();ctx.roundRect(tagX,tagY,tagW,h,3);ctx.fill();}
+          else{ctx.fillRect(tagX,tagY,tagW,h);}
+          // 3. Border
+          ctx.strokeStyle=color;ctx.lineWidth=1;
+          if(ctx.roundRect){ctx.beginPath();ctx.roundRect(tagX,tagY,tagW,h,3);ctx.stroke();}
+          else{ctx.strokeRect(tagX,tagY,tagW,h);}
+          // 4. Text
+          ctx.fillStyle=color;
+          ctx.textAlign='left';ctx.textBaseline='middle';
+          ctx.fillText(text,tagX+padX,y);
+        }
         ctx.setLineDash([6,4]);ctx.lineWidth=1.2;
         // Resistance — κόκκινες
         levels.resistance.forEach(function(lv){
           var y=ya.getPixelForValue(lv);
           if(y<ya.top||y>ya.bottom)return;
+          ctx.setLineDash([6,4]);
           ctx.strokeStyle='rgba(255,95,109,.45)';
           ctx.beginPath();ctx.moveTo(xa.left,y);ctx.lineTo(xa.right,y);ctx.stroke();
           ctx.setLineDash([]);
-          ctx.font="600 9px 'JetBrains Mono',monospace";
-          ctx.fillStyle='#ff5f6d';ctx.textAlign='right';ctx.textBaseline='bottom';
-          ctx.fillText(_fmtP(lv),xa.right-4,y-2);
-          ctx.setLineDash([6,4]);
+          drawTag(_fmtP(lv),y,'#ff5f6d','rgba(255,95,109,.18)');
         });
         // Support — πράσινες
         levels.support.forEach(function(lv){
           var y=ya.getPixelForValue(lv);
           if(y<ya.top||y>ya.bottom)return;
+          ctx.setLineDash([6,4]);
           ctx.strokeStyle='rgba(125,214,125,.45)';
           ctx.beginPath();ctx.moveTo(xa.left,y);ctx.lineTo(xa.right,y);ctx.stroke();
           ctx.setLineDash([]);
-          ctx.font="600 9px 'JetBrains Mono',monospace";
-          ctx.fillStyle='#7dd67d';ctx.textAlign='right';ctx.textBaseline='top';
-          ctx.fillText(_fmtP(lv),xa.right-4,y+3);
-          ctx.setLineDash([6,4]);
+          drawTag(_fmtP(lv),y,'#7dd67d','rgba(125,214,125,.18)');
         });
         ctx.restore();
       }
