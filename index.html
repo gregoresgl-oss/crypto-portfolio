@@ -1553,6 +1553,17 @@ function _openVersionModal(){
        {icon:"🎯", title:"Adaptive transaction scan",body:"75 κρυφές συναλλαγές βρέθηκαν στο ιστορικό και επέστρεψαν στο φως."},
        {icon:"🏛", title:"Governance card",          body:"Top assets & προτάσεις των chains που έχεις stake. Όλη η δημοκρατία σε μία στήλη."}
      ]},
+    {ver:"v1.95", date:"Μάιος 2026", title:"Pre-stable hardening",
+     tagline:"Όταν το \"σχεδόν τέλειο\" δεν αρκεί. Bug hunting μαραθώνιος πριν το stable.",
+     entries:[
+       {icon:"🛡", title:"Strict-mode edge functions", body:"Balance writes πια all-or-nothing. Τέλος τα partial writes που έκαναν OSMO coins να εξαφανίζονται."},
+       {icon:"🧹", title:"Spam value cleanup",          body:"76 stale rows με phantom EUR values βρέθηκαν και διορθώθηκαν. 3 χρήστες πήραν πίσω το πραγματικό τους balance."},
+       {icon:"📱", title:"Mobile UI overhaul",          body:"Hero card με LIQUID/REWARDS, F&G pill με 5 ζώνες και pulse στα extremes, smart k-notation στα Y-axis, breathing room σε όλα τα cards."},
+       {icon:"📅", title:"Smart date formatting",       body:"Compact day/month (8/6) και year/month (25/6) στα charts. Τέλος τα overlapping labels σε narrow screens."},
+       {icon:"🐛", title:"NaN string concat bug",       body:"Line comments σε JavaScript string chains που τράβαγαν NaN. Από τα πιο insidious bugs που έχω κυνηγήσει."},
+       {icon:"🗳", title:"Governance coverage",         body:"Από 3 chains σε 10 στο widget. Νέα cleanup logic: κρατάει το πιο πρόσφατο closed proposal ανά chain."},
+       {icon:"🎯", title:"S/R labels redesign",         body:"Από loud pill tags σε subtle text στη Y axis column. Πιο zen, λιγότερη οπτική φασαρία."}
+     ]},
     {ver:"v1.9", date:"Απρίλιος 2026", title:"Watchtower AI",
      tagline:"Όταν το dashboard άρχισε να μιλάει.",
      entries:[
@@ -1639,28 +1650,28 @@ function _openVersionModal(){
   // Build modal HTML
   var releasesHtml = changelog.map(function(rel, idx){
     var isLatest = idx === 0;
-    var tagPill = rel.tag ? ('<span style="font-size:8px;font-weight:700;letter-spacing:.08em;padding:1px 5px;border-radius:3px;background:rgba(125,214,125,.10);color:#7dd67d;border:1px solid rgba(125,214,125,.22);margin-left:6px;vertical-align:middle;">'+rel.tag+'</span>') : '';
+    var tagPill = rel.tag ? ('<span style="font-size:8px;font-weight:700;letter-spacing:.08em;padding:2px 7px;border-radius:3px;background:rgba(125,214,125,.12);color:#7dd67d;border:1px solid rgba(125,214,125,.28);margin-left:6px;vertical-align:middle;">'+rel.tag+'</span>') : '';
     var entriesHtml = rel.entries.map(function(e){
-      return '<div style="display:flex;gap:10px;padding:8px 0;align-items:flex-start;">'
-        +    '<div style="flex-shrink:0;width:22px;text-align:center;font-size:14px;line-height:1.4;">'+e.icon+'</div>'
-        +    '<div style="flex:1;min-width:0;">'
+      return '<div style="display:flex;gap:11px;padding:9px 0;align-items:flex-start;">'
+        +    '<div style="flex-shrink:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;background:rgba(245,194,74,.06);border-radius:6px;border:1px solid rgba(245,194,74,.12);">'+e.icon+'</div>'
+        +    '<div style="flex:1;min-width:0;padding-top:2px;">'
         +      '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.35;">'+e.title+'</div>'
-        +      '<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px;">'+e.body+'</div>'
+        +      '<div style="font-size:11px;color:var(--muted);line-height:1.55;margin-top:3px;">'+e.body+'</div>'
         +    '</div>'
         + '</div>';
     }).join('');
     return ''
-      + '<div style="position:relative;padding:14px 0 18px 26px;border-left:1px solid var(--border2);'+(idx===changelog.length-1?'':'margin-bottom:2px;')+'">'
-      // Timeline dot
-      +   '<div style="position:absolute;left:-5px;top:18px;width:9px;height:9px;border-radius:50%;background:'+(isLatest?'var(--gold)':'var(--muted-soft)')+';box-shadow:'+(isLatest?'0 0 8px rgba(245,194,74,.45)':'none')+';border:2px solid var(--surface);"></div>'
+      + '<div style="position:relative;padding:'+(isLatest?'8':'14')+'px 0 20px 28px;border-left:1px solid var(--border2);'+(idx===changelog.length-1?'':'margin-bottom:2px;')+'">'
+      // Timeline dot (larger + glowing for latest)
+      +   '<div style="position:absolute;left:-'+(isLatest?'7':'5')+'px;top:'+(isLatest?'12':'18')+'px;width:'+(isLatest?'13':'9')+'px;height:'+(isLatest?'13':'9')+'px;border-radius:50%;background:'+(isLatest?'var(--gold)':'var(--muted-soft)')+';box-shadow:'+(isLatest?'0 0 12px rgba(245,194,74,.55),0 0 0 4px rgba(245,194,74,.08)':'none')+';border:'+(isLatest?'2':'2')+'px solid var(--surface);"></div>'
       // Header line
-      +   '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px;">'
-      +     '<span style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.02em;">'+rel.ver+'</span>'
+      +   '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:3px;">'
+      +     '<span style="font-family:\'JetBrains Mono\',monospace;font-size:'+(isLatest?'15':'13')+'px;font-weight:700;color:var(--gold);letter-spacing:.02em;">'+rel.ver+'</span>'
       +     tagPill
       +     '<span style="font-size:10px;color:var(--muted-soft);font-family:\'JetBrains Mono\',monospace;letter-spacing:.04em;">· '+rel.date+'</span>'
       +   '</div>'
-      +   '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">'+rel.title+'</div>'
-      +   '<div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.5;margin-bottom:8px;">'+rel.tagline+'</div>'
+      +   '<div style="font-size:'+(isLatest?'15':'13')+'px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.3;">'+rel.title+'</div>'
+      +   '<div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.55;margin-bottom:10px;">'+rel.tagline+'</div>'
       +   '<div style="margin-top:6px;">'+entriesHtml+'</div>'
       + '</div>';
   }).join('');
@@ -1685,7 +1696,6 @@ function _openVersionModal(){
     +     '<div>'
     +       '<div style="font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-family:\'JetBrains Mono\',monospace;margin-bottom:4px;">Release Timeline</div>'
     +       '<div style="font-size:18px;font-weight:600;color:var(--text);line-height:1.2;">Πώς φτάσαμε στο '+_VER+'</div>'
-    +       '<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">Από τις 50 γραμμές κώδικα μέχρι το stable release. 8 μήνες, εκατοντάδες commits.</div>'
     +     '</div>'
     +     '<button onclick="_closeVersionModal()" type="button" aria-label="Κλείσιμο" style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--chip-bg);border:1px solid var(--border2);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit;" onmouseenter="this.style.color=\'var(--text)\';this.style.borderColor=\'var(--border)\';" onmouseleave="this.style.color=\'var(--muted)\';this.style.borderColor=\'var(--border2)\';">×</button>'
     +   '</div>'
