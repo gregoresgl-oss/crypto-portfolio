@@ -2750,13 +2750,13 @@ async function loadPortfolioHistory(days){
         // 7D: weekday short
         labels.push(dt.toLocaleDateString('el-GR',{weekday:'short',day:'numeric'}));
       } else if(days<=30){
-        // 30D: day month
-        labels.push(dt.toLocaleDateString('el-GR',{day:'numeric',month:'short'}));
+        // 30D: compact numeric day/month (e.g. "8/6")
+        labels.push(dt.getDate()+'/'+(dt.getMonth()+1));
       } else if(days<=90){
-        // 2M-3M: day month
-        labels.push(dt.toLocaleDateString('el-GR',{day:'numeric',month:'short'}));
+        // 2M-3M: compact numeric day/month
+        labels.push(dt.getDate()+'/'+(dt.getMonth()+1));
       } else {
-        // 1Y: month year
+        // 1Y: month short + 2-digit year (e.g. "Ιουν 26") — day dropped for yearly granularity
         labels.push(dt.toLocaleDateString('el-GR',{month:'short',year:'2-digit'}));
       }
       vals.push(tot);
@@ -3942,8 +3942,10 @@ async function _loadCoinChartData(){
     var labels=rows.map(function(row){
       var dt=new Date(row.created_at);
       if(_coinChartRange===1)return dt.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'});
-      if(_coinChartRange<=30)return dt.toLocaleDateString('el-GR',{day:'numeric',month:'short'});
-      return dt.toLocaleDateString('el-GR',{day:'numeric',month:'short',year:_coinChartRange>=365?'2-digit':undefined});
+      // ≤90D: compact numeric day/month (e.g. "8/6") — prevents label overlap on narrow viewports
+      if(_coinChartRange<=90)return dt.getDate()+'/'+(dt.getMonth()+1);
+      // 1Y+: month short + 2-digit year (e.g. "Φεβ 26") — day dropped, too granular at year scale
+      return dt.toLocaleDateString('el-GR',{month:'short',year:'2-digit'});
     });
     var vals=rows.map(function(row){return parseFloat(row.price_eur)||null;});
     // Stats
