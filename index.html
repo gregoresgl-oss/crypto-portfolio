@@ -2744,8 +2744,8 @@ async function loadPortfolioHistory(days){
       var dt=new Date(ts);
       // Format label per timeframe
       if(days===1){
-        // 1D: HH:MM
-        labels.push(dt.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'}));
+        // 1D: 24h time HH:MM (no AM/PM to prevent label overlap)
+        labels.push(dt.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit',hour12:false}));
       } else if(days<=7){
         // 7D: weekday short
         labels.push(dt.toLocaleDateString('el-GR',{weekday:'short',day:'numeric'}));
@@ -2756,8 +2756,8 @@ async function loadPortfolioHistory(days){
         // 2M-3M: compact numeric day/month
         labels.push(dt.getDate()+'/'+(dt.getMonth()+1));
       } else {
-        // 1Y: month short + 2-digit year (e.g. "Ιουν 26") — day dropped for yearly granularity
-        labels.push(dt.toLocaleDateString('el-GR',{month:'short',year:'2-digit'}));
+        // 1Y: compact year/month (e.g. "25/6" = Ιουν 2025) — consistent with 30D/90D style
+        labels.push((dt.getFullYear()%100)+'/'+(dt.getMonth()+1));
       }
       vals.push(tot);
     });
@@ -3941,11 +3941,11 @@ async function _loadCoinChartData(){
     }
     var labels=rows.map(function(row){
       var dt=new Date(row.created_at);
-      if(_coinChartRange===1)return dt.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'});
+      if(_coinChartRange===1)return dt.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit',hour12:false});
       // ≤90D: compact numeric day/month (e.g. "8/6") — prevents label overlap on narrow viewports
       if(_coinChartRange<=90)return dt.getDate()+'/'+(dt.getMonth()+1);
-      // 1Y+: month short + 2-digit year (e.g. "Φεβ 26") — day dropped, too granular at year scale
-      return dt.toLocaleDateString('el-GR',{month:'short',year:'2-digit'});
+      // 1Y+: compact year/month (e.g. "25/6" = Ιουν 2025) — consistent with shorter ranges
+      return (dt.getFullYear()%100)+'/'+(dt.getMonth()+1);
     });
     var vals=rows.map(function(row){return parseFloat(row.price_eur)||null;});
     // Stats
@@ -4076,7 +4076,7 @@ async function _loadCoinChartData(){
             callbacks:{label:function(ctx){var v=ctx.parsed.y;if(v==null)return null;return _fmtP(v);}}
           }
         },
-        layout:{padding:{left:0,right:4,top:5,bottom:0}},
+        layout:{padding:{left:0,right:2,top:5,bottom:0}},
         scales:{
           x:{
             grid:{color:_chartColors().grid},
@@ -4093,7 +4093,8 @@ async function _loadCoinChartData(){
               color:_chartColors().muted,
               font:{size:9,family:'JetBrains Mono'},
               callback:function(v){var isMobile=window.innerWidth<=860;if(isMobile&&v>=1000)return (v/1000).toFixed(v>=10000?0:1)+'k';return _fmtP(v);},
-              maxTicksLimit:5
+              maxTicksLimit:5,
+              padding:2
             },
             position:'right'
           }
