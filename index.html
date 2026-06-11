@@ -4074,6 +4074,7 @@ async function _loadCoinChartData(){
             callbacks:{label:function(ctx){var v=ctx.parsed.y;if(v==null)return null;return _fmtP(v);}}
           }
         },
+        layout:{padding:{left:0,right:4,top:5,bottom:0}},
         scales:{
           x:{
             grid:{color:_chartColors().grid},
@@ -4081,7 +4082,7 @@ async function _loadCoinChartData(){
               color:_chartColors().muted,
               font:{size:9,family:'JetBrains Mono'},
               maxTicksLimit:_coinChartRange===1?6:_coinChartRange<=7?7:_coinChartRange<=30?8:_coinChartRange<=90?6:8,
-              autoSkip:true,maxRotation:0
+              autoSkip:true,maxRotation:0,align:'inner'
             }
           },
           y:{
@@ -4089,7 +4090,7 @@ async function _loadCoinChartData(){
             ticks:{
               color:_chartColors().muted,
               font:{size:9,family:'JetBrains Mono'},
-              callback:function(v){return _fmtP(v);},
+              callback:function(v){var isMobile=window.innerWidth<=860;if(isMobile&&v>=1000)return (v/1000).toFixed(v>=10000?0:1)+'k';return _fmtP(v);},
               maxTicksLimit:5
             },
             position:'right'
