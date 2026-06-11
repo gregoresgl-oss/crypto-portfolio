@@ -3871,6 +3871,35 @@ function _computeSR(prices,currentPrice){
 // Στυλ: ίδιο με το main P&L chart (gold gradient fill, monospace tooltip)
 var _coinChart=null,_coinChartCoinId=null,_coinChartRange=365;
 
+// S/R cache per coin — populated από 1Y data (whether user opens 1Y first ή όχι).
+// Top-1 από κάθε array χρησιμοποιείται για non-1Y views (1D/7D/30D/3M).
+var _coinSRCache={};
+
+// Background fetch 1Y prices + compute SR. Non-blocking — αν user βλέπει non-1Y view
+// του ίδιου coin, silent-update του chart όταν φτάσουν τα data.
+async function _fetch1YSRForCoin(coinId){
+  if(_coinSRCache[coinId])return;
+  try{
+    var cutoff=new Date(Date.now()-365*86400000);
+    var r=await fetch(_SB_URL+'/rest/v1/price_history_hourly?select=price_eur&coin_id=eq.'+coinId+'&created_at=gte.'+cutoff.toISOString()+'&order=created_at.asc&limit=10000',{headers:_SB_H,signal:AbortSignal.timeout(15000)});
+    if(!r.ok)return;
+    var rows=await r.json();
+    var validVals=rows.map(function(r){return parseFloat(r.price_eur);}).filter(function(v){return v!=null&&!isNaN(v);});
+    if(validVals.length<30)return;
+    var currentP=prices[coinId]||validVals[validVals.length-1];
+    var sr=_computeSR(validVals,currentP);
+    _coinSRCache[coinId]=sr;
+    // Silent refresh αν user βρίσκεται σε non-1Y view του ίδιου coin
+    if(_coinChartCoinId===coinId&&_coinChartRange!==365&&_coinChart){
+      _coinChart.options.plugins.srLines={
+        resistance:sr.resistance.slice(0,1),
+        support:sr.support.slice(0,1)
+      };
+      _coinChart.update('none');
+    }
+  }catch(e){}
+}
+
 function _showCoinChart(coinId){
   if(!coinId)return;
   _coinChartCoinId=coinId;
@@ -3942,6 +3971,8 @@ function _showCoinChart(coinId){
   document.body.appendChild(overlay);
   // Load data
   _loadCoinChartData();
+  // Kick off background 1Y SR fetch (non-blocking; populates _coinSRCache for non-1Y views)
+  _fetch1YSRForCoin(coinId);
 }
 
 function _setCoinChartRange(days){
@@ -3997,9 +4028,20 @@ async function _loadCoinChartData(){
       ccCh.textContent=(changePct>=0?'+':'')+changePct.toFixed(2)+'%';
       ccCh.style.color=changePct>=0?'#7dd67d':'#ff5f6d';
       document.getElementById('cc-avg').textContent=_fmtP(avg);
-      // Compute S/R only για 1Y range
+      // Compute S/R logic:
+      // - 1Y: fresh compute from full dataset, AND populate cache
+      // - Non-1Y: pick top-1 από cache (αν υπάρχει — αλλιώς κενό, θα γεμίσει σε λίγα sec)
       if(_coinChartRange===365){
         srLevels=_computeSR(validVals,currentP||last);
+        _coinSRCache[_coinChartCoinId]=srLevels;
+      } else {
+        var cached=_coinSRCache[_coinChartCoinId];
+        if(cached){
+          srLevels={
+            resistance:cached.resistance.slice(0,1),
+            support:cached.support.slice(0,1)
+          };
+        }
       }
     }
     // Render S/R box
@@ -4033,11 +4075,15 @@ async function _loadCoinChartData(){
     var srPlugin={
       id:'srLines',
       afterDatasetsDraw:function(chart){
-        if(_coinChartRange!==365)return;
         var levels=chart.options.plugins.srLines||{resistance:[],support:[]};
         if(!levels.resistance.length&&!levels.support.length)return;
         var ctx=chart.ctx,ya=chart.scales.y,xa=chart.scales.x;
         if(!ya||!xa)return;
+        // Non-1Y = "background context" — λίγο πιο dim ώστε να μην κλέβει focus από short-term action
+        var isYearly=_coinChartRange===365;
+        var lineOp=isYearly?.45:.30;
+        var textOpR=isYearly?.7:.50;
+        var textOpS=isYearly?.7:.50;
         ctx.save();
         // Helper: draw subtle text-only label in the Y-axis column
         // (no box, no border — minimal & quiet)
@@ -4054,20 +4100,20 @@ async function _loadCoinChartData(){
           var y=ya.getPixelForValue(lv);
           if(y<ya.top||y>ya.bottom)return;
           ctx.setLineDash([6,4]);
-          ctx.strokeStyle='rgba(255,95,109,.45)';
+          ctx.strokeStyle='rgba(255,95,109,'+lineOp+')';
           ctx.beginPath();ctx.moveTo(xa.left,y);ctx.lineTo(xa.right,y);ctx.stroke();
           ctx.setLineDash([]);
-          drawTag(_fmtP(lv),y,'rgba(255,95,109,.7)');
+          drawTag(_fmtP(lv),y,'rgba(255,95,109,'+textOpR+')');
         });
         // Support — πράσινες
         levels.support.forEach(function(lv){
           var y=ya.getPixelForValue(lv);
           if(y<ya.top||y>ya.bottom)return;
           ctx.setLineDash([6,4]);
-          ctx.strokeStyle='rgba(125,214,125,.45)';
+          ctx.strokeStyle='rgba(125,214,125,'+lineOp+')';
           ctx.beginPath();ctx.moveTo(xa.left,y);ctx.lineTo(xa.right,y);ctx.stroke();
           ctx.setLineDash([]);
-          drawTag(_fmtP(lv),y,'rgba(125,214,125,.7)');
+          drawTag(_fmtP(lv),y,'rgba(125,214,125,'+textOpS+')');
         });
         ctx.restore();
       }
