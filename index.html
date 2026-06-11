@@ -1539,9 +1539,10 @@ function _openVersionModal(){
   if(existing){existing.style.display="flex";return;}
 
   // Changelog entries: most recent first. Tone = informative + light humour.
-  // Schema: {ver, date, title, tagline, entries:[{icon, title, body}]}
+  // Schema: {ver, date, title, tagline, context?, entries:[{icon, title, body}]}
+  // context (optional) = longer paragraph που εξηγεί τι έκανε αυτή η έκδοση
   var changelog = [
-    {ver:"v2.0", tag:"STABLE", date:"19 Μαΐου 2026", title:"Stable Release",
+    {ver:"v2.0", tag:"STABLE", date:"Ιούνιος 2026", title:"Stable Release",
      tagline:"Από beta σε stable. Επιτέλους το λέμε έτοιμο χωρίς να σταυρώνουμε τα δάχτυλα.",
      entries:[
        {icon:"☀",  title:"Light theme",             body:"Ολόκληρο dual-theme σύστημα. Το app πια ξέρει να ζει και την ημέρα και τη νύχτα."},
@@ -1554,7 +1555,8 @@ function _openVersionModal(){
        {icon:"🏛", title:"Governance card",          body:"Top assets & προτάσεις των chains που έχεις stake. Όλη η δημοκρατία σε μία στήλη."}
      ]},
     {ver:"v1.95", date:"Μάιος 2026", title:"Pre-stable hardening",
-     tagline:"Όταν το \"σχεδόν τέλειο\" δεν αρκεί. Bug hunting μαραθώνιος πριν το stable.",
+     tagline:"Όταν το «σχεδόν τέλειο» δεν αρκεί.",
+     context:"Αυτή η έκδοση κυνήγησε δεκάδες edge cases που είχαν μείνει κρυμμένα στα βάθη του κώδικα. Spam values που νόθευαν τα balances σε 3 χρήστες, partial DB writes που έκαναν coins να εξαφανίζονται από το dashboard, και ένα insidious JavaScript bug που γέμιζε με NaN τα νούμερα. Το mobile UI πέρασε ολική αναβάθμιση — από F&G mini pill και smart number formatting μέχρι breathing room σε όλα τα cards.",
      entries:[
        {icon:"🛡", title:"Strict-mode edge functions", body:"Balance writes πια all-or-nothing. Τέλος τα partial writes που έκαναν OSMO coins να εξαφανίζονται."},
        {icon:"🧹", title:"Spam value cleanup",          body:"76 stale rows με phantom EUR values βρέθηκαν και διορθώθηκαν. 3 χρήστες πήραν πίσω το πραγματικό τους balance."},
@@ -1564,56 +1566,36 @@ function _openVersionModal(){
        {icon:"🗳", title:"Governance coverage",         body:"Από 3 chains σε 10 στο widget. Νέα cleanup logic: κρατάει το πιο πρόσφατο closed proposal ανά chain."},
        {icon:"🎯", title:"S/R labels redesign",         body:"Από loud pill tags σε subtle text στη Y axis column. Πιο zen, λιγότερη οπτική φασαρία."}
      ]},
-    {ver:"v1.9", date:"Απρίλιος 2026", title:"Watchtower AI",
+    {ver:"v1.5", date:"Απρίλιος 2026", title:"Watchtower AI",
      tagline:"Όταν το dashboard άρχισε να μιλάει.",
      entries:[
        {icon:"🤖", title:"AI explain για validator flows", body:"Όταν 200K ATOM φεύγουν από έναν validator σε μία μέρα, τώρα σου εξηγεί γιατί."},
        {icon:"🛰", title:"Snapshots κάθε ώρα",              body:"Pipeline που κρατάει τα voting powers ιστορικά. Δες ποιος έχασε και ποιος κέρδισε."},
        {icon:"📊", title:"Top 20 movers",                   body:"Λίστα με τους validators που είδαν τη μεγαλύτερη ροή — in ή out."}
      ]},
-    {ver:"v1.7", date:"Μάρτιος 2026", title:"Push & Email",
-     tagline:"Το πρώτο unread badge που πραγματικά διάβασες.",
+    {ver:"v1.0", date:"Μάρτιος 2026", title:"Connectivity & Notifications",
+     tagline:"Όταν το app έγινε αξιόπιστο.",
+     context:"Στους πρώτους μήνες, τα Cosmos REST endpoints έπεφταν συνεχώς — η σύνδεση ήταν εύθραυστη και το app έχανε δεδομένα. Αυτή η έκδοση έλυσε τα προβλήματα συνδεσιμότητας: προσθέθηκε multi-provider fallback (cosmos.directory → publicnode → lavenderfive), retry logic με exponential backoff, και timeout handling σε κάθε edge function. Παράλληλα, νέο σύστημα notifications έφερε push και email digest για να μην χάνεις τίποτα.",
      entries:[
-       {icon:"🔔", title:"Web push notifications",  body:"Service worker + VAPID. Δέχεσαι notifications ακόμα και με κλειστό το tab."},
-       {icon:"📧", title:"Email digest fallback",   body:"Αν δεν δεις το push σε 30', φτάνει email. Backup channel για τη συνείδησή σου."}
+       {icon:"🛡", title:"Multi-provider fallback",     body:"Όταν το cosmos.directory πέφτει, αυτόματα δοκιμάζει publicnode και lavenderfive. 99.5% uptime για queries."},
+       {icon:"🔄", title:"Smart retry logic",           body:"Exponential backoff με max 3 retries. Network blips περνάνε αόρατα."},
+       {icon:"🔔", title:"Web push notifications",      body:"Service worker + VAPID. Δέχεσαι alerts ακόμα και με κλειστό tab."},
+       {icon:"📧", title:"Email digest fallback",       body:"Αν χάσεις το push σε 30', φτάνει email. Backup channel για τη συνείδησή σου."}
      ]},
-    {ver:"v1.5", date:"Φεβρουάριος 2026", title:"Cosmos ecosystem",
-     tagline:"Από Cosmos μόνο σε 10 chains. Θα κρατήσει αυτό το pace; Ποιος ξέρει.",
+    {ver:"v0.5", date:"Φεβρουάριος 2026", title:"Cosmos ecosystem",
+     tagline:"Από BTC/ETH σε 10 chains. Stack overflow incoming.",
      entries:[
-       {icon:"🌌", title:"Osmosis, Juno, Saga, Dymension", body:"Validators, rewards, unbondings, proposals. Το πλήρες πακέτο."},
-       {icon:"☁",  title:"Celestia, Stargaze, Akash",      body:"Επιπλέον υποστήριξη για ολόκληρο το ecosystem."},
-       {icon:"🗳", title:"Governance unified",              body:"Όλες οι προτάσεις από όλα τα chains σε μία view."}
+       {icon:"🌌", title:"Cosmos Hub, Osmosis, Juno",   body:"Validators, rewards, unbondings, proposals. Το πλήρες πακέτο."},
+       {icon:"☁",  title:"Akash, Celestia, Stargaze",   body:"Επιπλέον chains για ολόκληρο το ecosystem."},
+       {icon:"🗳", title:"Governance unified",          body:"Όλες οι προτάσεις από όλα τα chains σε μία view."},
+       {icon:"⚙",  title:"Supabase backend",            body:"Edge functions, postgres, RLS. Επιτέλους σοβαρή υποδομή."}
      ]},
-    {ver:"v1.2", date:"Ιανουάριος 2026", title:"Backend rewrite",
-     tagline:"Όταν συνειδητοποίησες ότι το localStorage δεν είναι database.",
-     entries:[
-       {icon:"⚙",  title:"Supabase backend",       body:"Edge functions, postgres, RLS. Επιτέλους σοβαρή υποδομή."},
-       {icon:"⏱", title:"Cron jobs",                body:"pg_cron για prices, balances, transactions. Σχεδόν real-time."},
-       {icon:"🔐", title:"Auth migration",          body:"Από custom hashing σε Supabase Auth με JWT. Όπως όλοι οι άλλοι το έπρεπε."}
-     ]},
-    {ver:"v0.9", date:"Δεκέμβριος 2025", title:"Markets & History",
-     tagline:"Charts. Πολλά charts. Ίσως υπερβολικά πολλά charts.",
-     entries:[
-       {icon:"📉", title:"Price charts",            body:"1D/7D/30D/90D/1Y για κάθε coin. Με support/resistance auto-detect."},
-       {icon:"🕐", title:"Transaction history",     body:"Όλες οι κινήσεις, με αυτόματη ταξινόμηση τύπων και EUR αποτίμηση."}
-     ]},
-    {ver:"v0.5", date:"Νοέμβριος 2025", title:"Multi-chain",
-     tagline:"Όταν το BTC + ETH δεν αρκούσαν πια. Stack overflow incoming.",
-     entries:[
-       {icon:"🌍", title:"Cosmos Hub support",       body:"Η αρχή. Validators, staking, rewards για ATOM."},
-       {icon:"🔄", title:"Multi-address tracking",   body:"Παρακολούθηση πολλαπλών wallets ταυτόχρονα."}
-     ]},
-    {ver:"v0.2", date:"Οκτώβριος 2025", title:"First steps",
-     tagline:"BTC + ETH + ένα Excel. Καλύτερα από Excel σκέτο.",
+    {ver:"v0.1", date:"Ιανουάριος 2026", title:"Hello world",
+     tagline:"Η αρχή. BTC, ETH και πολλή καφεΐνη.",
      entries:[
        {icon:"₿",  title:"Bitcoin & Ethereum tracking", body:"Price + portfolio value. Το ελάχιστο που χρειάζεσαι."},
-       {icon:"📊", title:"Allocations bar",              body:"Γρήγορη εικόνα ποιο coin κουβαλάει το χαρτοφυλάκιο."}
-     ]},
-    {ver:"v0.1", date:"Σεπτέμβριος 2025", title:"Hello world",
-     tagline:"Static HTML + 50 γραμμές JS. Όλοι ξεκινάμε κάπου.",
-     entries:[
-       {icon:"✨", title:"Πρώτη γραμμή κώδικα",         body:"Ένα <div>, ένα fetch, μία ελπίδα."},
-       {icon:"💡", title:"Η ιδέα του GGWALL",             body:"Personal crypto wallet που δείχνει τα πάντα, χωρίς τρίτους."}
+       {icon:"📊", title:"Allocations bar",             body:"Γρήγορη εικόνα ποιο coin κουβαλάει το χαρτοφυλάκιο."},
+       {icon:"💡", title:"Η ιδέα του GGWALL",            body:"Personal crypto wallet που δείχνει τα πάντα, χωρίς τρίτους."}
      ]}
   ];
 
@@ -1653,54 +1635,66 @@ function _openVersionModal(){
    +   '</g>'
    // Milestone stars — earlier versions are smaller + muted
    +   '<g class="cnst-star" opacity=".55">'
-   +     '<title>v0.1 · Hello world (Σεπ 2025)</title>'
+   +     '<title>v0.1 · Hello world (Ιαν 2026)</title>'
    +     '<circle cx="32" cy="55" r="2" fill="#f5c24a"/>'
    +   '</g>'
    +   '<g class="cnst-star" opacity=".7">'
-   +     '<title>v0.5 · Multi-chain (Νοε 2025)</title>'
+   +     '<title>v0.5 · Cosmos ecosystem (Φεβ 2026)</title>'
    +     '<circle cx="85" cy="42" r="2.5" fill="#f5c24a"/>'
    +   '</g>'
    +   '<g class="cnst-star" opacity=".75">'
-   +     '<title>v1.2 · Backend rewrite (Ιαν 2026)</title>'
+   +     '<title>v1.0 · Connectivity & Notifications (Μαρ 2026)</title>'
    +     '<circle cx="145" cy="58" r="2.8" fill="#f5c24a"/>'
    +   '</g>'
    +   '<g class="cnst-star" opacity=".85">'
-   +     '<title>v1.9 · Watchtower AI (Απρ 2026)</title>'
+   +     '<title>v1.5 · Watchtower AI (Απρ 2026)</title>'
    +     '<circle cx="208" cy="38" r="3.2" fill="#f5c24a"/>'
    +   '</g>'
    // Current star (v2.0) — large, glowing aura + pulse
    +   '<g class="cnst-star">'
-   +     '<title>v2.0 · Stable Release (Μάι 2026) — Είσαι εδώ</title>'
+   +     '<title>v2.0 · Stable Release (Ιουν 2026) — Είσαι εδώ</title>'
    +     '<circle class="cnst-aura" cx="272" cy="48" r="18" fill="url(#cnst-glow)"/>'
    +     '<circle class="cnst-current" cx="272" cy="48" r="5" fill="#f5c24a" filter="drop-shadow(0 0 3px rgba(245,194,74,.8))"/>'
    +   '</g>'
    + '</svg>';
 
   // Build modal HTML
+  // HTML escape: critical because some entries include angle brackets in body text
+  // (e.g. "<div>"). Without escaping, browser treats them as real tags → broken layout.
+  function _esc(s){
+    return String(s||'').replace(/[&<>"']/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
   var releasesHtml = changelog.map(function(rel, idx){
     var isLatest = idx === 0;
-    var tagPill = rel.tag ? ('<span style="font-size:8px;font-weight:700;letter-spacing:.08em;padding:2px 7px;border-radius:3px;background:rgba(125,214,125,.12);color:#7dd67d;border:1px solid rgba(125,214,125,.28);margin-left:6px;vertical-align:middle;">'+rel.tag+'</span>') : '';
+    var tagPill = rel.tag ? ('<span style="font-size:8px;font-weight:700;letter-spacing:.08em;padding:2px 7px;border-radius:3px;background:rgba(125,214,125,.12);color:#7dd67d;border:1px solid rgba(125,214,125,.28);margin-left:6px;vertical-align:middle;">'+_esc(rel.tag)+'</span>') : '';
     var entriesHtml = rel.entries.map(function(e){
-      return '<div style="display:flex;gap:11px;padding:9px 0;align-items:flex-start;">'
-        +    '<div style="flex-shrink:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;background:rgba(245,194,74,.06);border-radius:6px;border:1px solid rgba(245,194,74,.12);">'+e.icon+'</div>'
-        +    '<div style="flex:1;min-width:0;padding-top:2px;">'
-        +      '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.35;">'+e.title+'</div>'
-        +      '<div style="font-size:11px;color:var(--muted);line-height:1.55;margin-top:3px;">'+e.body+'</div>'
+      return '<div style="display:flex;gap:11px;padding:9px 0;align-items:flex-start;width:100%;box-sizing:border-box;">'
+        +    '<div style="flex:0 0 24px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;background:rgba(245,194,74,.06);border-radius:6px;border:1px solid rgba(245,194,74,.12);">'+_esc(e.icon)+'</div>'
+        +    '<div style="flex:1 1 0%;min-width:0;padding-top:2px;word-wrap:break-word;overflow-wrap:break-word;">'
+        +      '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.35;">'+_esc(e.title)+'</div>'
+        +      '<div style="font-size:11px;color:var(--muted);line-height:1.55;margin-top:3px;">'+_esc(e.body)+'</div>'
         +    '</div>'
         + '</div>';
     }).join('');
+    // Context paragraph: extra explanation for milestone releases
+    var contextHtml = rel.context
+      ? '<div style="font-size:11.5px;color:var(--text);line-height:1.6;margin:10px 0 4px;padding:11px 13px;background:rgba(245,194,74,.04);border-left:2px solid rgba(245,194,74,.35);border-radius:0 6px 6px 0;">'+_esc(rel.context)+'</div>'
+      : '';
     return ''
       + '<div style="position:relative;padding:'+(isLatest?'8':'14')+'px 0 20px 28px;border-left:1px solid var(--border2);'+(idx===changelog.length-1?'':'margin-bottom:2px;')+'">'
       // Timeline dot (larger + glowing for latest)
       +   '<div style="position:absolute;left:-'+(isLatest?'7':'5')+'px;top:'+(isLatest?'12':'18')+'px;width:'+(isLatest?'13':'9')+'px;height:'+(isLatest?'13':'9')+'px;border-radius:50%;background:'+(isLatest?'var(--gold)':'var(--muted-soft)')+';box-shadow:'+(isLatest?'0 0 12px rgba(245,194,74,.55),0 0 0 4px rgba(245,194,74,.08)':'none')+';border:'+(isLatest?'2':'2')+'px solid var(--surface);"></div>'
       // Header line
       +   '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:3px;">'
-      +     '<span style="font-family:\'JetBrains Mono\',monospace;font-size:'+(isLatest?'15':'13')+'px;font-weight:700;color:var(--gold);letter-spacing:.02em;">'+rel.ver+'</span>'
+      +     '<span style="font-family:\'JetBrains Mono\',monospace;font-size:'+(isLatest?'15':'13')+'px;font-weight:700;color:var(--gold);letter-spacing:.02em;">'+_esc(rel.ver)+'</span>'
       +     tagPill
-      +     '<span style="font-size:10px;color:var(--muted-soft);font-family:\'JetBrains Mono\',monospace;letter-spacing:.04em;">· '+rel.date+'</span>'
+      +     '<span style="font-size:10px;color:var(--muted-soft);font-family:\'JetBrains Mono\',monospace;letter-spacing:.04em;">· '+_esc(rel.date)+'</span>'
       +   '</div>'
-      +   '<div style="font-size:'+(isLatest?'15':'13')+'px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.3;">'+rel.title+'</div>'
-      +   '<div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.55;margin-bottom:10px;">'+rel.tagline+'</div>'
+      +   '<div style="font-size:'+(isLatest?'15':'13')+'px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.3;">'+_esc(rel.title)+'</div>'
+      +   '<div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.55;margin-bottom:10px;">'+_esc(rel.tagline)+'</div>'
+      +   contextHtml
       +   '<div style="margin-top:6px;">'+entriesHtml+'</div>'
       + '</div>';
   }).join('');
@@ -1735,7 +1729,7 @@ function _openVersionModal(){
     +     '<div style="margin-bottom:14px;">'+planetSvg+'</div>'
     +     '<div style="font-size:9px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);font-family:\'JetBrains Mono\',monospace;margin-bottom:6px;">Created by</div>'
     +     '<div style="font-size:22px;font-weight:300;letter-spacing:.05em;color:var(--gold);font-family:\'Space Grotesk\',sans-serif;margin-bottom:8px;">Askaar</div>'
-    +     '<div style="font-size:10px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;line-height:1.5;">'+_VER+' · Stable Release · Μάιος 2026<br><span style="opacity:.6;">Made with curiosity, caffeine, and a lot of git push --force</span></div>'
+    +     '<div style="font-size:10px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;line-height:1.5;">'+_VER+' · Stable Release · Ιούνιος 2026<br><span style="opacity:.6;">Made with curiosity, caffeine, and a lot of git push --force</span></div>'
     +   '</div>'
     + '</div>';
 
