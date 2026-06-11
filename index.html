@@ -779,6 +779,20 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 
 /* Period tabs */
 .period-tabs{display:flex;gap:2px;}
+
+/* Coin avatar fallback — when no logo available, use sym initials */
+.coin-avatar-fb{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;height:100%;
+  border-radius:50%;
+  font-weight:600;
+  background:#2e3148;
+  color:var(--text);
+}
+[data-theme="light"] .coin-avatar-fb{
+  background:rgba(157,116,38,.15);
+  color:var(--text);
+}
 .ptab{padding:3px 7px;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;font-family:"JetBrains Mono",monospace;border:none;background:transparent;}
 .ptab.active{background:rgba(245,194,74,.15);color:var(--gold);}
 .ptab:hover:not(.active){color:var(--text);}
@@ -3675,7 +3689,7 @@ function _showUnbondDetail(){
         var price=prices[u.chain_id]||0;
         var eurVal=parseFloat(u.amount||0)*price;
         var coinLogo=logoUrl(u.chain_id);
-        var coinAvHtml=coinLogo?'<img src="'+coinLogo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':'<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:11px;font-weight:600;background:#2e3148;border-radius:50%;color:#e7e4d8;">'+sym.slice(0,2)+'</span>';
+        var coinAvHtml=coinLogo?'<img src="'+coinLogo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':'<span class="coin-avatar-fb" style="font-size:11px;">'+sym.slice(0,2)+'</span>';
         // Validator info
         var val=valMap[u.validator]||{};
         var moniker=val.moniker||'Unknown Validator';
@@ -3732,7 +3746,7 @@ function _showUnbondDetail(){
       var overlay=document.createElement('div');
       overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
       overlay.className='unbond-overlay';
-      overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:18px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;">'
+      overlay.innerHTML='<div style="background:var(--surface);border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:18px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;">'
         // Header
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
           +'<div style="display:flex;align-items:center;gap:9px;">'
@@ -3908,7 +3922,7 @@ function _showCoinChart(coinId){
   var sym=reg.sym||coinId.toUpperCase();
   var name=reg.name||coinId;
   var logo=logoUrl(coinId);
-  var avHtml=logo?('<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'):('<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:14px;font-weight:600;color:#e7e4d8;background:#2e3148;border-radius:50%;">'+sym.slice(0,2)+'</span>');
+  var avHtml=logo?('<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'):('<span class="coin-avatar-fb" style="font-size:14px;">'+sym.slice(0,2)+'</span>');
   var price=prices[coinId]||0;
   var ch=changes[coinId]||0;
   // Holdings (αν τα έχει ο user)
@@ -3920,7 +3934,7 @@ function _showCoinChart(coinId){
   var overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.className='coin-chart-overlay';
-  overlay.innerHTML='<div style="background:#12151d;border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:22px;width:min(1200px,90vw);max-height:92vh;overflow-y:auto;">'
+  overlay.innerHTML='<div style="background:var(--surface);border:1px solid rgba(245,194,74,.2);border-radius:12px;padding:22px;width:min(1200px,90vw);max-height:92vh;overflow-y:auto;">'
     // ── Header ─────────────────────────────
     +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:14px;">'
       +'<div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">'
@@ -3928,19 +3942,19 @@ function _showCoinChart(coinId){
         +'<div style="min-width:0;">'
           +'<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">'
             +'<span style="font-size:18px;font-weight:700;color:#f7e7b8;">'+_esc(sym)+'</span>'
-            +'<span style="font-size:12px;color:rgba(231,228,216,.4);">'+_esc(name)+'</span>'
+            +'<span style="font-size:12px;color:var(--muted);">'+_esc(name)+'</span>'
           +'</div>'
           +'<div style="display:flex;align-items:baseline;gap:7px;margin-top:4px;flex-wrap:wrap;">'
-            +'<span style="font-size:24px;font-weight:700;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;letter-spacing:-.5px;">'+_fmtP(price)+'</span>'
+            +'<span style="font-size:24px;font-weight:700;color:var(--text);font-family:\'JetBrains Mono\',monospace;letter-spacing:-.5px;">'+_fmtP(price)+'</span>'
             +'<span style="font-size:12px;font-weight:600;color:'+(ch>=0?'#7dd67d':'#ff5f6d')+';font-family:\'JetBrains Mono\',monospace;">'+(ch>=0?'+':'')+ch.toFixed(2)+'%</span>'
-            +'<span style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:.8px;">24h</span>'
+            +'<span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">24h</span>'
           +'</div>'
         +'</div>'
       +'</div>'
       +(hasHoldings?'<div style="text-align:right;flex-shrink:0;">'
-        +'<div style="font-size:9px;color:rgba(231,228,216,.4);text-transform:uppercase;letter-spacing:1px;">Holdings</div>'
+        +'<div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Holdings</div>'
         +'<div style="font-size:16px;font-weight:700;color:#7dd67d;font-family:\'JetBrains Mono\',monospace;">'+_fmtExact(val)+'</div>'
-        +'<div style="font-size:11px;color:rgba(231,228,216,.4);font-family:\'JetBrains Mono\',monospace;">'+amt.toFixed(2)+' '+sym+'</div>'
+        +'<div style="font-size:11px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;">'+amt.toFixed(2)+' '+sym+'</div>'
       +'</div>':'')
       +'<button onclick="document.querySelectorAll(\'.coin-chart-overlay\').forEach(function(el){el.remove();});if(_coinChart){_coinChart.destroy();_coinChart=null;}" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;flex-shrink:0;">✕</button>'
     +'</div>'
@@ -4053,16 +4067,16 @@ async function _loadCoinChartData(){
       var resHtml='<div><div style="font-size:9px;color:#ff5f6d;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Resistance</div><div style="display:flex;flex-direction:column;gap:3px;">';
       srLevels.resistance.forEach(function(lv){
         var pct=refP>0?((lv-refP)/refP*100):0;
-        resHtml+='<div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;">'+_fmtP(lv)+' <span style="color:rgba(231,228,216,.4);font-size:9px;">'+(pct>=0?'+':'')+pct.toFixed(0)+'%</span></div>';
+        resHtml+='<div style="font-size:11px;color:var(--text);font-family:\'JetBrains Mono\',monospace;font-weight:600;">'+_fmtP(lv)+' <span style="color:var(--muted);font-size:9px;">'+(pct>=0?'+':'')+pct.toFixed(0)+'%</span></div>';
       });
-      if(!srLevels.resistance.length)resHtml+='<div style="font-size:11px;color:rgba(231,228,216,.4);">—</div>';
+      if(!srLevels.resistance.length)resHtml+='<div style="font-size:11px;color:var(--muted);">—</div>';
       resHtml+='</div></div>';
       var supHtml='<div><div style="font-size:9px;color:#7dd67d;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Support</div><div style="display:flex;flex-direction:column;gap:3px;">';
       srLevels.support.forEach(function(lv){
         var pct=refP>0?((lv-refP)/refP*100):0;
-        supHtml+='<div style="font-size:11px;color:#e7e4d8;font-family:\'JetBrains Mono\',monospace;font-weight:600;">'+_fmtP(lv)+' <span style="color:rgba(231,228,216,.4);font-size:9px;">'+pct.toFixed(0)+'%</span></div>';
+        supHtml+='<div style="font-size:11px;color:var(--text);font-family:\'JetBrains Mono\',monospace;font-weight:600;">'+_fmtP(lv)+' <span style="color:var(--muted);font-size:9px;">'+pct.toFixed(0)+'%</span></div>';
       });
-      if(!srLevels.support.length)supHtml+='<div style="font-size:11px;color:rgba(231,228,216,.4);">—</div>';
+      if(!srLevels.support.length)supHtml+='<div style="font-size:11px;color:var(--muted);">—</div>';
       supHtml+='</div></div>';
       srContent.innerHTML=resHtml+supHtml;
     }else{
