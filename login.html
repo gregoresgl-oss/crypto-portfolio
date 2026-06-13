@@ -147,7 +147,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
 .ssl-shockwave{
   position:absolute;top:50%;left:50%;
   width:96px;height:96px;
-  margin:-48px 0 0 -48px;
   border-radius:50%;pointer-events:none;
   border:2px solid transparent;
 }
@@ -2931,7 +2930,7 @@ function _sslShockwave(logo, color){
   if(!logo) return;
   var sw = document.createElement('div');
   sw.className = 'ssl-shockwave';
-  sw.style.cssText = 'position:absolute;top:50%;left:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;pointer-events:none;border:2px solid '+color+';animation:ssl-shock 0.65s ease-out forwards;';
+  sw.style.cssText = 'position:absolute;top:50%;left:50%;width:96px;height:96px;border-radius:50%;pointer-events:none;border:2px solid '+color+';animation:ssl-shock 0.65s ease-out forwards;';
   logo.appendChild(sw);
   setTimeout(function(){if(sw.parentNode)sw.parentNode.removeChild(sw);}, 700);
 }
@@ -2941,7 +2940,7 @@ function _sslAura(logo, color, size, animName, dur){
   var half = size/2;
   var a = document.createElement('div');
   a.className = 'ssl-aura';
-  a.style.cssText = 'position:absolute;top:50%;left:50%;width:'+size+'px;height:'+size+'px;margin:-'+half+'px 0 0 -'+half+'px;border-radius:50%;pointer-events:none;background:'+color+';animation:'+animName+' '+dur+'s ease-out forwards;';
+  a.style.cssText = 'position:absolute;top:50%;left:50%;width:'+size+'px;height:'+size+'px;border-radius:50%;pointer-events:none;background:'+color+';animation:'+animName+' '+dur+'s ease-out forwards;';
   logo.appendChild(a);
   setTimeout(function(){if(a.parentNode)a.parentNode.removeChild(a);}, dur*1000+100);
 }
@@ -2985,7 +2984,7 @@ function _eyeSuccess(cb){
 
 function _eyeFail(){
   if(_eyeLocked)return; _eyeLocked=true;
-  _audioError();
+  // (error sound removed — kept only the success chime; visual shake + haptic remain)
   var pd=document.getElementById('pin-dots');
   if(pd){pd.classList.remove('pin-dots-shake');void pd.offsetWidth;pd.classList.add('pin-dots-shake');}
   try{if(navigator.vibrate)navigator.vibrate([80,40,80]);}catch(e){}
@@ -2999,8 +2998,7 @@ function _eyeFail(){
 }
 
 function _orbitFeedback(){
-  // Key click audio on every digit press
-  _audioKeyClick();
+  // (key click sound removed — kept only the success chime for less audio noise)
   var logo = document.getElementById('topLogo');
   if(logo && logo.classList.contains('idle')){
     // Brief sun glow boost on digit press
