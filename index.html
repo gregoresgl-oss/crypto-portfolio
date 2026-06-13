@@ -3889,6 +3889,38 @@ var _coinChart=null,_coinChartCoinId=null,_coinChartRange=365;
 // Top-1 από κάθε array χρησιμοποιείται για non-1Y views (1D/7D/30D/3M).
 var _coinSRCache={};
 
+// DIAGNOSTIC: Run from browser console to audit S/R coverage across all active coins.
+// Returns table of {coinId, cached, resistance, support, status}. Usage:
+//   await _diagnoseSRCoverage()  // checks cached + fetches missing
+//   _diagnoseSRCoverage(true)    // checks cache only, no fetches
+window._diagnoseSRCoverage=async function(cachedOnly){
+  if(!Array.isArray(activeCoinIds)||!activeCoinIds.length){
+    console.warn('[SR] No active coins to diagnose');return;
+  }
+  console.log('[SR] Diagnosing '+activeCoinIds.length+' coins...');
+  var rows=[];
+  for(var i=0;i<activeCoinIds.length;i++){
+    var coinId=activeCoinIds[i];
+    var cached=_coinSRCache[coinId];
+    if(!cached&&!cachedOnly){
+      try{await _fetch1YSRForCoin(coinId);cached=_coinSRCache[coinId];}catch(e){}
+    }
+    rows.push({
+      coin:coinId,
+      cached:!!cached,
+      resistance:cached?cached.resistance.length:0,
+      support:cached?cached.support.length:0,
+      status:cached?(cached.resistance.length||cached.support.length?'✓ has SR':'⚠ empty (insufficient data?)'):'✗ no cache'
+    });
+  }
+  console.table(rows);
+  var noData=rows.filter(function(r){return !r.cached;}).length;
+  var empty=rows.filter(function(r){return r.cached&&!r.resistance&&!r.support;}).length;
+  var ok=rows.filter(function(r){return r.cached&&(r.resistance||r.support);}).length;
+  console.log('[SR] Summary: '+ok+' OK, '+empty+' empty, '+noData+' missing');
+  return rows;
+};
+
 // Background fetch 1Y prices + compute SR. Non-blocking — αν user βλέπει non-1Y view
 // του ίδιου coin, silent-update του chart όταν φτάσουν τα data.
 async function _fetch1YSRForCoin(coinId){
