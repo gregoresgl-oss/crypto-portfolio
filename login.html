@@ -334,27 +334,28 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
    keypad and forgot-link reduces. Only applies under 480px width. */
 @media (max-width:480px){
   /* PIN buttons size */
-  .pin-btn{width:60px;height:60px;font-size:18px;}
-  .pin-btn.sm{font-size:10px;}
+  .pin-btn{width:52px;height:52px;font-size:17px;}
+  .pin-btn.sm{font-size:9px;}
 
-  /* PAGE LAYOUT: more breathing room at top so content sits a bit lower */
-  .gg-page{padding-top:6vh !important;}                                    /* was 3vh — content drops ~25-30px */
-  .gg-landing-block{margin-bottom:0 !important;}                            /* was 8px */
-  .screen [style*="margin-top:18px"]{margin-top:10px !important;}           /* logo-to-title gap */
+  /* PAGE LAYOUT: balanced — content low enough but full keypad + forgot-link visible */
+  .gg-page{padding-top:3vh !important;}                                     /* keeps content high enough so PIN doesn't cut */
+  .gg-landing-block{margin-bottom:0 !important;}
+  .screen [style*="margin-top:18px"]{margin-top:8px !important;}             /* logo-to-title gap */
+  .pin-top-slot{margin-bottom:6px !important;}                               /* tighter top slot bottom */
 
   /* PIN CARD: smaller frame so background shows more */
-  #pin-card{padding:12px !important;}                                       /* was 14px — tighter */
-  #pin-user-row{margin-bottom:10px !important;padding:10px 12px !important;}/* was 14/12-14 */
-  #att-label{margin-bottom:6px !important;}                                 /* was 12px */
-  #pin-dots{margin-bottom:12px !important;}                                 /* was 16px */
+  #pin-card{padding:10px !important;}                                       /* was 12px — tighter */
+  #pin-user-row{margin-bottom:8px !important;padding:9px 11px !important;}  /* tighter */
+  #att-label{margin-bottom:4px !important;}                                 /* tighter */
+  #pin-dots{margin-bottom:9px !important;}                                  /* tighter */
 
-  /* Keypad grid stays compact */
+  /* Keypad grid: smaller buttons + tighter gap to fit all 4 rows + forgot link */
   #pin-card > div[style*="grid-template-columns:repeat(3,68px)"],
   #pin-card > div[style*="grid-template-columns:repeat(3,64px)"]{
-    grid-template-columns:repeat(3,60px) !important;
-    gap:10px !important;
+    grid-template-columns:repeat(3,52px) !important;
+    gap:8px !important;
   }
-  #pin-card a[onclick*="forgot-pin"]{margin-top:10px !important;font-size:11px !important;}
+  #pin-card a[onclick*="forgot-pin"]{margin-top:8px !important;font-size:11px !important;}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
 
