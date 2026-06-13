@@ -337,8 +337,8 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   .pin-btn{width:60px;height:60px;font-size:18px;}
   .pin-btn.sm{font-size:10px;}
 
-  /* PAGE LAYOUT: tighten everything so PIN keypad fits in viewport */
-  .gg-page{padding-top:3vh !important;}                                    /* was 7vh — saves ~30px */
+  /* PAGE LAYOUT: more breathing room at top so content sits a bit lower */
+  .gg-page{padding-top:6vh !important;}                                    /* was 3vh — content drops ~25-30px */
   .gg-landing-block{margin-bottom:0 !important;}                            /* was 8px */
   .screen [style*="margin-top:18px"]{margin-top:10px !important;}           /* logo-to-title gap */
 
@@ -444,12 +444,12 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
    Namespace: .auth-*
    ════════════════════════════════════════════ */
 
-.auth-hero{position:relative;width:120px;height:120px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;}
-.auth-hero-disk{position:relative;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#f5c24a,#e8a92e);display:flex;align-items:center;justify-content:center;box-shadow:0 0 50px -8px rgba(245,194,74,0.45),inset 0 1px 0 rgba(255,255,255,0.5);animation:auth-float 4s ease-in-out infinite;z-index:2;}
-.auth-hero-disk svg{width:26px;height:26px;color:#0b0d12;}
+.auth-hero{position:relative;width:84px;height:84px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;}
+.auth-hero-disk{position:relative;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#f5c24a,#e8a92e);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px -8px rgba(245,194,74,0.45),inset 0 1px 0 rgba(255,255,255,0.5);animation:auth-float 4s ease-in-out infinite;z-index:2;}
+.auth-hero-disk svg{width:18px;height:18px;color:#0b0d12;}
 .auth-hero-ring{position:absolute;top:50%;left:50%;border:1px solid rgba(245,194,74,0.4);border-radius:50%;animation:auth-ring-pulse 3s ease-out infinite;}
-.auth-hero-ring.r1{width:88px;height:88px;margin:-44px 0 0 -44px;}
-.auth-hero-ring.r2{width:120px;height:120px;margin:-60px 0 0 -60px;animation-delay:0.6s;}
+.auth-hero-ring.r1{width:62px;height:62px;margin:-31px 0 0 -31px;}
+.auth-hero-ring.r2{width:84px;height:84px;margin:-42px 0 0 -42px;animation-delay:0.6s;}
 @keyframes auth-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
 @keyframes auth-ring-pulse{0%{transform:scale(0.9);opacity:0.9;}100%{transform:scale(1.25);opacity:0;}}
 
