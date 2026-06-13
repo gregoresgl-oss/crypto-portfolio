@@ -2032,29 +2032,33 @@ function _pinDoneContinue(){
 // Reuses the landing logo identity (ssl idle orbit + wordmark) so every
 // screen feels part of the same product. Skips screens that already
 // have their own logo (landing, auth) or specialized layout (returning).
-(function _injectScreenLogos(){
-  var skip = ['screen-landing','screen-auth','screen-returning'];
-  var logoHTML =
-    '<div class="gg-screen-logo">'
-    + '<div class="ssl idle" role="img" aria-label="GGWALL">'
-    +   '<div class="ssl-ring-outer"></div>'
-    +   '<div class="ssl-ring-inner"></div>'
-    +   '<div class="ssl-sun"></div>'
-    +   '<div class="ssl-dot-a"></div>'
-    +   '<div class="ssl-dot-b"></div>'
-    + '</div>'
-    + '<div class="gg-wordmark">GGWALL</div>'
-    + '</div>';
-  var screens = document.querySelectorAll('.screen');
-  for (var i=0; i<screens.length; i++){
-    var scr = screens[i];
-    if (skip.indexOf(scr.id) !== -1) continue;
-    if (scr.querySelector('.gg-screen-logo')) continue; // safety: don't double-inject
-    var card = scr.querySelector('.card');
-    if (!card) continue;
-    card.insertAdjacentHTML('beforebegin', logoHTML);
-  }
-})();
+// Wrapped in try/catch so a DOM hiccup here can never break the rest
+// of the script (login button, navigation, etc).
+try {
+  (function _injectScreenLogos(){
+    var skip = ['screen-landing','screen-auth','screen-returning'];
+    var logoHTML =
+      '<div class="gg-screen-logo">'
+      + '<div class="ssl idle" role="img" aria-label="GGWALL">'
+      +   '<div class="ssl-ring-outer"></div>'
+      +   '<div class="ssl-ring-inner"></div>'
+      +   '<div class="ssl-sun"></div>'
+      +   '<div class="ssl-dot-a"></div>'
+      +   '<div class="ssl-dot-b"></div>'
+      + '</div>'
+      + '<div class="gg-wordmark">GGWALL</div>'
+      + '</div>';
+    var screens = document.querySelectorAll('.screen');
+    for (var i=0; i<screens.length; i++){
+      var scr = screens[i];
+      if (skip.indexOf(scr.id) !== -1) continue;
+      if (scr.querySelector('.gg-screen-logo')) continue; // safety: don't double-inject
+      var card = scr.querySelector('.card');
+      if (!card) continue;
+      card.insertAdjacentHTML('beforebegin', logoHTML);
+    }
+  })();
+} catch(e) { console.warn('[injectScreenLogos]', e); }
 
 function _showScreen(id){
   _SCREENS.forEach(function(s){
