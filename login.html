@@ -48,17 +48,140 @@
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'Space Grotesk',sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'Space Grotesk',sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
 :root{
-  --gold:#f5c24a; --gold-deep:#d4af5a; --cream:#f7e7b8;
-  --red:#ff5f6d; --green:#7dd67d;
-  --bg:#0b0d12; --surface:#12151d; --surface2:#1a1f2b;
-  --text:#e7e4d8; --muted:rgba(231,228,216,.5);
-  --border:rgba(245,194,74,.12);
+  --gold:#e8a434; --gold-bright:#ffd97a; --gold-soft:#f0c674; --gold-dim:#e8d9b0;
+  --red:#ff5a52; --red-deep:#e0483f; --green:#7dd67d;
+  --bg:#070609; --surface:rgba(20,18,23,0.72); --surface2:#1a1f2b;
+  --text:#f2efe9; --muted:rgba(220,214,255,0.5); --muted-soft:rgba(255,255,255,0.35);
+  --border:rgba(255,255,255,0.07);
   --ease-io:cubic-bezier(.65,0,.35,1);
 }
 
-/* ══ EYE STATE MACHINE ══ */
+/* ══ SOLAR SYSTEM LOGO (.ssl) ══
+   96×96px container, 2 rings, 1 sun, 2 orbit dots
+   States: idle / success / fail
+   Replaces the old "eye" (.ow) everywhere on the login screen.
+   The old .ow / .pin-top-slot / .orbit classes are kept for non-logo screens.
+*/
+.ssl{position:relative;width:96px;height:96px;margin:0 auto;}
+
+/* Outer ring (inset:0) */
+.ssl .ssl-ring-outer{
+  position:absolute;inset:0;border-radius:50%;
+  border:1px solid rgba(232,164,52,0.28);
+  transition:border-color .3s;
+}
+/* Inner ring (inset:16px) */
+.ssl .ssl-ring-inner{
+  position:absolute;inset:16px;border-radius:50%;
+  border:1px solid rgba(232,164,52,0.40);
+  transition:border-color .3s;
+}
+/* Sun/core */
+.ssl .ssl-sun{
+  position:absolute;top:50%;left:50%;
+  width:16px;height:16px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,#ffd97a,#e8a434);
+  box-shadow:0 0 22px 5px rgba(232,164,52,0.65);
+  animation:ssl-pulse 3.5s ease-in-out infinite;
+  transition:background .3s,box-shadow .3s;
+}
+@keyframes ssl-pulse{
+  0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1;}
+  50%{transform:translate(-50%,-50%) scale(0.9);opacity:0.72;}
+}
+
+/* Orbit dots — use inline CSS for the orbital path trick */
+.ssl .ssl-dot-a,
+.ssl .ssl-dot-b{
+  position:absolute;border-radius:50%;
+}
+/* Dot A: 6×6px gold, orbits outer ring (96px diameter → inset 0) */
+.ssl .ssl-dot-a{
+  width:6px;height:6px;
+  background:#f0c674;
+  box-shadow:0 0 5px #f0c674;
+  top:calc(50% - 48px + -3px); /* start at top of orbit */
+  left:calc(50% - 3px);
+  transform-origin:3px calc(48px + 3px); /* pivot = center of 96px circle */
+  animation:ssl-spin-a 14s linear infinite;
+}
+/* Dot B: 5×5px, reverse, smaller orbit (64px → inset 16px) */
+.ssl .ssl-dot-b{
+  width:5px;height:5px;
+  background:#e8a434;
+  box-shadow:0 0 4px #e8a434;
+  top:calc(50% - 32px + -2.5px);
+  left:calc(50% - 2.5px);
+  transform-origin:2.5px calc(32px + 2.5px);
+  animation:ssl-spin-b 9s linear infinite reverse;
+}
+@keyframes ssl-spin-a{to{transform:rotate(360deg);}}
+@keyframes ssl-spin-b{to{transform:rotate(360deg);}}
+
+/* Error state */
+.ssl.fail{animation:ssl-shake 0.5s ease;}
+.ssl.fail .ssl-ring-outer{border-color:rgba(255,90,82,0.60);}
+.ssl.fail .ssl-ring-inner{border-color:rgba(255,90,82,0.70);}
+.ssl.fail .ssl-sun{
+  background:radial-gradient(circle,#ff9a92,#e0483f);
+  box-shadow:0 0 22px 5px rgba(255,90,82,0.70);
+}
+/* Success state */
+.ssl.success .ssl-ring-outer{border-color:rgba(255,200,90,0.70);}
+.ssl.success .ssl-ring-inner{border-color:rgba(255,200,90,0.80);}
+.ssl.success .ssl-sun{
+  box-shadow:0 0 28px 8px rgba(255,200,90,0.90);
+}
+.ssl.success .ssl-dot-a{animation-duration:2.2s!important;}
+.ssl.success .ssl-dot-b{animation-duration:1.4s!important;}
+
+/* Shared shockwave + aura overlays (rendered by JS, position:absolute) */
+.ssl-aura{
+  position:absolute;top:50%;left:50%;
+  border-radius:50%;pointer-events:none;
+}
+.ssl-shockwave{
+  position:absolute;top:50%;left:50%;
+  width:96px;height:96px;
+  margin:-48px 0 0 -48px;
+  border-radius:50%;pointer-events:none;
+  border:2px solid transparent;
+}
+
+@keyframes ssl-shake{
+  0%,100%{transform:translateX(0);}
+  15%{transform:translateX(-9px);}
+  35%{transform:translateX(9px);}
+  55%{transform:translateX(-6px);}
+  75%{transform:translateX(6px);}
+  90%{transform:translateX(-3px);}
+}
+@keyframes ssl-shock{
+  0%{transform:translate(-50%,-50%) scale(.35);opacity:.85;}
+  100%{transform:translate(-50%,-50%) scale(2.8);opacity:0;}
+}
+@keyframes ssl-bloom{
+  0%{transform:translate(-50%,-50%) scale(.6);opacity:.55;}
+  55%{transform:translate(-50%,-50%) scale(1.7);opacity:.45;}
+  100%{transform:translate(-50%,-50%) scale(1.45);opacity:0;}
+}
+@keyframes ssl-dotshake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-5px);}
+  40%{transform:translateX(5px);}
+  60%{transform:translateX(-3px);}
+  80%{transform:translateX(3px);}
+}
+@keyframes ssl-rise{
+  0%{opacity:0;transform:translateY(8px);}
+  100%{opacity:1;transform:translateY(0);}
+}
+
+/* ══ EYE STATE MACHINE (kept for non-PIN screens) ══ */
 .ow{position:relative;width:200px;height:200px;margin:0 auto;}
 .ow .ring{position:absolute;inset:0;border-radius:50%;border:1.4px solid transparent;display:flex;align-items:center;justify-content:center;}
 /* IDLE */
@@ -396,18 +519,19 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 </head>
 <body>
 
-<!-- ══ COSMIC BACKGROUND (Variant 1 — Deep Nebula) ══ -->
-<div id="cosmos-bg" style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;background:#05030a;">
-  <!-- Nebula clouds -->
-  <div style="position:absolute;left:-10%;top:-20%;width:70%;height:80%;background:radial-gradient(ellipse at center,rgba(140,60,200,0.35) 0%,rgba(140,60,200,0) 60%);filter:blur(40px);animation:nebula-shift 24s ease-in-out infinite;pointer-events:none;"></div>
-  <div style="position:absolute;right:-15%;bottom:-20%;width:80%;height:90%;background:radial-gradient(ellipse at center,rgba(245,184,46,0.18) 0%,rgba(245,184,46,0) 60%);filter:blur(60px);animation:nebula-shift 32s ease-in-out infinite reverse;pointer-events:none;"></div>
-  <div style="position:absolute;left:30%;top:40%;width:60%;height:60%;background:radial-gradient(ellipse at center,rgba(60,120,200,0.22) 0%,rgba(60,120,200,0) 60%);filter:blur(50px);animation:nebula-shift 28s ease-in-out infinite;pointer-events:none;"></div>
+<!-- ══ COSMIC BACKGROUND (Amber Nebula) ══ -->
+<div id="cosmos-bg" style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;background:radial-gradient(circle at 50% 50%,#0d0a0c 0%,#070609 70%);">
+  <!-- Amber nebula gradient layers (from design spec) -->
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 34% 28%,rgba(232,164,52,0.20),transparent 58%),radial-gradient(ellipse 60% 50% at 62% 82%,rgba(176,84,22,0.14),transparent 60%);pointer-events:none;"></div>
+  <!-- Warm amber breathing bloom (subtle, slow) -->
+  <div style="position:absolute;left:15%;top:10%;width:55%;height:55%;background:radial-gradient(ellipse at center,rgba(232,164,52,0.08) 0%,rgba(232,164,52,0) 65%);filter:blur(48px);animation:nebula-shift 28s ease-in-out infinite;pointer-events:none;"></div>
+  <div style="position:absolute;right:5%;bottom:10%;width:50%;height:50%;background:radial-gradient(ellipse at center,rgba(176,84,22,0.10) 0%,rgba(176,84,22,0) 65%);filter:blur(56px);animation:nebula-shift 36s ease-in-out infinite reverse;pointer-events:none;"></div>
 
-  <!-- Star field (180 stars, generated via JS) -->
+  <!-- Star field (72 stars, seeded PRNG for stability — generated via JS) -->
   <div id="cosmos-stars" style="position:absolute;inset:0;"></div>
 
-  <!-- Vignette overlay -->
-  <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 40%,rgba(0,0,0,0.5) 100%);pointer-events:none;"></div>
+  <!-- Subtle vignette -->
+  <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 45%,rgba(0,0,0,0.42) 100%);pointer-events:none;"></div>
 </div>
 
 <!-- Page -->
@@ -417,15 +541,17 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
   <!-- ══ SCREEN: LANDING ══ -->
   <div class="screen" id="screen-landing">
     <div style="text-align:center;margin-bottom:8px;">
-      <div class="ow idle" id="ow" role="img" aria-label="GGWALL">
-        <div class="ring r1"><div class="planet"></div></div>
-        <div class="ring r2"><div class="planet"></div></div>
-        <div class="ring r3"><div class="planet"></div></div>
-        <div class="pupil"></div>
+      <!-- Solar-system logo (Amber Nebula spec) -->
+      <div class="ssl idle" id="ow" role="img" aria-label="GGWALL">
+        <div class="ssl-ring-outer"></div>
+        <div class="ssl-ring-inner"></div>
+        <div class="ssl-sun"></div>
+        <div class="ssl-dot-a"></div>
+        <div class="ssl-dot-b"></div>
       </div>
-      <div style="margin-top:14px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;letter-spacing:0.18em;background:linear-gradient(135deg,#f5c24a 0%,#e8a92e 50%,#f5c24a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;filter:drop-shadow(0 4px 20px rgba(245,194,74,0.3));">GGWALL</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--muted);text-transform:uppercase;margin-top:4px;">Personal Cosmos Wallet</div>
+      <div style="margin-top:18px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:600;letter-spacing:10px;color:#e8a434;padding-left:10px;">GGWALL</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:5px;color:#6e6a72;margin-top:8px;text-transform:uppercase;">ΠΡΟΣΒΑΣΗ ΣΤΟ ΠΟΡΤΟΦΟΛΙ</div>
       </div>
     </div>
     <div class="card">
@@ -465,15 +591,16 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
   <!-- ══ SCREEN: AUTH (existing user login) ══ -->
   <div class="screen" id="screen-auth">
     <div style="text-align:center;margin-bottom:8px;">
-      <div class="ow idle" id="ow-auth" role="img">
-        <div class="ring r1"><div class="planet"></div></div>
-        <div class="ring r2"><div class="planet"></div></div>
-        <div class="ring r3"><div class="planet"></div></div>
-        <div class="pupil"></div>
+      <div class="ssl idle" id="ow-auth" role="img" aria-label="GGWALL">
+        <div class="ssl-ring-outer"></div>
+        <div class="ssl-ring-inner"></div>
+        <div class="ssl-sun"></div>
+        <div class="ssl-dot-a"></div>
+        <div class="ssl-dot-b"></div>
       </div>
-      <div style="margin-top:14px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;letter-spacing:0.18em;background:linear-gradient(135deg,#f5c24a 0%,#e8a92e 50%,#f5c24a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;filter:drop-shadow(0 4px 20px rgba(245,194,74,0.3));">GGWALL</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--muted);text-transform:uppercase;margin-top:4px;">Personal Cosmos Wallet</div>
+      <div style="margin-top:18px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:600;letter-spacing:10px;color:#e8a434;padding-left:10px;">GGWALL</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:5px;color:#6e6a72;margin-top:8px;text-transform:uppercase;">ΠΡΟΣΒΑΣΗ ΣΤΟ ΠΟΡΤΟΦΟΛΙ</div>
       </div>
     </div>
     <div class="card" id="auth-card">
@@ -1194,23 +1321,21 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 
   <!-- ══ RETURNING: AVATAR + PIN ══ -->
   <div class="screen" id="screen-returning">
-    <!-- Orbit PIN logo -->
+    <!-- Solar-system logo + wordmark -->
     <div class="pin-top-slot">
-      <div class="orbit idle" id="topLogo">
-        <div class="ring r1"></div>
-        <div class="ring r2"></div>
-        <div class="ring r3"></div>
-        <span class="planet p1"></span>
-        <span class="planet p2"></span>
-        <span class="planet p3"></span>
-        <div class="core"></div>
+      <div class="ssl idle" id="topLogo" role="img" aria-label="GGWALL">
+        <div class="ssl-ring-outer"></div>
+        <div class="ssl-ring-inner"></div>
+        <div class="ssl-sun"></div>
+        <div class="ssl-dot-a"></div>
+        <div class="ssl-dot-b"></div>
       </div>
-      <div style="text-align:center;margin-top:14px;margin-bottom:8px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;letter-spacing:0.18em;background:linear-gradient(135deg,#f5c24a 0%,#e8a92e 50%,#f5c24a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;filter:drop-shadow(0 4px 20px rgba(245,194,74,0.3));">GGWALL</div>
-        <div class="pin-hint" id="pinHint" aria-live="polite" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--muted);text-transform:uppercase;margin-top:4px;">Πρόσβαση στο πορτοφόλι</div>
+      <div style="text-align:center;margin-top:18px;margin-bottom:8px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:600;letter-spacing:10px;color:#e8a434;padding-left:10px;">GGWALL</div>
+        <div class="pin-hint" id="pinHint" aria-live="polite" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:5px;color:#6e6a72;text-transform:uppercase;margin-top:8px;">ΠΡΟΣΒΑΣΗ ΣΤΟ ΠΟΡΤΟΦΟΛΙ</div>
       </div>
     </div>
-    <div class="card" id="pin-card" style="">
+    <div class="card" id="pin-card" style="background:rgba(20,18,23,0.72);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:18px;backdrop-filter:blur(12px);box-shadow:0 30px 80px rgba(0,0,0,0.55);transition:border-color .3s;">
       <!-- User card -->
       <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(13,10,28,0.5);border:1px solid rgba(167,139,250,0.15);border-radius:14px;margin-bottom:14px;cursor:pointer;transition:all 0.15s;" onclick="_pinSwitchUser()" id="pin-user-row" onmouseover="this.style.borderColor='rgba(245,194,74,0.3)'" onmouseout="this.style.borderColor='rgba(167,139,250,0.15)'">
         <div id="pin-avatar" style="width:48px;height:48px;border-radius:50%;border:2px solid rgba(245,194,74,.5);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex-shrink:0;"></div>
@@ -1498,23 +1623,27 @@ html,body{height:100%;width:100%;background:#0b0d12;color:#e7e4d8;font-family:'S
 <script>
 'use strict';
 
-// ── Cosmic background: deterministic star field generation (V1 Nebula) ──
+// ── Cosmic background: deterministic star field (Amber Nebula — 72 stars, seed 7) ──
 (function generateStars(){
   var container = document.getElementById('cosmos-stars');
   if(!container) return;
-  var seed = 7; // Fixed seed (V1 Nebula spec)
+  // LCG seeded PRNG (seed=7, stable positions — same spec as design handoff)
+  var seed = 7;
   var rnd = function(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-  var count = 180;
+  var count = 72;
   var html = '';
   for(var i = 0; i < count; i++){
-    var x = rnd() * 100;
-    var y = rnd() * 100;
-    var size = rnd() * 2 + 0.4;
-    var delay = rnd() * 6;
-    var dur = 2 + rnd() * 5;
-    var op = 0.3 + rnd() * 0.7;
-    var glow = size > 1.5 ? 'box-shadow:0 0 ' + (size * 3) + 'px rgba(255,255,255,0.6);' : '';
-    html += '<div class="star" style="position:absolute;left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;width:' + size.toFixed(2) + 'px;height:' + size.toFixed(2) + 'px;border-radius:50%;background:#fff;opacity:' + op.toFixed(2) + ';' + glow + 'animation:twinkle ' + dur.toFixed(2) + 's ease-in-out ' + delay.toFixed(2) + 's infinite;"></div>';
+    var x    = rnd() * 100;
+    var y    = rnd() * 100;
+    var size = 0.6 + rnd() * 1.6;           // 0.6–2.2px per spec
+    var op   = 0.15 + rnd() * 0.60;         // 0.15–0.75 per spec
+    var dur  = 2.5 + rnd() * 4.5;
+    var del  = rnd() * 6;
+    // Larger stars get a subtle amber-tinted glow instead of pure white
+    var glow = size > 1.4
+      ? 'box-shadow:0 0 4px rgba(255,255,255,0.5),0 0 '+(size*2.5).toFixed(1)+'px rgba(232,180,80,0.22);'
+      : 'box-shadow:0 0 4px rgba(255,255,255,0.5);';
+    html += '<div class="star" style="position:absolute;left:'+x.toFixed(2)+'%;top:'+y.toFixed(2)+'%;width:'+size.toFixed(2)+'px;height:'+size.toFixed(2)+'px;border-radius:50%;background:#fff;opacity:'+op.toFixed(2)+';'+glow+'animation:twinkle '+dur.toFixed(2)+'s ease-in-out '+del.toFixed(2)+'s infinite;"></div>';
   }
   container.innerHTML = html;
 })();
@@ -2731,38 +2860,132 @@ function _startLockoutTimer(){
 }
 
 // ── Eye state machine ─────────────────────────────────────────────
-var _eyeLocked = false;
-function _eyeSetState(s){
-  // Work on whichever eye element exists and is in an active screen
-  var ow=document.getElementById('ow-active');
-  if(!ow)ow=document.getElementById('ow');
-  if(!ow)ow=document.getElementById('ow-auth');
-  if(!ow)return;
-  ow.classList.remove('idle','success','fail');void ow.offsetWidth;ow.classList.add(s);
+// ══ WEB AUDIO API (no files — procedurally generated) ══
+// AudioContext created lazily on first user gesture to comply with browser autoplay policy.
+var _audioCtx = null;
+function _getAudio(){
+  if(!_audioCtx){
+    try{_audioCtx = new (window.AudioContext||window.webkitAudioContext)();}
+    catch(e){return null;}
+  }
+  if(_audioCtx.state==='suspended'){_audioCtx.resume();}
+  return _audioCtx;
 }
-function _playLogoState(state){
-  var logo=document.getElementById('topLogo');
-  var hint=document.getElementById('pinHint');
-  if(!logo)return;
+function _playNote(freq, type, dur, gain, startDelay){
+  var ctx=_getAudio(); if(!ctx) return;
+  var osc=ctx.createOscillator();
+  var env=ctx.createGain();
+  osc.type=type||'sine';
+  osc.frequency.value=freq;
+  env.gain.setValueAtTime(0.0001, ctx.currentTime+(startDelay||0));
+  env.gain.linearRampToValueAtTime(gain, ctx.currentTime+(startDelay||0)+0.012);
+  env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+(startDelay||0)+dur);
+  osc.connect(env); env.connect(ctx.destination);
+  osc.start(ctx.currentTime+(startDelay||0));
+  osc.stop(ctx.currentTime+(startDelay||0)+dur+0.02);
+}
+function _audioKeyClick(){
+  // Triangle 600Hz, 0.06s, gain 0.045
+  _playNote(600,'triangle',0.06,0.045,0);
+}
+function _audioError(){
+  // Sawtooth 210→70Hz slide, 0.45s (descending buzz)
+  var ctx=_getAudio(); if(!ctx) return;
+  var osc=ctx.createOscillator();
+  var env=ctx.createGain();
+  osc.type='sawtooth';
+  osc.frequency.setValueAtTime(210, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime+0.45);
+  env.gain.setValueAtTime(0.0001, ctx.currentTime);
+  env.gain.linearRampToValueAtTime(0.07, ctx.currentTime+0.012);
+  env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.45);
+  osc.connect(env); env.connect(ctx.destination);
+  osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.47);
+  // Layer: square 150Hz
+  _playNote(150,'square',0.45,0.025,0);
+}
+function _audioSuccess(){
+  // 4-note rising arpeggio: C5 E5 G5 C6, staggered 0.09s each
+  var notes=[523.25,659.25,783.99,1046.5];
+  notes.forEach(function(freq,i){ _playNote(freq,'sine',0.5,0.06,i*0.09); });
+}
+
+// ══ SOLAR-SYSTEM LOGO STATE MACHINE ══
+var _eyeLocked = false;
+
+function _getSslLogo(){
+  // Priority: PIN screen topLogo → landing ow → auth ow-auth
+  return document.getElementById('topLogo')
+    || document.getElementById('ow')
+    || document.getElementById('ow-auth');
+}
+
+function _sslSetState(logo, state){
+  if(!logo) return;
   logo.classList.remove('idle','success','fail');
-  void logo.offsetWidth;
+  void logo.offsetWidth; // reflow for animation restart
   logo.classList.add(state);
-  if(state==='success'&&hint){hint.textContent='✓ Καλώς ήρθες';hint.style.color='var(--green)';}
-  if(state==='fail'&&hint){hint.textContent='✕ Λάθος κωδικός';hint.style.color='var(--red)';}
-  if(state!=='idle'){
+}
+
+function _sslShockwave(logo, color){
+  if(!logo) return;
+  var sw = document.createElement('div');
+  sw.className = 'ssl-shockwave';
+  sw.style.cssText = 'position:absolute;top:50%;left:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;pointer-events:none;border:2px solid '+color+';animation:ssl-shock 0.65s ease-out forwards;';
+  logo.appendChild(sw);
+  setTimeout(function(){if(sw.parentNode)sw.parentNode.removeChild(sw);}, 700);
+}
+
+function _sslAura(logo, color, size, animName, dur){
+  if(!logo) return;
+  var half = size/2;
+  var a = document.createElement('div');
+  a.className = 'ssl-aura';
+  a.style.cssText = 'position:absolute;top:50%;left:50%;width:'+size+'px;height:'+size+'px;margin:-'+half+'px 0 0 -'+half+'px;border-radius:50%;pointer-events:none;background:'+color+';animation:'+animName+' '+dur+'s ease-out forwards;';
+  logo.appendChild(a);
+  setTimeout(function(){if(a.parentNode)a.parentNode.removeChild(a);}, dur*1000+100);
+}
+
+function _playLogoState(state){
+  var logo = document.getElementById('topLogo');
+  var hint = document.getElementById('pinHint');
+  if(!logo) return;
+
+  _sslSetState(logo, state);
+
+  if(state === 'fail'){
+    _sslAura(logo, 'radial-gradient(circle,rgba(255,80,72,0.45),transparent 70%)', 120, 'ssl-bloom', 0.6);
+    _sslShockwave(logo, 'rgba(255,90,82,0.75)');
+    if(hint){hint.textContent='✕ Λάθος κωδικός';hint.style.color='#ff5a52';}
+    // Card border → red
+    var card=document.getElementById('pin-card');
+    if(card)card.style.borderColor='rgba(255,90,82,0.35)';
     setTimeout(function(){
-      logo.classList.remove(state);logo.classList.add('idle');
-      if(hint&&state==='fail'){hint.textContent='Πρόσβαση στο πορτοφόλι';hint.style.color='';}
-    },1300);
+      logo.classList.remove('fail'); logo.classList.add('idle');
+      if(hint){hint.textContent='ΠΡΟΣΒΑΣΗ ΣΤΟ ΠΟΡΤΟΦΟΛΙ';hint.style.color='';}
+      if(card)card.style.borderColor='';
+    }, 1300);
+  }
+
+  if(state === 'success'){
+    _sslAura(logo, 'radial-gradient(circle,rgba(255,200,90,0.55),transparent 70%)', 150, 'ssl-bloom', 1.1);
+    _sslShockwave(logo, 'rgba(232,164,52,0.8)');
+    if(hint){hint.textContent='✓ Καλώς ήρθες';hint.style.color='#7dd67d';}
+    var card=document.getElementById('pin-card');
+    if(card)card.style.borderColor='rgba(232,164,52,0.35)';
   }
 }
+
 function _eyeSuccess(cb){
-  if(_eyeLocked)return;_eyeLocked=true;
+  if(_eyeLocked)return; _eyeLocked=true;
+  _audioSuccess();
   _playLogoState('success');
   setTimeout(function(){_eyeLocked=false;if(cb)cb();},1200);
 }
+
 function _eyeFail(){
-  if(_eyeLocked)return;_eyeLocked=true;
+  if(_eyeLocked)return; _eyeLocked=true;
+  _audioError();
   var pd=document.getElementById('pin-dots');
   if(pd){pd.classList.remove('pin-dots-shake');void pd.offsetWidth;pd.classList.add('pin-dots-shake');}
   try{if(navigator.vibrate)navigator.vibrate([80,40,80]);}catch(e){}
@@ -2774,11 +2997,19 @@ function _eyeFail(){
     var pe=document.getElementById('pin-err');if(pe)pe.textContent='';
   },1400);
 }
+
 function _orbitFeedback(){
-  var ow=document.getElementById('ow');
-  if(ow&&ow.classList.contains('idle')){
-    ow.classList.add('orbit-accelerate');
-    clearTimeout(window._ort);window._ort=setTimeout(function(){ow.classList.remove('orbit-accelerate');},800);
+  // Key click audio on every digit press
+  _audioKeyClick();
+  var logo = document.getElementById('topLogo');
+  if(logo && logo.classList.contains('idle')){
+    // Brief sun glow boost on digit press
+    var sun = logo.querySelector('.ssl-sun');
+    if(sun){
+      sun.style.transition='box-shadow .08s';
+      sun.style.boxShadow='0 0 30px 10px rgba(232,164,52,0.9)';
+      setTimeout(function(){ sun.style.boxShadow=''; sun.style.transition=''; }, 180);
+    }
   }
 }
 
@@ -3146,8 +3377,11 @@ async function fetchAppSettings(){
     }catch(e){}
   }
   if(s['login_logo_url']){
-    var lc=document.getElementById('ow');
-    if(lc)lc.outerHTML='<div style="width:200px;height:200px;margin:0 auto;display:flex;align-items:center;justify-content:center;"><img src="'+s['login_logo_url']+'" style="width:180px;height:180px;object-fit:contain;border-radius:50%;box-shadow:0 0 24px rgba(245,194,74,.3);" onerror="this.parentElement.remove()"/></div>';
+    // Replace solar-system logos with custom image (admin-configured)
+    ['ow','ow-auth','topLogo'].forEach(function(id){
+      var lc=document.getElementById(id);
+      if(lc)lc.outerHTML='<div style="width:96px;height:96px;margin:0 auto;display:flex;align-items:center;justify-content:center;"><img src="'+s['login_logo_url']+'" style="width:88px;height:88px;object-fit:contain;border-radius:50%;box-shadow:0 0 24px rgba(232,164,52,.3);" onerror="this.parentElement.remove()"/></div>';
+    });
   }
 }
 
