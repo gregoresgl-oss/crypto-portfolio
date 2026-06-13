@@ -3937,9 +3937,18 @@ async function _fetch1YSRForCoin(coinId){
     _coinSRCache[coinId]=sr;
     // Silent refresh αν user βρίσκεται σε non-1Y view του ίδιου coin
     if(_coinChartCoinId===coinId&&_coinChartRange!==365&&_coinChart){
+      // Pick closest level (same logic as in _loadCoinChartData)
+      var refP=currentP;
+      function _closest(arr){
+        if(!arr||!arr.length)return null;
+        var best=arr[0],bestD=Math.abs(arr[0]-refP);
+        for(var i=1;i<arr.length;i++){var d=Math.abs(arr[i]-refP);if(d<bestD){best=arr[i];bestD=d;}}
+        return best;
+      }
+      var rC=_closest(sr.resistance),sC=_closest(sr.support);
       _coinChart.options.plugins.srLines={
-        resistance:sr.resistance.slice(0,1),
-        support:sr.support.slice(0,1)
+        resistance:rC!=null?[rC]:[],
+        support:sC!=null?[sC]:[]
       };
       _coinChart.update('none');
     }
@@ -4076,16 +4085,31 @@ async function _loadCoinChartData(){
       document.getElementById('cc-avg').textContent=_fmtP(avg);
       // Compute S/R logic:
       // - 1Y: fresh compute from full dataset, AND populate cache
-      // - Non-1Y: pick top-1 από cache (αν υπάρχει — αλλιώς κενό, θα γεμίσει σε λίγα sec)
+      // - Non-1Y: pick the CLOSEST resistance/support level to current price
+      //   (more actionable for short-term traders than the global ATH/ATL,
+      //    which often falls outside the Y-axis range of shorter timeframes)
       if(_coinChartRange===365){
         srLevels=_computeSR(validVals,currentP||last);
         _coinSRCache[_coinChartCoinId]=srLevels;
       } else {
         var cached=_coinSRCache[_coinChartCoinId];
         if(cached){
+          var refP=currentP||last;
+          // Find closest level (smallest absolute distance to refP)
+          function _closestLevel(arr){
+            if(!arr||!arr.length)return null;
+            var best=arr[0],bestD=Math.abs(arr[0]-refP);
+            for(var i=1;i<arr.length;i++){
+              var d=Math.abs(arr[i]-refP);
+              if(d<bestD){best=arr[i];bestD=d;}
+            }
+            return best;
+          }
+          var rClose=_closestLevel(cached.resistance);
+          var sClose=_closestLevel(cached.support);
           srLevels={
-            resistance:cached.resistance.slice(0,1),
-            support:cached.support.slice(0,1)
+            resistance:rClose!=null?[rClose]:[],
+            support:sClose!=null?[sClose]:[]
           };
         }
       }
