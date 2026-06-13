@@ -264,33 +264,25 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
 @keyframes ggFailCore{0%,100%{background:radial-gradient(circle,#f7e7b8,#f5c24a 60%,#d4af5a);box-shadow:0 0 14px rgba(245,194,74,.6);}30%,60%{background:radial-gradient(circle,#ffd1d6,#ff5f6d 60%,#a8343c);box-shadow:0 0 16px rgba(255,95,109,.8);}}
 @keyframes ggShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-4px);}40%{transform:translateX(4px);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
 @media(prefers-reduced-motion:reduce){.orbit.idle .ring,.orbit.idle .core,.orbit.success .ring,.orbit.success .core,.orbit.success .planet,.orbit.fail,.orbit.fail .ring,.orbit.fail .core{animation:none!important;}.orbit.success .core{filter:brightness(1.4);}.orbit.fail{outline:2px solid #ff5f6d;border-radius:50%;}}
-/* ══ MINI BRAND HEADER (top of every auth/invite card) ══
-   Compact GGWALL logo + wordmark that lives at the top of each
-   secondary screen card. Keeps brand presence consistent without
-   duplicating the full landing-logo size. */
-.gg-card-brand{
-  display:flex;align-items:center;justify-content:center;
-  gap:9px;
-  margin:-2px 0 14px;
-  padding-bottom:13px;
-  border-bottom:1px solid rgba(255,255,255,0.06);
-}
-.gg-mini-orbit{position:relative;width:22px;height:22px;flex-shrink:0;}
-.gg-mini-orbit .ring{position:absolute;inset:0;border:1px solid rgba(245,194,74,.4);border-radius:50%;animation:ggSpin 18s linear infinite;}
-.gg-mini-orbit .ring.r2{inset:5px;border-color:rgba(245,194,74,.65);animation:ggSpin 12s linear infinite reverse;}
-.gg-mini-orbit .core{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:5px;height:5px;border-radius:50%;
-  background:radial-gradient(circle,#f7e7b8,#f5c24a 60%,#d4af5a);
-  box-shadow:0 0 5px rgba(245,194,74,.7);
-  animation:ggPulse 2.8s ease-in-out infinite;
-}
-.gg-mini-text{
+/* ══ SCREEN LOGO (above each secondary card) ══
+   Same GGWALL identity as landing/auth — injected by JS into every
+   screen that doesn't already display the logo (forgot-pin, invite flow,
+   reset password, lockout, etc.). Keeps brand consistency without HTML
+   duplication. */
+.gg-screen-logo{text-align:center;margin-bottom:14px;}
+.gg-screen-logo .ssl{width:80px;height:80px;margin:0 auto;}
+.gg-screen-logo .gg-wordmark{
   font-family:'JetBrains Mono',monospace;
-  font-size:11px;font-weight:600;
-  letter-spacing:4px;
+  font-size:22px;font-weight:600;
+  letter-spacing:8px;
   color:#e8a434;
-  padding-left:2px;
+  padding-left:8px;
+  margin-top:11px;
+}
+@media (max-width:480px){
+  .gg-screen-logo{margin-bottom:10px;}
+  .gg-screen-logo .ssl{width:64px;height:64px;}
+  .gg-screen-logo .gg-wordmark{font-size:18px;letter-spacing:6px;margin-top:8px;}
 }
 
 /* Bigger PIN buttons */
@@ -689,7 +681,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ════ FORGOT PASSWORD (premium redesign) ════ -->
   <div class="screen" id="screen-forgot-pass">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="auth-hero">
         <div class="auth-hero-ring r1"></div>
         <div class="auth-hero-ring r2"></div>
@@ -725,7 +716,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ════ EMAIL SENT ════ -->
   <div class="screen" id="screen-forgot-sent">
     <div class="card" style="text-align:center;">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="auth-success">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
       </div>
@@ -759,7 +749,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ════ FORGOT PIN (re-auth flow) ════ -->
   <div class="screen" id="screen-forgot-pin">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="auth-hero">
         <div class="auth-hero-ring r1"></div>
         <div class="auth-hero-ring r2"></div>
@@ -811,7 +800,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 1 — CODE ══ -->
   <div class="screen" id="screen-inv-code">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:14%"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot active"></div><div class="pdot"></div><div class="pdot"></div>
@@ -859,7 +847,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 2 — ACCOUNT ══ -->
   <div class="screen" id="screen-inv-account">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:28%"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot done"></div><div class="pdot active"></div><div class="pdot"></div>
@@ -946,7 +933,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 3a — EMAIL ACTIVATION (WAITING) ══ -->
   <div class="screen" id="screen-inv-email-wait">
     <div class="card" style="border-color:rgba(167,139,250,0.4);box-shadow:0 0 60px -20px rgba(167,139,250,0.4);">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:43%"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot done"></div><div class="pdot done"></div><div class="pdot active"></div>
@@ -997,7 +983,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 3b — EMAIL ERROR (not confirmed) ══ -->
   <div class="screen" id="screen-inv-email-error">
     <div class="card" style="border-color:rgba(251,113,133,0.3);">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:43%;background:linear-gradient(90deg,#fb7185,#e11d48);"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot done"></div><div class="pdot done"></div><div class="pdot" style="background:#fb7185;box-shadow:0 0 8px rgba(251,113,133,0.6);"></div>
@@ -1045,7 +1030,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 3c — EMAIL SUCCESS ══ -->
   <div class="screen" id="screen-inv-email-success">
     <div class="card" style="border-color:rgba(52,211,153,0.3);">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:43%;background:linear-gradient(90deg,#34d399,#10b981);"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot done"></div><div class="pdot done"></div><div class="pdot" style="background:#34d399;box-shadow:0 0 8px rgba(52,211,153,0.6);"></div>
@@ -1075,7 +1059,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 4 — PROFILE ══ -->
   <div class="screen" id="screen-inv-profile">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:57%"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
@@ -1131,7 +1114,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 5 — WALLETS (Cosmos + Cardano) ══ -->
   <div class="screen" id="screen-inv-wallet">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:71%"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
@@ -1215,7 +1197,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 6 — PIN SETUP (with confirmation) ══ -->
   <div class="screen" id="screen-inv-pin">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:86%"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
@@ -1277,7 +1258,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ══ INVITE: STEP 7 — WELCOME ══ -->
   <div class="screen" id="screen-inv-welcome">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="pbar-wrap"><div class="pbar-fill" style="width:100%"></div></div>
       <div class="pdots" style="margin:8px 0 18px;">
         <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
@@ -1431,7 +1411,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ════ RESET PASSWORD (premium redesign) ════ -->
   <div class="screen" id="screen-reset-password">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="auth-hero">
         <div class="auth-hero-ring r1"></div>
         <div class="auth-hero-ring r2"></div>
@@ -1501,7 +1480,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ════ PASSWORD UPDATED (Done) ════ -->
   <div class="screen" id="screen-password-done">
     <div class="card" style="text-align:center;">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="auth-success">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
       </div>
@@ -1522,7 +1500,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ════ SET NEW PIN (post-login auto-prompt OR after forgot-pin) ════ -->
   <div class="screen" id="screen-set-pin">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="auth-hero">
         <div class="auth-hero-ring r1"></div>
         <div class="auth-hero-ring r2"></div>
@@ -1575,7 +1552,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
   <!-- ════ PIN UPDATED (Done) ════ -->
   <div class="screen" id="screen-pin-done">
     <div class="card" style="text-align:center;">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div class="auth-success">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
       </div>
@@ -1591,7 +1567,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
 
   <div class="screen" id="screen-lockout">
     <div class="card">
-      <div class="gg-card-brand"><div class="gg-mini-orbit"><div class="ring"></div><div class="ring r2"></div><div class="core"></div></div><div class="gg-mini-text">GGWALL</div></div>
       <div style="text-align:center;padding:16px 0 10px;">
         <div style="font-size:48px;margin-bottom:8px;animation:lp 2s ease-in-out infinite;">🔒</div>
         <div style="font-size:18px;font-weight:700;color:var(--red);margin-bottom:4px;">Λογαριασμός κλειδωμένος</div>
@@ -2052,6 +2027,34 @@ function _pinDoneContinue(){
     window.location.replace('index.html');
   }
 }
+
+// ══ AUTO-INJECT GGWALL LOGO ABOVE EACH SECONDARY CARD ══
+// Reuses the landing logo identity (ssl idle orbit + wordmark) so every
+// screen feels part of the same product. Skips screens that already
+// have their own logo (landing, auth) or specialized layout (returning).
+(function _injectScreenLogos(){
+  var skip = ['screen-landing','screen-auth','screen-returning'];
+  var logoHTML =
+    '<div class="gg-screen-logo">'
+    + '<div class="ssl idle" role="img" aria-label="GGWALL">'
+    +   '<div class="ssl-ring-outer"></div>'
+    +   '<div class="ssl-ring-inner"></div>'
+    +   '<div class="ssl-sun"></div>'
+    +   '<div class="ssl-dot-a"></div>'
+    +   '<div class="ssl-dot-b"></div>'
+    + '</div>'
+    + '<div class="gg-wordmark">GGWALL</div>'
+    + '</div>';
+  var screens = document.querySelectorAll('.screen');
+  for (var i=0; i<screens.length; i++){
+    var scr = screens[i];
+    if (skip.indexOf(scr.id) !== -1) continue;
+    if (scr.querySelector('.gg-screen-logo')) continue; // safety: don't double-inject
+    var card = scr.querySelector('.card');
+    if (!card) continue;
+    card.insertAdjacentHTML('beforebegin', logoHTML);
+  }
+})();
 
 function _showScreen(id){
   _SCREENS.forEach(function(s){
