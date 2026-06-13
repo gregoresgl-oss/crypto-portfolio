@@ -265,24 +265,21 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
 @keyframes ggShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-4px);}40%{transform:translateX(4px);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
 @media(prefers-reduced-motion:reduce){.orbit.idle .ring,.orbit.idle .core,.orbit.success .ring,.orbit.success .core,.orbit.success .planet,.orbit.fail,.orbit.fail .ring,.orbit.fail .core{animation:none!important;}.orbit.success .core{filter:brightness(1.4);}.orbit.fail{outline:2px solid #ff5f6d;border-radius:50%;}}
 /* ══ SCREEN LOGO (above each secondary card) ══
-   Same GGWALL identity as landing/auth — injected by JS into every
-   screen that doesn't already display the logo (forgot-pin, invite flow,
-   reset password, lockout, etc.). Keeps brand consistency without HTML
-   duplication. */
+   Identical size & styling to the landing logo for full brand consistency
+   across all screens (forgot-pin, invite flow, reset password, lockout, ...).
+   No mobile size override — keeps the same identity on every viewport. */
 .gg-screen-logo{text-align:center;margin-bottom:14px;}
-.gg-screen-logo .ssl{width:80px;height:80px;margin:0 auto;}
+.gg-screen-logo .ssl{width:96px;height:96px;margin:0 auto;}
 .gg-screen-logo .gg-wordmark{
   font-family:'JetBrains Mono',monospace;
-  font-size:22px;font-weight:600;
-  letter-spacing:8px;
+  font-size:30px;font-weight:600;
+  letter-spacing:10px;
   color:#e8a434;
-  padding-left:8px;
-  margin-top:11px;
+  padding-left:10px;
+  margin-top:18px;
 }
 @media (max-width:480px){
-  .gg-screen-logo{margin-bottom:10px;}
-  .gg-screen-logo .ssl{width:64px;height:64px;}
-  .gg-screen-logo .gg-wordmark{font-size:18px;letter-spacing:6px;margin-top:8px;}
+  .gg-screen-logo{margin-bottom:12px;}
 }
 
 /* Bigger PIN buttons */
@@ -447,12 +444,12 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
    Namespace: .auth-*
    ════════════════════════════════════════════ */
 
-.auth-hero{position:relative;width:140px;height:140px;margin:0 auto 22px;display:flex;align-items:center;justify-content:center;}
-.auth-hero-disk{position:relative;width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f5c24a,#e8a92e);display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px -10px rgba(245,194,74,0.45),inset 0 1px 0 rgba(255,255,255,0.5);animation:auth-float 4s ease-in-out infinite;z-index:2;}
-.auth-hero-disk svg{width:30px;height:30px;color:#0b0d12;}
+.auth-hero{position:relative;width:120px;height:120px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;}
+.auth-hero-disk{position:relative;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#f5c24a,#e8a92e);display:flex;align-items:center;justify-content:center;box-shadow:0 0 50px -8px rgba(245,194,74,0.45),inset 0 1px 0 rgba(255,255,255,0.5);animation:auth-float 4s ease-in-out infinite;z-index:2;}
+.auth-hero-disk svg{width:26px;height:26px;color:#0b0d12;}
 .auth-hero-ring{position:absolute;top:50%;left:50%;border:1px solid rgba(245,194,74,0.4);border-radius:50%;animation:auth-ring-pulse 3s ease-out infinite;}
-.auth-hero-ring.r1{width:104px;height:104px;margin:-52px 0 0 -52px;}
-.auth-hero-ring.r2{width:140px;height:140px;margin:-70px 0 0 -70px;animation-delay:0.6s;}
+.auth-hero-ring.r1{width:88px;height:88px;margin:-44px 0 0 -44px;}
+.auth-hero-ring.r2{width:120px;height:120px;margin:-60px 0 0 -60px;animation-delay:0.6s;}
 @keyframes auth-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
 @keyframes auth-ring-pulse{0%{transform:scale(0.9);opacity:0.9;}100%{transform:scale(1.25);opacity:0;}}
 
