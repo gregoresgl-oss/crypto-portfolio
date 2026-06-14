@@ -95,6 +95,141 @@ body::before {
 
 .mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
 
+/* ═══════════════════════════════════════════════════════
+   DESKTOP SIDEBAR (hidden on mobile, visible ≥768px)
+   Mirrors the index.html sidebar pattern for consistent UX.
+   ═══════════════════════════════════════════════════════ */
+.gg-sidebar { display: none; }
+
+.gg-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 18px 16px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+  color: var(--gold);
+}
+.gg-sidebar-orbital { width: 26px; height: 26px; flex-shrink: 0; color: var(--gold); }
+.gg-sidebar-title {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  background: linear-gradient(90deg, #d4af5a, #f7e7b8 50%, #d4af5a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+[data-theme="light"] .gg-sidebar-title {
+  background: linear-gradient(90deg, #7a591b, #9d7426 50%, #7a591b);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.gg-sidebar-section { padding: 0; margin-bottom: 18px; }
+.gg-sidebar-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 0 18px;
+  margin-bottom: 6px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.gg-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 10px 2px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+.gg-sidebar-item:hover {
+  background: var(--gold-soft);
+  color: var(--text);
+}
+.gg-sidebar-item.active {
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
+  color: var(--gold);
+  font-weight: 600;
+}
+.gg-sidebar-item svg { width: 17px; height: 17px; flex-shrink: 0; color: var(--muted); transition: color 0.2s; }
+.gg-sidebar-item:hover svg,
+.gg-sidebar-item.active svg { color: var(--gold); }
+
+.gg-sidebar-badge {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(212,167,44,.15);
+  color: var(--gold);
+  border: 1px solid rgba(212,167,44,.3);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.05em;
+}
+
+/* ═══ DESKTOP (≥1024px): full sidebar 220px, hide mobile chrome ═══ */
+@media (min-width: 1024px) {
+  .gg-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    z-index: 15;
+    overflow-y: auto;
+    padding-bottom: 18px;
+  }
+  body { padding-left: 220px; }
+  .bottom-nav { display: none !important; }
+  .app-header .icon-btn[href="index.html"] { display: none; }
+  body::before { left: calc(50% + 110px); }
+}
+
+/* ═══ TABLET (768-1023px): collapsed sidebar 56px, icon-only ═══ */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .gg-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 56px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    z-index: 15;
+    overflow-y: auto;
+    padding-bottom: 18px;
+    align-items: center;
+  }
+  .gg-sidebar-brand { padding: 18px 0 16px; justify-content: center; }
+  .gg-sidebar-brand .gg-sidebar-title { display: none; }
+  .gg-sidebar-label { display: none; }
+  .gg-sidebar-item { margin: 0 6px 4px; padding: 10px; justify-content: center; }
+  .gg-sidebar-item span:not(.gg-sidebar-badge) { display: none; }
+  .gg-sidebar-badge { display: none; }
+  body { padding-left: 56px; }
+  .bottom-nav { display: none !important; }
+  .app-header .icon-btn[href="index.html"] { display: none; }
+  body::before { left: calc(50% + 28px); }
+}
+
 .shell {
   position: relative;
   z-index: 1;
@@ -468,6 +603,60 @@ body::before {
 </style>
 </head>
 <body>
+
+<!-- ══════════════ DESKTOP SIDEBAR (hidden on mobile) ══════════════ -->
+<aside class="gg-sidebar" aria-label="Πλοήγηση">
+  <a href="index.html" class="gg-sidebar-brand" aria-label="GGWALL">
+    <svg class="gg-sidebar-orbital" viewBox="0 0 48 48" aria-hidden="true">
+      <ellipse cx="24" cy="24" rx="20" ry="9" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".55"/>
+      <ellipse cx="24" cy="24" rx="9" ry="20" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".55"/>
+      <circle cx="24" cy="24" r="4" fill="currentColor"/>
+      <circle cx="44" cy="24" r="2" fill="currentColor"/>
+    </svg>
+    <span class="gg-sidebar-title">GGWALL</span>
+  </a>
+  
+  <div class="gg-sidebar-section">
+    <div class="gg-sidebar-label">Dashboard</div>
+    <a class="gg-sidebar-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12 a9 9 0 1 1 -9 -9"/><path d="M21 12 h-9 V3"/></svg>
+      <span>Portfolio</span>
+    </a>
+    <a class="gg-sidebar-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L9 11 L13 14 L21 5"/><polyline points="15,5 21,5 21,11"/></svg>
+      <span>Markets</span>
+    </a>
+    <a class="gg-sidebar-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 a4 4 0 0 1 8 0 v4"/><path d="M10 16 l2 -2 l2 2"/><path d="M12 14 v4"/></svg>
+      <span>Staking</span>
+    </a>
+    <a class="gg-sidebar-item active" href="news.html" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v18l-3-2-3 2-3-2-3 2zM8 7h6M8 11h6M8 15h4"/></svg>
+      <span>News</span>
+    </a>
+    <a class="gg-sidebar-item" href="history.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12 a8.5 8.5 0 1 0 2.5 -6"/><polyline points="3.5,3 3.5,7 7.5,7"/><path d="M12 8 v4 l3 1.5"/></svg>
+      <span>History</span>
+    </a>
+    <a class="gg-sidebar-item" href="pulse.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14c4 0 4-3 8-3s4 3 8 3"/><circle cx="17" cy="9" r="1.4" fill="currentColor"/><path d="M3 19h18"/></svg>
+      <span>Watchtower</span>
+      <span class="gg-sidebar-badge">AI</span>
+    </a>
+  </div>
+  
+  <div class="gg-sidebar-section">
+    <div class="gg-sidebar-label">Wallet</div>
+    <a class="gg-sidebar-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+      <span>Cosmos</span>
+    </a>
+    <a class="gg-sidebar-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="#3CC8C8" stroke="none"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="4.5" r="1.3"/><circle cx="12" cy="19.5" r="1.3"/><circle cx="5.5" cy="8.25" r="1.3"/><circle cx="18.5" cy="8.25" r="1.3"/><circle cx="5.5" cy="15.75" r="1.3"/><circle cx="18.5" cy="15.75" r="1.3"/></svg>
+      <span>Cardano</span>
+    </a>
+  </div>
+</aside>
 
 <!-- Pull-to-refresh indicator -->
 <div class="ptr" id="ptr" aria-hidden="true">
