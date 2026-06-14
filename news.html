@@ -111,7 +111,10 @@ body::before {
   margin-bottom: 14px;
   color: #E8B84A;
 }
-.gg-sidebar-orbital { width: 24px; height: 24px; flex-shrink: 0; color: #E8B84A; }
+.gg-sidebar-orbit { width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.gg-sidebar-orbit svg { width: 100%; height: 100%; }
+@keyframes ggSpinCW  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes ggSpinCCW { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
 .gg-sidebar-title {
   font-family: "JetBrains Mono", monospace;
   font-weight: 800;
@@ -647,12 +650,26 @@ body::before {
 <!-- ══════════════ DESKTOP SIDEBAR (hidden on mobile) ══════════════ -->
 <aside class="gg-sidebar" aria-label="Πλοήγηση">
   <a href="index.html" class="gg-sidebar-brand" aria-label="GGWALL">
-    <svg class="gg-sidebar-orbital" viewBox="0 0 48 48" aria-hidden="true">
-      <ellipse cx="24" cy="24" rx="20" ry="9" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".55"/>
-      <ellipse cx="24" cy="24" rx="9" ry="20" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".55"/>
-      <circle cx="24" cy="24" r="4" fill="currentColor"/>
-      <circle cx="44" cy="24" r="2" fill="currentColor"/>
-    </svg>
+    <div class="gg-sidebar-orbit" aria-hidden="true">
+      <svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+        <defs>
+          <radialGradient id="gg-news-pg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#f7e7b8"/>
+            <stop offset="55%" stop-color="#d4af5a"/>
+            <stop offset="100%" stop-color="#8a6a2a"/>
+          </radialGradient>
+        </defs>
+        <g style="transform-origin:15px 15px;animation:ggSpinCW 22s linear infinite">
+          <circle cx="15" cy="15" r="13" fill="none" stroke="rgba(212,175,90,.5)" stroke-width=".8"/>
+          <circle cx="28" cy="15" r="1.4" fill="#f3e3b5"/>
+        </g>
+        <g style="transform-origin:15px 15px;animation:ggSpinCCW 14s linear infinite">
+          <circle cx="15" cy="15" r="8" fill="none" stroke="rgba(212,175,90,.75)" stroke-width=".9"/>
+          <circle cx="7" cy="15" r="1.1" fill="#f3e3b5"/>
+        </g>
+        <circle cx="15" cy="15" r="3.5" fill="url(#gg-news-pg)" filter="drop-shadow(0 0 3px rgba(212,175,90,.4))"/>
+      </svg>
+    </div>
     <span class="gg-sidebar-title">GGWALL</span>
   </a>
   
@@ -712,15 +729,6 @@ body::before {
     </a>
 
     <div class="header-titles">
-      <span class="brand-mark" aria-hidden="true">
-        <svg class="orbital" viewBox="0 0 48 48">
-          <ellipse class="orbit" cx="24" cy="24" rx="20" ry="9"/>
-          <ellipse class="orbit" cx="24" cy="24" rx="9" ry="20"/>
-          <g class="spin s1"><circle class="dot" cx="44" cy="24" r="2.4"/></g>
-          <g class="spin s2"><circle class="dot" cx="24" cy="4" r="2"/></g>
-          <circle class="core" cx="24" cy="24" r="4.5"/>
-        </svg>
-      </span>
       <div class="header-text">
         <h1>ΕΝΗΜΕΡΩΣΕΙΣ</h1>
         <p>Crypto Updates &amp; Releases</p>
