@@ -2187,11 +2187,10 @@ var _privacyMode = false;
 try { _privacyMode = (localStorage.getItem('gg-privacy') === '1'); } catch(e){}
 
 function _maskMoney(text){
-  // Replace digit/comma/dot runs with bullets, keep signs and currency suffix
-  return String(text).replace(/-?[\d.,]+/g, function(m){
-    var sign = m.charAt(0) === '-' ? '-' : '';
-    return sign + '••••';
-  });
+  // Replace each digit 1-to-1 with bullet, keep separators/signs/€ intact.
+  // This preserves the original string width — critical on mobile so the
+  // mini-stats row (LIQUID/REWARDS/F&G) doesn't wrap to a second line.
+  return String(text).replace(/\d/g, '•');
 }
 
 function togglePrivacy(){
