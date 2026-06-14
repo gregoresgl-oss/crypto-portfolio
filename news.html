@@ -793,7 +793,7 @@ body::before {
 const SUPABASE_URL  = 'https://rzrxulubttnjtxziodib.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A';
 const QUERY = '/rest/v1/chain_news_cache'
-  + '?chain_id=eq.cosmoshub'
+  + '?chain_id=in.(cosmoshub,osmosis,juno,cardano,saga,dymension)'
   + '&ai_summary_el=not.is.null'
   + '&order=published_at.desc';
 
@@ -845,7 +845,14 @@ const CAT_LABEL = {
   patch:         'ΔΙΟΡΘΩΣΗ',
   feature:       'ΧΑΡΑΚΤΗΡΙΣΤΙΚΟ'
 };
-const CHAIN_TICKER = { cosmoshub: 'ATOM' };
+const CHAIN_TICKER = {
+  cosmoshub: 'ATOM',
+  osmosis: 'OSMO',
+  juno: 'JUNO',
+  cardano: 'ADA',
+  saga: 'SAGA',
+  dymension: 'DYM'
+};
 
 /* ── Tiny HTML escaper ───────────────────────────────────────────── */
 function esc (s) {
@@ -1014,6 +1021,14 @@ async function load () {
     ALL.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
     updateCounts();
     renderFeed();
+    // Mark all news as seen — clears the unread badge on other pages.
+    // We store the timestamp of the most recent published_at so future
+    // releases will trigger the badge on index/history pages.
+    if (ALL.length > 0) {
+      try { localStorage.setItem('gg-news-last-seen', ALL[0].published_at); } catch(e){}
+    } else {
+      try { localStorage.setItem('gg-news-last-seen', new Date().toISOString()); } catch(e){}
+    }
   } catch (err) {
     console.error('[GGWALL/news] fetch failed:', err);
     renderError();

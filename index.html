@@ -1280,6 +1280,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
       <a class="nav-item" id="nav-news" href="news.html">
         <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v18l-3-2-3 2-3-2-3 2zM8 7h6M8 11h6M8 15h4"/></svg>
         <span>News</span>
+        <span class="new-tx-dot" id="nav-news-dot" style="display:none;"></span>
       </a>
       <a class="nav-item" id="nav-history" href="history.html">
         <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12 a8.5 8.5 0 1 0 2.5 -6"/><polyline points="3.5,3 3.5,7 7.5,7"/><path d="M12 8 v4 l3 1.5"/></svg>
@@ -1341,6 +1342,7 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
     <a class="bnav-item" id="bn-news" href="news.html">
       <svg class="bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v18l-3-2-3 2-3-2-3 2zM8 7h6M8 11h6M8 15h4"/></svg>
       <span class="bnav-label">News</span>
+      <span class="new-tx-dot bnav-dot" id="bn-news-dot" style="display:none;"></span>
     </a>
   </div>
 </div>
@@ -1980,6 +1982,7 @@ function applyActiveUser(user){
   // Staking badge
   _refreshStakeBadge();
   _checkNewTransactions();
+  _checkNewNews();
 }
 
 // ─── New TX dot indicator ─────────────────────────────────────────
@@ -2020,6 +2023,47 @@ async function _checkNewTransactions(){
     if(bnDot) bnDot.style.display = show;
   }catch(e){
     console.warn('[new-tx-dot]', e.message);
+  }
+}
+
+// ─── News notification dot ────────────────────────────────────────
+// Δείχνει gold dot στα News buttons αν υπάρχουν νέα releases
+// μετά το τελευταίο visit της σελίδας news.html (localStorage).
+async function _checkNewNews(){
+  try{
+    // Default "last seen" = 30 days ago (avoids spammy badge on fresh install)
+    var lastSeen = localStorage.getItem('gg-news-last-seen');
+    if(!lastSeen){
+      lastSeen = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+    }
+    
+    // Query: count of news with published_at > lastSeen and AI summary present
+    var url = _SB_URL + "/rest/v1/chain_news_cache"
+            + "?chain_id=in.(cosmoshub,osmosis,juno,cardano,saga,dymension)"
+            + "&ai_summary_el=not.is.null"
+            + "&published_at=gt." + encodeURIComponent(lastSeen)
+            + "&select=id&limit=1";
+    var r = await fetch(url, {
+      headers: {
+        apikey: _SB_ANON,
+        Authorization: 'Bearer ' + _SB_ANON,
+        Prefer: "count=exact"
+      }
+    });
+    if(!r.ok) return;
+    
+    // PostgREST count via Content-Range header
+    var range = r.headers.get('Content-Range') || '';
+    var totalMatch = range.match(/\/(\d+)$/);
+    var total = totalMatch ? parseInt(totalMatch[1]) : 0;
+    
+    var navDot = document.getElementById('nav-news-dot');
+    var bnDot = document.getElementById('bn-news-dot');
+    var show = total > 0 ? '' : 'none';
+    if(navDot) navDot.style.display = show;
+    if(bnDot) bnDot.style.display = show;
+  }catch(e){
+    console.warn('[news-dot]', e.message);
   }
 }
 
