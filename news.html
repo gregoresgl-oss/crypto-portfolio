@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="el" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0d" />
+<title>GGWALL · Ενημερώσεις</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ════════════════════════════════════════════════════════════
+   GGWALL · ΕΝΗΜΕΡΩΣΕΙΣ  —  Design tokens
+   Dark theme = default. Light theme via [data-theme="light"].
+   ════════════════════════════════════════════════════════════ */
+:root,
+[data-theme="dark"] {
+  --bg:            #0a0a0d;   /* deep cosmic black */
+  --bg-grad:       rgba(212,167,44,0.045);
+  --surface:       #14141a;   /* card bg */
+  --surface-2:     #1a1a22;   /* raised */
+  --surface-hover: #1d1d26;
+  --gold:          #d4a72c;   /* primary accent */
+  --gold-soft:     rgba(212,167,44,0.14);
+  --gold-line:     rgba(212,167,44,0.30);
+  --text:          #e7e4d8;   /* warm off-white */
+  --muted:         #8a8a93;   /* secondary */
+  --faint:         #5a5a63;   /* tertiary / faded stars */
+  --border:        rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --red:           #e5484d;
+  --red-bg:        rgba(229,72,77,0.16);
+  --orange:        #e0892a;
+  --orange-bg:     rgba(224,137,42,0.16);
+  --green:         #46c08a;
+  --neutral-bg:    rgba(255,255,255,0.07);
+  --skeleton:      rgba(255,255,255,0.05);
+  --skeleton-hi:   rgba(255,255,255,0.10);
+  --shadow:        0 8px 30px rgba(0,0,0,0.45);
+  --nav-bg:        rgba(13,13,17,0.86);
+}
+[data-theme="light"] {
+  --bg:            #f5f1e8;   /* warm cream */
+  --bg-grad:       rgba(184,136,26,0.06);
+  --surface:       #ffffff;
+  --surface-2:     #fbf7ee;
+  --surface-hover: #fffdf7;
+  --gold:          #b8881a;
+  --gold-soft:     rgba(184,136,26,0.12);
+  --gold-line:     rgba(184,136,26,0.34);
+  --text:          #3c3426;   /* warm dark brown */
+  --muted:         #8a7f6a;
+  --faint:         #c3b89f;
+  --border:        rgba(60,52,38,0.12);
+  --border-strong: rgba(60,52,38,0.22);
+  --red:           #d23a3f;
+  --red-bg:        rgba(210,58,63,0.10);
+  --orange:        #c4761a;
+  --orange-bg:     rgba(196,118,26,0.12);
+  --green:         #2f9e6e;
+  --neutral-bg:    rgba(60,52,38,0.07);
+  --skeleton:      rgba(60,52,38,0.05);
+  --skeleton-hi:   rgba(60,52,38,0.10);
+  --shadow:        0 8px 30px rgba(60,52,38,0.10);
+  --nav-bg:        rgba(255,255,255,0.86);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background .3s ease, color .3s ease;
+  padding-bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+/* Cosmic gold glow behind the hero */
+body::before {
+  content: "";
+  position: fixed;
+  top: -160px; left: 50%;
+  width: 760px; height: 560px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, var(--bg-grad), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+.shell {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ───────────────────────── HEADER ───────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: calc(18px + env(safe-area-inset-top)) 0 16px;
+}
+.icon-btn {
+  flex: none;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color .25s ease, background .25s ease, transform .25s ease;
+}
+.icon-btn:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+.icon-btn:active { transform: scale(.94); }
+.icon-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.icon-btn svg { width: 20px; height: 20px; }
+
+.header-titles { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+.brand-mark { flex: none; width: 40px; height: 40px; }
+.header-text { min-width: 0; }
+.header-text h1 {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  line-height: 1.1;
+}
+.header-text p {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* Animated orbital logo */
+.orbital { width: 100%; height: 100%; display: block; }
+.orbital .orbit { fill: none; stroke: var(--gold-line); stroke-width: 1.4; opacity: .55; }
+.orbital .core { fill: var(--gold); }
+.orbital .spin { transform-origin: 24px 24px; }
+.orbital .s1 { animation: spin 9s linear infinite; }
+.orbital .s2 { animation: spin 6s linear infinite reverse; }
+.orbital .dot { fill: var(--gold); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ───────────────────────── FILTERS ───────────────────────── */
+.filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 14px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.filters::-webkit-scrollbar { display: none; }
+.pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .25s ease;
+}
+.pill:hover { border-color: var(--border-strong); color: var(--text); }
+.pill:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.pill[aria-pressed="true"] {
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
+  color: var(--gold);
+}
+.pill .count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: .7;
+}
+
+/* ───────────────────────── FEED ───────────────────────── */
+.feed { display: flex; flex-direction: column; gap: 14px; padding-bottom: 28px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease, background .25s ease;
+  animation: cardIn .4s ease;
+}
+@keyframes cardIn { from { transform: translateY(10px); } to { transform: none; } }
+.card:hover {
+  border-color: var(--gold-line);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cat {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.cat.major_upgrade { background: var(--red-bg);     color: var(--red); }
+.cat.security      { background: var(--orange-bg);  color: var(--orange); }
+.cat.patch         { background: var(--neutral-bg); color: var(--muted); }
+.cat.feature       { background: var(--gold-soft);  color: var(--gold); }
+
+.stars {
+  display: inline-flex;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: default;
+}
+.stars .star { color: var(--faint); }
+.stars .star.on { color: var(--gold); }
+
+.chain-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: "JetBrains Mono", monospace;
+  margin-bottom: 12px;
+}
+.chain-row .chain { color: var(--gold); font-weight: 700; font-size: 17px; letter-spacing: 0.02em; }
+.chain-row .sep { color: var(--faint); }
+.chain-row .ver { color: var(--muted); font-size: 15px; }
+
+.divider { height: 1px; background: var(--border); margin: 0 0 14px; }
+
+.summary {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  letter-spacing: 0.005em;
+}
+.summary.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.more-btn {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0;
+  letter-spacing: 0.02em;
+}
+.more-btn:hover { text-decoration: underline; }
+.more-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.breaking {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+}
+.timestamp {
+  font-size: 12px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.02em;
+}
+.foot-spacer { margin-left: auto; }
+.gh-link {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--muted);
+  transition: all .25s ease;
+}
+.gh-link:hover { border-color: var(--gold-line); color: var(--gold); background: var(--gold-soft); }
+.gh-link:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.gh-link svg { width: 18px; height: 18px; }
+
+/* ───────────────────────── SKELETON ───────────────────────── */
+.skel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.sk {
+  background: linear-gradient(100deg, var(--skeleton) 30%, var(--skeleton-hi) 50%, var(--skeleton) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.sk-row { display: flex; justify-content: space-between; margin-bottom: 16px; }
+.sk-line { height: 13px; margin-bottom: 10px; }
+
+/* ───────────────────────── EMPTY / ERROR ───────────────────────── */
+.state {
+  text-align: center;
+  padding: 64px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: cardIn .4s ease;
+}
+.state .glyph {
+  width: 64px; height: 64px;
+  display: grid; place-items: center;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+.state .glyph svg { width: 30px; height: 30px; }
+.state h3 { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: 0.01em; }
+.state p { font-size: 14px; color: var(--muted); max-width: 320px; }
+.state .retry {
+  margin-top: 10px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s ease;
+}
+.state .retry:hover { background: var(--gold); color: var(--bg); }
+.state .retry:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ───────────────────────── AI FOOTER ───────────────────────── */
+.ai-foot {
+  text-align: center;
+  font-size: 11px;
+  color: var(--faint);
+  letter-spacing: 0.06em;
+  padding: 8px 0 24px;
+}
+
+/* ───────────────────────── BOTTOM NAV ───────────────────────── */
+.bottom-nav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: var(--nav-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid var(--border);
+}
+.nav-inner { display: flex; gap: 4px; width: 100%; max-width: 720px; }
+.nav-btn {
+  flex: 1;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .25s ease;
+}
+.nav-btn svg { width: 20px; height: 20px; flex: none; }
+.nav-btn span { display: none; }
+.nav-btn:hover { color: var(--text); }
+.nav-btn.active {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
+}
+.nav-btn.active span { display: inline; }
+
+/* Pull-to-refresh indicator */
+.ptr {
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translate(-50%, -48px);
+  z-index: 30;
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  transition: transform .1s linear, opacity .2s ease;
+  opacity: 0;
+}
+.ptr svg { width: 18px; height: 18px; }
+.ptr.spin svg { animation: spin .8s linear infinite; }
+
+/* ───────────────────────── RESPONSIVE ───────────────────────── */
+@media (min-width: 600px) {
+  .nav-btn span { display: inline; }
+}
+@media (max-width: 380px) {
+  .header-text h1 { font-size: 16px; }
+  .header-text p { font-size: 11px; }
+}
+
+/* ───────────────────────── PRINT ───────────────────────── */
+@media print {
+  body { background: #fff; color: #000; padding: 0; }
+  .app-header .icon-btn, .filters, .bottom-nav, .ptr, .gh-link { display: none !important; }
+  .card { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Pull-to-refresh indicator -->
+<div class="ptr" id="ptr" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+</div>
+
+<div class="shell">
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <header class="app-header">
+    <a class="icon-btn" href="index.html" aria-label="Πίσω στο Portfolio" title="Πίσω">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </a>
+
+    <div class="header-titles">
+      <span class="brand-mark" aria-hidden="true">
+        <svg class="orbital" viewBox="0 0 48 48">
+          <ellipse class="orbit" cx="24" cy="24" rx="20" ry="9"/>
+          <ellipse class="orbit" cx="24" cy="24" rx="9" ry="20"/>
+          <g class="spin s1"><circle class="dot" cx="44" cy="24" r="2.4"/></g>
+          <g class="spin s2"><circle class="dot" cx="24" cy="4" r="2"/></g>
+          <circle class="core" cx="24" cy="24" r="4.5"/>
+        </svg>
+      </span>
+      <div class="header-text">
+        <h1>ΕΝΗΜΕΡΩΣΕΙΣ</h1>
+        <p>Crypto Updates &amp; Releases</p>
+      </div>
+    </div>
+
+    <button class="icon-btn" id="themeToggle" aria-label="Εναλλαγή θέματος" title="Θέμα">
+      <!-- eclipse icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+    </button>
+  </header>
+
+  <!-- ══════════════ FILTERS ══════════════ -->
+  <nav class="filters" id="filters" aria-label="Φίλτρα ενημερώσεων">
+    <button class="pill" data-filter="all"       aria-pressed="true">Όλα <span class="count" data-count="all"></span></button>
+    <button class="pill" data-filter="important" aria-pressed="false">Σημαντικά ⭐ <span class="count" data-count="important"></span></button>
+    <button class="pill" data-filter="updates"   aria-pressed="false">Updates <span class="count" data-count="updates"></span></button>
+    <button class="pill" data-filter="patches"   aria-pressed="false">Patches <span class="count" data-count="patches"></span></button>
+  </nav>
+
+  <!-- ══════════════ FEED ══════════════ -->
+  <main class="feed" id="feed" aria-live="polite"></main>
+
+  <p class="ai-foot mono">Σύνοψη με AI · Gemini</p>
+
+</div>
+
+<!-- ══════════════ BOTTOM NAV ══════════════ -->
+<nav class="bottom-nav" aria-label="Πλοήγηση">
+  <div class="nav-inner">
+    <a class="nav-btn" href="index.html" aria-label="Portfolio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12 a9 9 0 1 1 -9 -9"/><path d="M21 12 h-9 V3"/></svg>
+      <span>Portfolio</span>
+    </a>
+    <a class="nav-btn" href="index.html" aria-label="Markets">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L9 11 L13 14 L21 5"/><polyline points="15,5 21,5 21,11"/></svg>
+      <span>Markets</span>
+    </a>
+    <a class="nav-btn" href="index.html" aria-label="Staking">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 a4 4 0 0 1 8 0 v4"/><path d="M12 14 v4"/><path d="M10 16 l2 -2 l2 2"/></svg>
+      <span>Staking</span>
+    </a>
+    <a class="nav-btn" href="history.html" aria-label="History">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/><path d="M16 14 l4 4 l-4 4"/><path d="M20 18 h-4"/></svg>
+      <span>History</span>
+    </a>
+    <a class="nav-btn" href="pulse.html" aria-label="Watchtower">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14c4 0 4-3 8-3s4 3 8 3"/><circle cx="17" cy="9" r="1.4" fill="currentColor"/><path d="M3 19h18"/></svg>
+      <span>Watchtower</span>
+    </a>
+    <a class="nav-btn active" href="news.html" aria-current="page" aria-label="News">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v18l-3-2-3 2-3-2-3 2zM8 7h6M8 11h6M8 15h4"/></svg>
+      <span>News</span>
+    </a>
+  </div>
+</nav>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   GGWALL · ΕΝΗΜΕΡΩΣΕΙΣ — logic
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Supabase config ─────────────────────────────────────────────
+   Paste your public anon key below. While it's the placeholder,
+   the page falls back to bundled demo data so it renders offline. */
+const SUPABASE_URL  = 'https://rzrxulubttnjtxziodib.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_FA8PX4QT9DfxrhzxqiT_uw_LoXLsM7A';
+const QUERY = '/rest/v1/chain_news_cache'
+  + '?chain_id=eq.cosmoshub'
+  + '&ai_summary_el=not.is.null'
+  + '&order=published_at.desc';
+
+/* ── State ─────────────────────────────────────────────────────── */
+let ALL = [];
+let CURRENT_FILTER = 'all';
+
+const feed    = document.getElementById('feed');
+const filters = document.getElementById('filters');
+
+/* ── Theme (persists to localStorage 'gg-theme') ─────────────────── */
+(function initTheme () {
+  const saved = localStorage.getItem('gg-theme');
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', saved);
+    document.querySelector('meta[name="theme-color"]')
+      .setAttribute('content', saved === 'light' ? '#f5f1e8' : '#0a0a0d');
+  }
+})();
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('gg-theme', next);
+  document.querySelector('meta[name="theme-color"]')
+    .setAttribute('content', next === 'light' ? '#f5f1e8' : '#0a0a0d');
+});
+
+/* ── Greek relative time ─────────────────────────────────────────── */
+function relTime (iso) {
+  const then = new Date(iso).getTime();
+  if (isNaN(then)) return '';
+  const diff = Math.max(0, Date.now() - then);
+  const min  = Math.floor(diff / 60000);
+  const hour = Math.floor(diff / 3600000);
+  const day  = Math.floor(diff / 86400000);
+  const week = Math.floor(day / 7);
+  if (min  < 1)  return 'μόλις τώρα';
+  if (min  < 60) return `πριν ${min} ${min === 1 ? 'λεπτό' : 'λεπτά'}`;
+  if (hour < 24) return `πριν ${hour} ${hour === 1 ? 'ώρα' : 'ώρες'}`;
+  if (day  < 7)  return `πριν ${day} ${day === 1 ? 'μέρα' : 'μέρες'}`;
+  if (week < 5)  return `πριν ${week} ${week === 1 ? 'εβδομάδα' : 'εβδομάδες'}`;
+  return new Date(iso).toLocaleDateString('el-GR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/* ── Category labels ─────────────────────────────────────────────── */
+const CAT_LABEL = {
+  major_upgrade: 'ΑΝΑΒΑΘΜΙΣΗ',
+  security:      'ΑΣΦΑΛΕΙΑ',
+  patch:         'ΔΙΟΡΘΩΣΗ',
+  feature:       'ΧΑΡΑΚΤΗΡΙΣΤΙΚΟ'
+};
+const CHAIN_TICKER = { cosmoshub: 'ATOM' };
+
+/* ── Tiny HTML escaper ───────────────────────────────────────────── */
+function esc (s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+/* ── Filter predicate ────────────────────────────────────────────── */
+function matches (item, f) {
+  if (f === 'all')       return true;
+  if (f === 'important') return (item.ai_importance || 0) >= 3;
+  if (f === 'updates')   return item.ai_category === 'major_upgrade' || item.ai_category === 'feature';
+  if (f === 'patches')   return item.ai_category === 'patch' || item.ai_category === 'security';
+  return true;
+}
+
+/* ── Stars markup ────────────────────────────────────────────────── */
+function starsHtml (n) {
+  n = Math.max(0, Math.min(5, n || 0));
+  let s = '';
+  for (let i = 1; i <= 5; i++) s += `<span class="star ${i <= n ? 'on' : ''}">★</span>`;
+  return `<span class="stars" role="img" title="Σημαντικότητα ${n}/5" aria-label="Σημαντικότητα ${n} από 5">${s}</span>`;
+}
+
+const GH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>';
+
+/* ── Build one card ──────────────────────────────────────────────── */
+function cardHtml (item, idx) {
+  const ticker  = CHAIN_TICKER[item.chain_id] || (item.chain_id || '').toUpperCase();
+  const ver     = item.title || '';
+  const cat     = item.ai_category || 'patch';
+  const summary = item.ai_summary_el || '';
+  const isLong  = summary.length > 280;
+  const time    = relTime(item.published_at);
+
+  const breaking = item.ai_breaking_changes
+    ? `<span class="breaking">⚠ Σημαντικές αλλαγές</span>` : '';
+
+  const link = item.source_url
+    ? `<a class="gh-link" href="${esc(item.source_url)}" target="_blank" rel="noopener noreferrer" title="Δες στο GitHub" aria-label="Δες στο GitHub">${GH_ICON}</a>`
+    : '';
+
+  const moreBtn = isLong
+    ? `<button class="more-btn" data-toggle="${idx}">Δες περισσότερα</button>` : '';
+
+  return `
+  <article class="card" style="animation-delay:${Math.min(idx * 45, 300)}ms">
+    <div class="card-top">
+      <span class="cat ${esc(cat)}">${CAT_LABEL[cat] || 'ΕΝΗΜΕΡΩΣΗ'}</span>
+      ${starsHtml(item.ai_importance)}
+    </div>
+    <div class="chain-row">
+      <span class="chain">${esc(ticker)}</span>
+      <span class="sep">·</span>
+      <span class="ver">${esc(ver)}</span>
+    </div>
+    <div class="divider"></div>
+    <p class="summary ${isLong ? 'clamped' : ''}" data-summary="${idx}">${esc(summary)}</p>
+    ${moreBtn}
+    <div class="card-foot">
+      ${breaking}
+      <span class="timestamp mono">🕐 ${esc(time)}</span>
+      <span class="foot-spacer"></span>
+      ${link}
+    </div>
+  </article>`;
+}
+
+/* ── Render skeletons ────────────────────────────────────────────── */
+function renderLoading () {
+  let html = '';
+  for (let i = 0; i < 3; i++) {
+    html += `
+    <div class="skel" aria-hidden="true">
+      <div class="sk-row"><span class="sk" style="width:90px;height:22px"></span><span class="sk" style="width:80px;height:14px"></span></div>
+      <div class="sk" style="width:140px;height:18px;margin-bottom:16px"></div>
+      <div class="sk sk-line" style="width:100%"></div>
+      <div class="sk sk-line" style="width:96%"></div>
+      <div class="sk sk-line" style="width:70%"></div>
+    </div>`;
+  }
+  feed.innerHTML = html;
+}
+
+/* ── Render error / empty ────────────────────────────────────────── */
+function renderError () {
+  feed.innerHTML = `
+  <div class="state">
+    <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.42 0z"/></svg></span>
+    <h3>Σφάλμα φόρτωσης — δοκίμασε ξανά</h3>
+    <p>Δεν ήταν δυνατή η σύνδεση με τον διακομιστή ενημερώσεων.</p>
+    <button class="retry" id="retryBtn">Δοκίμασε ξανά</button>
+  </div>`;
+  document.getElementById('retryBtn').addEventListener('click', load);
+}
+function renderEmpty () {
+  feed.innerHTML = `
+  <div class="state">
+    <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v18l-3-2-3 2-3-2-3 2zM8 7h6M8 11h6M8 15h4"/></svg></span>
+    <h3>Δεν υπάρχουν νέα σε αυτή την κατηγορία</h3>
+    <p>Δοκίμασε άλλο φίλτρο για να δεις περισσότερες ενημερώσεις.</p>
+    <button class="retry" id="resetFilter">Δες όλα</button>
+  </div>`;
+  document.getElementById('resetFilter').addEventListener('click', () => setFilter('all'));
+}
+
+/* ── Render feed for current filter ──────────────────────────────── */
+function renderFeed () {
+  const list = ALL.filter(it => matches(it, CURRENT_FILTER));
+  if (!list.length) { renderEmpty(); return; }
+  feed.innerHTML = list.map((it, i) => cardHtml(it, i)).join('');
+
+  /* "Δες περισσότερα" toggles */
+  feed.querySelectorAll('.more-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sum = feed.querySelector(`.summary[data-summary="${btn.dataset.toggle}"]`);
+      const open = sum.classList.toggle('clamped');
+      btn.textContent = open ? 'Δες περισσότερα' : 'Δες λιγότερα';
+    });
+  });
+}
+
+/* ── Update filter pill counts ───────────────────────────────────── */
+function updateCounts () {
+  ['all','important','updates','patches'].forEach(f => {
+    const el = filters.querySelector(`[data-count="${f}"]`);
+    if (el) {
+      const n = ALL.filter(it => matches(it, f)).length;
+      el.textContent = `(${n})`;
+    }
+  });
+}
+
+/* ── Set active filter ───────────────────────────────────────────── */
+function setFilter (f) {
+  CURRENT_FILTER = f;
+  filters.querySelectorAll('.pill').forEach(p =>
+    p.setAttribute('aria-pressed', String(p.dataset.filter === f)));
+  renderFeed();
+}
+filters.addEventListener('click', e => {
+  const pill = e.target.closest('.pill');
+  if (pill) setFilter(pill.dataset.filter);
+});
+
+/* ── Fetch from Supabase (with demo fallback) ────────────────────── */
+async function load () {
+  renderLoading();
+  try {
+    let data;
+    if (SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'PASTE_HERE') {
+      const res = await fetch(SUPABASE_URL + QUERY, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+        }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      data = await res.json();
+    } else {
+      /* Demo data so the page renders before the key is pasted. */
+      await new Promise(r => setTimeout(r, 650));
+      data = DEMO;
+    }
+    ALL = Array.isArray(data) ? data : [];
+    ALL.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+    updateCounts();
+    renderFeed();
+  } catch (err) {
+    console.error('[GGWALL/news] fetch failed:', err);
+    renderError();
+  }
+}
+
+/* ── Pull-to-refresh (mobile) ────────────────────────────────────── */
+(function pullToRefresh () {
+  const ptr = document.getElementById('ptr');
+  let startY = 0, pulling = false, dist = 0;
+  const THRESHOLD = 70;
+  window.addEventListener('touchstart', e => {
+    if (window.scrollY <= 0) { startY = e.touches[0].clientY; pulling = true; }
+  }, { passive: true });
+  window.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    dist = e.touches[0].clientY - startY;
+    if (dist > 0 && window.scrollY <= 0) {
+      const pull = Math.min(dist * 0.5, 90);
+      ptr.style.opacity = Math.min(dist / THRESHOLD, 1);
+      ptr.style.transform = `translate(-50%, ${pull - 48}px) rotate(${dist * 2}deg)`;
+    }
+  }, { passive: true });
+  window.addEventListener('touchend', () => {
+    if (pulling && dist > THRESHOLD) {
+      ptr.classList.add('spin');
+      ptr.style.transform = 'translate(-50%, 16px)';
+      load().finally(() => {
+        setTimeout(() => {
+          ptr.classList.remove('spin');
+          ptr.style.opacity = 0;
+          ptr.style.transform = 'translate(-50%, -48px)';
+        }, 400);
+      });
+    } else {
+      ptr.style.opacity = 0;
+      ptr.style.transform = 'translate(-50%, -48px)';
+    }
+    pulling = false; dist = 0;
+  });
+})();
+
+/* ── Demo dataset (Greek summaries, Cosmos Hub releases) ─────────── */
+const DEMO = [
+  {
+    id: 1, chain_id: 'cosmoshub', title: 'v27.3.0',
+    source_url: 'https://github.com/cosmos/gaia/releases',
+    ai_summary_el: 'Η συγκεκριμένη αναβάθμιση επικεντρώνεται στη βελτίωση της απόδοσης του δικτύου και στη μείωση του χρόνου επιβεβαίωσης των συναλλαγών. Εισάγει νέους μηχανισμούς διαχείρισης μνήμης για τους validators και βελτιστοποιεί το IBC relayer. Συνιστάται η άμεση ενημέρωση όλων των κόμβων πριν το ύψος μπλοκ της αναβάθμισης για την αποφυγή downtime.',
+    ai_importance: 5, ai_category: 'major_upgrade', ai_breaking_changes: true,
+    published_at: new Date(Date.now() - 5*3600000).toISOString(), ai_model: 'gemini'
+  },
+  {
+    id: 2, chain_id: 'cosmoshub', title: 'v27.2.1',
+    source_url: 'https://github.com/cosmos/gaia/releases',
+    ai_summary_el: 'Διόρθωση κρίσιμου ζητήματος ασφαλείας που αφορούσε την επικύρωση υπογραφών στο module του staking. Δεν απαιτούνται αλλαγές από τους χρήστες, αλλά οι operators πρέπει να αναβαθμίσουν.',
+    ai_importance: 4, ai_category: 'security', ai_breaking_changes: false,
+    published_at: new Date(Date.now() - 28*3600000).toISOString(), ai_model: 'gemini'
+  },
+  {
+    id: 3, chain_id: 'cosmoshub', title: 'v27.2.0',
+    source_url: 'https://github.com/cosmos/gaia/releases',
+    ai_summary_el: 'Προσθήκη νέου χαρακτηριστικού για liquid staking με βελτιωμένα όρια ασφαλείας και νέα παράμετρο governance για τον έλεγχο του ποσοστού.',
+    ai_importance: 3, ai_category: 'feature', ai_breaking_changes: false,
+    published_at: new Date(Date.now() - 3*86400000).toISOString(), ai_model: 'gemini'
+  },
+  {
+    id: 4, chain_id: 'cosmoshub', title: 'v27.1.4',
+    source_url: 'https://github.com/cosmos/gaia/releases',
+    ai_summary_el: 'Μικρές διορθώσεις σφαλμάτων στο CLI και βελτιώσεις στα μηνύματα καταγραφής. Καμία αλλαγή στη συμπεριφορά του δικτύου.',
+    ai_importance: 1, ai_category: 'patch', ai_breaking_changes: false,
+    published_at: new Date(Date.now() - 9*86400000).toISOString(), ai_model: 'gemini'
+  }
+];
+
+/* ── Go ──────────────────────────────────────────────────────────── */
+load();
+</script>
+</body>
+</html>
