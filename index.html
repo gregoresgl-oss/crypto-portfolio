@@ -762,6 +762,17 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
   animation: hero-fg-pulse 1.8s ease-in-out infinite;
 }
 
+/* Privacy blur: applied to .gg-money elements when user toggles eye button.
+   Pure CSS — no text manipulation, layout-stable, smoothly animated. */
+.gg-money{
+  transition:filter .25s ease;
+}
+.gg-money.is-blurred{
+  filter:blur(8px);
+  user-select:none;
+  pointer-events:none;
+}
+
 /* Privacy eye toggle (top-right of hero) — hides/shows the 4 money amounts */
 #hero-eye-btn{
   position:absolute;top:14px;right:14px;z-index:4;
@@ -2180,27 +2191,19 @@ function _buildWidget(id,ctx){
   return null;
 }
 
-// ══ PRIVACY MODE — hide the 4 hero money amounts ═══════════════════
+// ══ PRIVACY MODE — blur the 4 hero money amounts ═══════════════════
 // State persists in localStorage. Click eye toggle in hero card to flip.
-// Real values stay in data-real attribute so toggle is instant (no re-fetch).
+// Implementation: CSS blur filter on .gg-money elements (no text manipulation
+// needed → simpler, faster, preserves layout, smooth transition).
 var _privacyMode = false;
 try { _privacyMode = (localStorage.getItem('gg-privacy') === '1'); } catch(e){}
-
-function _maskMoney(text){
-  // Replace each digit 1-to-1 with bullet, keep separators/signs/€ intact.
-  // This preserves the original string width — critical on mobile so the
-  // mini-stats row (LIQUID/REWARDS/F&G) doesn't wrap to a second line.
-  return String(text).replace(/\d/g, '•');
-}
 
 function togglePrivacy(){
   _privacyMode = !_privacyMode;
   try { localStorage.setItem('gg-privacy', _privacyMode ? '1' : '0'); } catch(e){}
-  // Walk all money cells & swap textContent using data-real
+  // Toggle blur class on all money cells — single class flip, no re-render
   document.querySelectorAll('.gg-money').forEach(function(el){
-    var real = el.dataset.real;
-    if(real == null){ el.dataset.real = el.textContent; real = el.textContent; }
-    el.textContent = _privacyMode ? _maskMoney(real) : real;
+    el.classList.toggle('is-blurred', _privacyMode);
   });
   _updatePrivacyIcon();
 }
@@ -2242,20 +2245,17 @@ function _wgtHero(total,delta24h,pct24h,liquid,rewards){
     if (v >= 10)     return v.toFixed(0) + '€';
     return v.toFixed(2) + '€';
   };
-  // Snapshot real strings so each money cell can swap to bullets instantly on toggle
-  var _totalStr = _fmtExact(total);
-  var _deltaStr = deltaSign+_fmt(deltaAbs);
-  var _liqStr   = _fmtSmart(liquid||0);
-  var _rewStr   = _fmtSmart(rewards||0);
+  // Money cells: render real values always; blur is purely a CSS class toggle.
+  var blurCls = _privacyMode ? ' is-blurred' : '';
   el.innerHTML =
       '<div class="hero-content">'
     +   '<div class="hero-label">'
     +     '<span>ΣΥΝΟΛΙΚΗ ΑΞΙΑ</span><span class="sep">·</span><span>EUR</span>'
     +   '</div>'
     +   '<div>'
-    +     '<div class="hero-value gg-money" id="hero-total" data-real="'+_totalStr+'">'+(_privacyMode?_maskMoney(_totalStr):_totalStr)+'</div>'
+    +     '<div class="hero-value gg-money'+blurCls+'" id="hero-total">'+_fmtExact(total)+'</div>'
     +     '<div class="hero-delta">'
-    +       '<span class="delta-eur gg-money '+deltaCls+'" data-real="'+_deltaStr+'">'+(_privacyMode?_maskMoney(_deltaStr):_deltaStr)+'</span>'
+    +       '<span class="delta-eur gg-money'+blurCls+' '+deltaCls+'">'+deltaSign+_fmt(deltaAbs)+'</span>'
     +       '<span class="delta-pct '+deltaCls+'">'+pctSign+pctAbs.toFixed(2)+'%</span>'
     +       '<span class="delta-suffix">24h</span>'
     +     '</div>'
@@ -2263,12 +2263,12 @@ function _wgtHero(total,delta24h,pct24h,liquid,rewards){
     +       '<span class="mini-stat">'
     +         '<span class="mini-dot mini-dot-liq"></span>'
     +         '<span class="mini-label">LIQUID</span>'
-    +         '<span class="mini-val mini-val-liq gg-money" data-real="'+_liqStr+'">'+(_privacyMode?_maskMoney(_liqStr):_liqStr)+'</span>'
+    +         '<span class="mini-val mini-val-liq gg-money'+blurCls+'">'+_fmtSmart(liquid||0)+'</span>'
     +       '</span>'
     +       '<span class="mini-stat">'
     +         '<span class="mini-dot mini-dot-rew"></span>'
     +         '<span class="mini-label">REWARDS</span>'
-    +         '<span class="mini-val mini-val-rew gg-money" data-real="'+_rewStr+'">'+(_privacyMode?_maskMoney(_rewStr):_rewStr)+'</span>'
+    +         '<span class="mini-val mini-val-rew gg-money'+blurCls+'">'+_fmtSmart(rewards||0)+'</span>'
     +       '</span>'
     +       '<span class="hero-fg-pill" id="hero-fg-pill" data-zone="">'
     +         '<span class="hero-fg-tag">F&amp;G</span>'
