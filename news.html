@@ -96,26 +96,26 @@ body::before {
 .mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
 
 /* ═══════════════════════════════════════════════════════
-   DESKTOP SIDEBAR (hidden on mobile, visible ≥768px)
-   Mirrors the index.html sidebar pattern for consistent UX.
+   DESKTOP SIDEBAR — matches index.html exactly
+   Translucent dark bg, honey gold (#E8B84A), nav text colors
    ═══════════════════════════════════════════════════════ */
 .gg-sidebar { display: none; }
 
 .gg-sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 18px 18px 16px;
+  gap: 9px;
+  padding: 18px 14px 16px;
   text-decoration: none;
   border-bottom: 1px solid var(--border);
   margin-bottom: 14px;
-  color: var(--gold);
+  color: #E8B84A;
 }
-.gg-sidebar-orbital { width: 26px; height: 26px; flex-shrink: 0; color: var(--gold); }
+.gg-sidebar-orbital { width: 24px; height: 24px; flex-shrink: 0; color: #E8B84A; }
 .gg-sidebar-title {
   font-family: "JetBrains Mono", monospace;
   font-weight: 800;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.18em;
   background: linear-gradient(90deg, #d4af5a, #f7e7b8 50%, #d4af5a);
   -webkit-background-clip: text;
@@ -134,56 +134,58 @@ body::before {
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--faint);
-  padding: 0 18px;
-  margin-bottom: 6px;
+  color: #5a5963;
+  padding: 0 14px;
+  margin-bottom: 5px;
   font-family: "JetBrains Mono", monospace;
 }
+[data-theme="light"] .gg-sidebar-label { color: #9d9281; }
 
 .gg-sidebar-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 10px 2px;
-  padding: 9px 12px;
+  margin: 0 8px 2px;
+  padding: 8px 10px;
   border-radius: 9px;
   cursor: pointer;
-  color: var(--muted);
+  color: #d8d6df;
   font-size: 12px;
   font-weight: 500;
   text-decoration: none;
   border: 1px solid transparent;
   background: transparent;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
-.gg-sidebar-item:hover {
-  background: var(--gold-soft);
-  color: var(--text);
-}
+[data-theme="light"] .gg-sidebar-item { color: #3c3426; }
+
+.gg-sidebar-item:hover { background: rgba(232,184,74,.06); }
 .gg-sidebar-item.active {
-  background: var(--gold-soft);
-  border-color: var(--gold-line);
-  color: var(--gold);
+  background: rgba(232,184,74,.12);
+  border-color: rgba(232,184,74,.28);
+  color: #E8B84A;
   font-weight: 600;
 }
-.gg-sidebar-item svg { width: 17px; height: 17px; flex-shrink: 0; color: var(--muted); transition: color 0.2s; }
-.gg-sidebar-item:hover svg,
-.gg-sidebar-item.active svg { color: var(--gold); }
+.gg-sidebar-item svg { width: 17px; height: 17px; flex-shrink: 0; color: #6a6973; transition: color 0.2s; }
+[data-theme="light"] .gg-sidebar-item svg { color: #8a7e63; }
+.gg-sidebar-item:hover svg { color: #d8d6df; }
+[data-theme="light"] .gg-sidebar-item:hover svg { color: #3c3426; }
+.gg-sidebar-item.active svg { color: #E8B84A; }
 
 .gg-sidebar-badge {
   margin-left: auto;
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 4px;
-  background: rgba(212,167,44,.15);
-  color: var(--gold);
-  border: 1px solid rgba(212,167,44,.3);
+  background: rgba(245,194,74,.15);
+  color: #f5c24a;
+  border: 1px solid rgba(245,194,74,.3);
   font-size: 9px;
   font-weight: 700;
   font-family: "JetBrains Mono", monospace;
   letter-spacing: 0.05em;
 }
 
-/* ═══ DESKTOP (≥1024px): full sidebar 220px, hide mobile chrome ═══ */
+/* ═══ DESKTOP (≥1024px): full sidebar 220px ═══ */
 @media (min-width: 1024px) {
   .gg-sidebar {
     display: flex;
@@ -191,19 +193,22 @@ body::before {
     position: fixed;
     top: 0; left: 0; bottom: 0;
     width: 220px;
-    background: var(--surface);
+    background: rgba(9,11,17,.7);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-right: 1px solid var(--border);
     z-index: 15;
     overflow-y: auto;
     padding-bottom: 18px;
   }
+  [data-theme="light"] .gg-sidebar { background: rgba(245,239,222,.55); }
   body { padding-left: 220px; }
   .bottom-nav { display: none !important; }
   .app-header .icon-btn[href="index.html"] { display: none; }
   body::before { left: calc(50% + 110px); }
 }
 
-/* ═══ TABLET (768-1023px): collapsed sidebar 56px, icon-only ═══ */
+/* ═══ TABLET (768-1023px): collapsed 56px sidebar, icon-only ═══ */
 @media (min-width: 768px) and (max-width: 1023px) {
   .gg-sidebar {
     display: flex;
@@ -211,13 +216,16 @@ body::before {
     position: fixed;
     top: 0; left: 0; bottom: 0;
     width: 56px;
-    background: var(--surface);
+    background: rgba(9,11,17,.7);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-right: 1px solid var(--border);
     z-index: 15;
     overflow-y: auto;
     padding-bottom: 18px;
     align-items: center;
   }
+  [data-theme="light"] .gg-sidebar { background: rgba(245,239,222,.55); }
   .gg-sidebar-brand { padding: 18px 0 16px; justify-content: center; }
   .gg-sidebar-brand .gg-sidebar-title { display: none; }
   .gg-sidebar-label { display: none; }
@@ -522,46 +530,78 @@ body::before {
   padding: 8px 0 24px;
 }
 
-/* ───────────────────────── BOTTOM NAV ───────────────────────── */
+/* ───────────────────────── BOTTOM NAV ─────────────────────────
+   Floating Dock pattern — matches index.html exactly for consistency
+   across pages. Rounded pill, gradient background, backdrop blur.
+   ─────────────────────────────────────────────────────────────── */
 .bottom-nav {
+  display: none;
   position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 20;
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  background: var(--nav-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-top: 1px solid var(--border);
+  bottom: 0; left: 0; right: 0;
+  padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: transparent;
+  z-index: 300;
+  pointer-events: none;
 }
-.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 4px; width: 100%; max-width: 720px; padding: 0 8px; }
+.nav-inner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  background: linear-gradient(180deg, rgba(40,38,52,.95), rgba(20,18,28,.95));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 22px;
+  padding: 6px 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
+  max-width: 720px;
+  margin: 0 auto;
+}
+[data-theme="light"] .nav-inner {
+  background: linear-gradient(180deg, rgba(255,253,247,.95), rgba(245,239,222,.95));
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(60,40,10,.10), inset 0 1px 0 rgba(255,255,255,.6);
+}
 .nav-btn {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 10px;
-  border: 1px solid transparent;
-  background: none;
-  color: var(--muted);
   border-radius: 16px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  background: transparent;
   cursor: pointer;
   text-decoration: none;
-  transition: all .25s ease;
+  color: #5a5963;
+  font-family: -apple-system, BlinkMacSystemFont, "Space Grotesk", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
-.nav-btn svg { width: 20px; height: 20px; flex: none; }
-.nav-btn span { display: none; }
-.nav-btn:hover { color: var(--text); }
+[data-theme="light"] .nav-btn { color: #a89070; }
+.nav-btn svg { width: 20px; height: 20px; flex-shrink: 0; color: #5a5963; transition: color 0.2s; }
+[data-theme="light"] .nav-btn svg { color: #a89070; }
+.nav-btn span { display: none; color: #E8B84A; }
 .nav-btn.active {
-  color: var(--gold);
-  background: var(--gold-soft);
-  border-color: var(--gold-line);
+  padding: 8px 12px;
+  background: rgba(232,184,74,.13);
+  border-color: rgba(232,184,74,.3);
+  color: #E8B84A;
 }
+.nav-btn.active svg { color: #E8B84A; }
 .nav-btn.active span { display: inline; }
+
+/* Show bottom nav only on mobile */
+@media (max-width: 767px) {
+  .bottom-nav { display: block; }
+}
+@media (min-width: 600px) {
+  /* Disabled: labels show only on active item (matches index.html behavior) */
+}
 
 /* Pull-to-refresh indicator */
 .ptr {
