@@ -434,6 +434,7 @@ body::before {
 }
 
 /* ───────────────────────── FILTERS ───────────────────────── */
+.filters[hidden] { display: none !important; }
 .filters {
   display: flex;
   gap: 8px;
@@ -955,9 +956,14 @@ const QUERY = '/rest/v1/chain_news_cache'
 /* Proposals query — NOTE: proposals_cache uses Cosmos SDK chain naming
    (different from chain_news_cache which uses Coingecko slugs). 
    See PROPOSAL_CHAIN_TICKER mapping below. Cardano excluded — has a 
-   completely different governance model. */
+   completely different governance model.
+   
+   IMPORTANT: chain IDs are wrapped in double quotes ("juno-network") to
+   help PostgREST parse identifiers that contain dashes. Without quoting,
+   PostgREST may parse them ambiguously and silently return zero rows. */
 const PROPOSALS_QUERY = '/rest/v1/proposals_cache'
-  + '?chain_id=in.(cosmos,osmosis,juno-network,saga-2,dymension)'
+  + '?chain_id=in.(' + ['cosmos','osmosis','juno-network','saga-2','dymension']
+      .map(c => '"' + c + '"').join(',') + ')'
   + '&ai_summary_el=not.is.null'
   + '&order=voting_end_time.desc'
   + '&limit=200'
@@ -1367,8 +1373,10 @@ async function load () {
       /* Proposals endpoint may fail independently — don't kill the page */
       if (resP.ok) {
         proposalsData = await resP.json();
+        console.log('[GGWALL/news] proposals loaded:', proposalsData.length);
       } else {
-        console.warn('[GGWALL/news] proposals fetch failed:', resP.status);
+        const errBody = await resP.text().catch(() => '');
+        console.warn('[GGWALL/news] proposals fetch failed:', resP.status, errBody.slice(0, 300));
         proposalsData = [];
       }
     } else {
