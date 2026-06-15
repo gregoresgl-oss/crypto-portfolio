@@ -300,6 +300,139 @@ body::before {
 .orbital .dot { fill: var(--gold); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ───────────────────────── TOP TABS ──────────────────────── */
+/* Two main category tabs (Releases / Governance) with gold underline 
+   for active. Positioned between the header and the filter pills. */
+.top-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin: 0 0 14px;
+  padding: 0;
+}
+.top-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 8px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .2s ease;
+}
+.top-tab:hover { color: var(--text); }
+.top-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.top-tab[aria-pressed="true"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.top-tab svg { width: 18px; height: 18px; flex-shrink: 0; }
+.top-tab-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--muted);
+}
+.top-tab[aria-pressed="true"] .top-tab-count {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+/* ─────────────────── GOVERNANCE CARD EXTRAS ─────────────────── */
+/* Reuses .card base; these add proposal-specific bits without 
+   touching the release card visuals. */
+.gov-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.gov-status.voting   { color: var(--gold);  background: var(--gold-soft);  border-color: var(--gold-line); }
+.gov-status.passed   { color: #7dd67d; background: rgba(125,214,125,.10); border-color: rgba(125,214,125,.30); }
+.gov-status.rejected { color: #ff5f6d; background: rgba(255,95,109,.10); border-color: rgba(255,95,109,.30); }
+.gov-status.failed   { color: var(--muted); background: var(--surface); border-color: var(--border); }
+[data-theme="light"] .gov-status.passed   { color: #2f7d3a; background: rgba(47,125,58,.12); border-color: rgba(47,125,58,.28); }
+[data-theme="light"] .gov-status.rejected { color: #c0344a; background: rgba(192,52,74,.12); border-color: rgba(192,52,74,.28); }
+
+.gov-rec {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+.gov-rec.YPER       { color: #7dd67d; background: rgba(125,214,125,.10); border-color: rgba(125,214,125,.30); }
+.gov-rec.KATA       { color: #ff5f6d; background: rgba(255,95,109,.10); border-color: rgba(255,95,109,.30); }
+.gov-rec.OYDETERO   { color: var(--muted); background: var(--surface); border-color: var(--border); }
+[data-theme="light"] .gov-rec.YPER { color: #2f7d3a; background: rgba(47,125,58,.12); border-color: rgba(47,125,58,.28); }
+[data-theme="light"] .gov-rec.KATA { color: #c0344a; background: rgba(192,52,74,.12); border-color: rgba(192,52,74,.28); }
+
+.gov-deadline {
+  font-size: 11px;
+  color: var(--muted);
+  font-feature-settings: 'tnum' 1;
+}
+.gov-deadline.urgent { color: #ff5f6d; font-weight: 600; }
+[data-theme="light"] .gov-deadline.urgent { color: #c0344a; }
+
+.gov-tally {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  font-feature-settings: 'tnum' 1;
+}
+.gov-tally b { color: var(--text); font-weight: 600; }
+.gov-tally .dot {
+  width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+}
+.gov-tally .dot-yes { background: #7dd67d; }
+.gov-tally .dot-no { background: #ff5f6d; }
+
+.gov-rec-reason {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: var(--surface);
+  border-radius: 6px;
+  border-left: 2px solid var(--gold-line);
+  line-height: 1.4;
+}
+
+.gov-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+}
+
 /* ───────────────────────── FILTERS ───────────────────────── */
 .filters {
   display: flex;
@@ -741,12 +874,34 @@ body::before {
     </button>
   </header>
 
-  <!-- ══════════════ FILTERS ══════════════ -->
-  <nav class="filters" id="filters" aria-label="Φίλτρα ενημερώσεων">
+  <!-- ══════════════ TOP TABS (Releases / Governance) ══════════════ -->
+  <nav class="top-tabs" id="topTabs" aria-label="Κατηγορία ειδήσεων">
+    <button class="top-tab" data-toptab="releases" aria-pressed="true" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v18l-3-2-3 2-3-2-3 2zM8 7h6M8 11h6M8 15h4"/></svg>
+      Releases
+      <span class="top-tab-count" id="topTabCountReleases">0</span>
+    </button>
+    <button class="top-tab" data-toptab="governance" aria-pressed="false" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10M19 21V10M9 21V14h6v7M12 3l8 7H4z"/></svg>
+      Governance
+      <span class="top-tab-count" id="topTabCountGovernance">0</span>
+    </button>
+  </nav>
+
+  <!-- ══════════════ FILTERS (Releases) ══════════════ -->
+  <nav class="filters" id="filters" data-for="releases" aria-label="Φίλτρα releases">
     <button class="pill" data-filter="all"       aria-pressed="true">Όλα <span class="count" data-count="all"></span></button>
     <button class="pill" data-filter="important" aria-pressed="false">Σημαντικά ⭐ <span class="count" data-count="important"></span></button>
     <button class="pill" data-filter="updates"   aria-pressed="false">Updates <span class="count" data-count="updates"></span></button>
     <button class="pill" data-filter="patches"   aria-pressed="false">Patches <span class="count" data-count="patches"></span></button>
+  </nav>
+
+  <!-- ══════════════ FILTERS (Governance) ══════════════ -->
+  <nav class="filters" id="filtersGov" data-for="governance" aria-label="Φίλτρα governance" hidden>
+    <button class="pill" data-filter="all"       aria-pressed="true">Όλα <span class="count" data-count="gov-all"></span></button>
+    <button class="pill" data-filter="active"    aria-pressed="false">Ενεργές 🗳 <span class="count" data-count="gov-active"></span></button>
+    <button class="pill" data-filter="important" aria-pressed="false">Σημαντικά ⭐ <span class="count" data-count="gov-important"></span></button>
+    <button class="pill" data-filter="passed"    aria-pressed="false">Passed ✓ <span class="count" data-count="gov-passed"></span></button>
   </nav>
 
   <!-- ══════════════ FEED ══════════════ -->
@@ -797,12 +952,37 @@ const QUERY = '/rest/v1/chain_news_cache'
   + '&ai_summary_el=not.is.null'
   + '&order=published_at.desc';
 
-/* ── State ─────────────────────────────────────────────────────── */
-let ALL = [];
-let CURRENT_FILTER = 'all';
+/* Proposals query — NOTE: proposals_cache uses Cosmos SDK chain naming
+   (different from chain_news_cache which uses Coingecko slugs). 
+   See PROPOSAL_CHAIN_TICKER mapping below. Cardano excluded — has a 
+   completely different governance model. */
+const PROPOSALS_QUERY = '/rest/v1/proposals_cache'
+  + '?chain_id=in.(cosmos,osmosis,juno-network,saga-2,dymension)'
+  + '&ai_summary_el=not.is.null'
+  + '&order=voting_end_time.desc'
+  + '&limit=200'
+  + '&select=chain_id,proposal_id,title,status,voting_end_time,ai_summary_el,ai_importance,ai_category,ai_recommendation,ai_recommendation_reason,yes_pct,no_pct,abstain_pct,veto_pct,is_spam,is_spam_manual,ai_processed_at';
 
-const feed    = document.getElementById('feed');
-const filters = document.getElementById('filters');
+/* chain_id → ticker — proposals_cache flavor (different from CHAIN_TICKER) */
+const PROPOSAL_CHAIN_TICKER = {
+  'cosmos':       'ATOM',
+  'osmosis':      'OSMO',
+  'juno-network': 'JUNO',
+  'saga-2':       'SAGA',
+  'dymension':    'DYM'
+};
+
+/* ── State ─────────────────────────────────────────────────────── */
+let ALL = [];                         // releases (kept name for compat with existing code paths)
+let ALL_PROPOSALS = [];
+let CURRENT_FILTER = 'all';           // releases tab filter
+let CURRENT_FILTER_GOV = 'all';       // governance tab filter
+let ACTIVE_TAB = 'releases';          // 'releases' | 'governance'
+
+const feed       = document.getElementById('feed');
+const filters    = document.getElementById('filters');
+const filtersGov = document.getElementById('filtersGov');
+const topTabs    = document.getElementById('topTabs');
 
 /* ── Theme (persists to localStorage 'gg-theme') ─────────────────── */
 (function initTheme () {
@@ -921,6 +1101,112 @@ function cardHtml (item, idx) {
   </article>`;
 }
 
+/* ── PROPOSAL helpers (governance tab) ────────────────────────────── */
+
+/* Filter predicate for proposals */
+function matchesProposal (p, f) {
+  if (f === 'all')       return true;
+  if (f === 'active')    return p.status === 'voting';
+  if (f === 'important') return (p.ai_importance || 0) >= 4;
+  if (f === 'passed')    return p.status === 'passed';
+  return true;
+}
+
+/* Format voting deadline for proposals */
+function propDeadline (p) {
+  if (!p.voting_end_time) return '';
+  if (p.status !== 'voting') {
+    /* Closed proposal: relative time since end */
+    return relTime(p.voting_end_time);
+  }
+  /* Active: countdown */
+  const diffMs = new Date(p.voting_end_time) - new Date();
+  if (diffMs <= 0) return 'Έληξε';
+  const sec = Math.floor(diffMs / 1000);
+  const days = Math.floor(sec / 86400);
+  const hours = Math.floor((sec % 86400) / 3600);
+  if (days > 0) return `Λήγει σε ${days}ημ ${hours}ω`;
+  const mins = Math.floor((sec % 3600) / 60);
+  if (hours > 0) return `Λήγει σε ${hours}ω ${mins}λ`;
+  return `Λήγει σε ${mins}λ`;
+}
+
+/* Mintscan link path per chain (mirrors PROPOSAL_CHAIN_TICKER keys) */
+const MINTSCAN_PATH = {
+  'cosmos':       'cosmos',
+  'osmosis':      'osmosis',
+  'juno-network': 'juno',
+  'saga-2':       'saga',
+  'dymension':    'dymension'
+};
+
+const VOTE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>';
+
+/* Build one proposal card */
+function propCardHtml (p, idx) {
+  const ticker  = PROPOSAL_CHAIN_TICKER[p.chain_id] || (p.chain_id || '').toUpperCase();
+  const title   = p.title || '(no title)';
+  const summary = p.ai_summary_el || '';
+  const isLong  = summary.length > 280;
+  const status  = (p.status || 'unknown').toLowerCase();
+  const deadline = propDeadline(p);
+  const isUrgent = p.status === 'voting' && p.voting_end_time
+    && (new Date(p.voting_end_time) - new Date()) < 24 * 3600 * 1000;
+  
+  /* Recommendation badge — normalize Greek labels to safe CSS class */
+  const recRaw = String(p.ai_recommendation || '').toUpperCase();
+  let recClass = 'OYDETERO';
+  let recLabel = '⚖ ΟΥΔΕΤΕΡΟ';
+  if (recRaw.includes('ΥΠΕΡ'))      { recClass = 'YPER'; recLabel = '⚖ ΥΠΕΡ'; }
+  else if (recRaw.includes('ΚΑΤΑ')) { recClass = 'KATA'; recLabel = '⚖ ΚΑΤΑ'; }
+  
+  /* Tally summary */
+  const y = parseFloat(p.yes_pct) || 0;
+  const n = parseFloat(p.no_pct) || 0;
+  const hasTally = y > 0 || n > 0;
+  
+  /* Mintscan link */
+  const mintscanPath = MINTSCAN_PATH[p.chain_id] || p.chain_id;
+  const mintscanUrl = `https://www.mintscan.io/${mintscanPath}/proposals/${encodeURIComponent(p.proposal_id)}`;
+  
+  const moreBtn = isLong
+    ? `<button class="more-btn" data-toggle="gov-${idx}">Δες περισσότερα</button>` : '';
+  
+  const reasonHtml = p.ai_recommendation_reason
+    ? `<div class="gov-rec-reason">${esc(p.ai_recommendation_reason)}</div>` : '';
+  
+  const statusLabel = {
+    voting:   'VOTING',
+    passed:   'PASSED',
+    rejected: 'REJECTED',
+    failed:   'FAILED'
+  }[status] || status.toUpperCase();
+  
+  return `
+  <article class="card" style="animation-delay:${Math.min(idx * 45, 300)}ms">
+    <div class="card-top">
+      <span class="gov-status ${esc(status)}">${esc(statusLabel)}</span>
+      ${starsHtml(p.ai_importance)}
+    </div>
+    <div class="chain-row">
+      <span class="chain">${esc(ticker)}</span>
+      <span class="sep">·</span>
+      <span class="ver">#${esc(p.proposal_id)} · ${esc(title)}</span>
+    </div>
+    <div class="divider"></div>
+    <p class="summary ${isLong ? 'clamped' : ''}" data-summary="gov-${idx}">${esc(summary)}</p>
+    ${moreBtn}
+    ${reasonHtml}
+    <div class="gov-foot">
+      <span class="gov-rec ${recClass}">${esc(recLabel)}</span>
+      ${hasTally ? `<span class="gov-tally"><span class="dot dot-yes"></span>Yes <b>${y.toFixed(0)}%</b> · <span class="dot dot-no"></span>No <b>${n.toFixed(0)}%</b></span>` : ''}
+      <span class="foot-spacer"></span>
+      <span class="gov-deadline ${isUrgent ? 'urgent' : ''}">${esc(deadline)}</span>
+      <a class="gh-link" href="${esc(mintscanUrl)}" target="_blank" rel="noopener noreferrer" title="Δες στο Mintscan" aria-label="Δες στο Mintscan">${VOTE_ICON}</a>
+    </div>
+  </article>`;
+}
+
 /* ── Render skeletons ────────────────────────────────────────────── */
 function renderLoading () {
   let html = '';
@@ -961,11 +1247,26 @@ function renderEmpty () {
 
 /* ── Render feed for current filter ──────────────────────────────── */
 function renderFeed () {
-  const list = ALL.filter(it => matches(it, CURRENT_FILTER));
-  if (!list.length) { renderEmpty(); return; }
-  feed.innerHTML = list.map((it, i) => cardHtml(it, i)).join('');
+  if (ACTIVE_TAB === 'governance') {
+    /* Spam filter applied client-side (Postgres-side chained ORs were brittle) */
+    const clean = ALL_PROPOSALS.filter(p => p.is_spam !== true && p.is_spam_manual !== true);
+    /* Sort: active (voting) first, then by voting_end_time desc */
+    const sorted = clean.slice().sort((a, b) => {
+      const aActive = a.status === 'voting' ? 0 : 1;
+      const bActive = b.status === 'voting' ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return new Date(b.voting_end_time) - new Date(a.voting_end_time);
+    });
+    const list = sorted.filter(p => matchesProposal(p, CURRENT_FILTER_GOV));
+    if (!list.length) { renderEmpty(); return; }
+    feed.innerHTML = list.map((p, i) => propCardHtml(p, i)).join('');
+  } else {
+    const list = ALL.filter(it => matches(it, CURRENT_FILTER));
+    if (!list.length) { renderEmpty(); return; }
+    feed.innerHTML = list.map((it, i) => cardHtml(it, i)).join('');
+  }
 
-  /* "Δες περισσότερα" toggles */
+  /* "Δες περισσότερα" toggles — works for both card types via data-toggle */
   feed.querySelectorAll('.more-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const sum = feed.querySelector(`.summary[data-summary="${btn.dataset.toggle}"]`);
@@ -977,6 +1278,7 @@ function renderFeed () {
 
 /* ── Update filter pill counts ───────────────────────────────────── */
 function updateCounts () {
+  /* Releases filter pills */
   ['all','important','updates','patches'].forEach(f => {
     const el = filters.querySelector(`[data-count="${f}"]`);
     if (el) {
@@ -984,46 +1286,109 @@ function updateCounts () {
       el.textContent = `(${n})`;
     }
   });
+  
+  /* Governance filter pills */
+  const cleanProps = ALL_PROPOSALS.filter(p => p.is_spam !== true && p.is_spam_manual !== true);
+  ['all','active','important','passed'].forEach(f => {
+    const el = filtersGov.querySelector(`[data-count="gov-${f}"]`);
+    if (el) {
+      const n = cleanProps.filter(p => matchesProposal(p, f)).length;
+      el.textContent = `(${n})`;
+    }
+  });
+  
+  /* Top-tab counts (total, no filter) */
+  document.getElementById('topTabCountReleases').textContent = ALL.length;
+  document.getElementById('topTabCountGovernance').textContent = cleanProps.length;
 }
 
 /* ── Set active filter ───────────────────────────────────────────── */
 function setFilter (f) {
-  CURRENT_FILTER = f;
-  filters.querySelectorAll('.pill').forEach(p =>
-    p.setAttribute('aria-pressed', String(p.dataset.filter === f)));
+  if (ACTIVE_TAB === 'governance') {
+    CURRENT_FILTER_GOV = f;
+    filtersGov.querySelectorAll('.pill').forEach(p =>
+      p.setAttribute('aria-pressed', String(p.dataset.filter === f)));
+  } else {
+    CURRENT_FILTER = f;
+    filters.querySelectorAll('.pill').forEach(p =>
+      p.setAttribute('aria-pressed', String(p.dataset.filter === f)));
+  }
   renderFeed();
 }
 filters.addEventListener('click', e => {
   const pill = e.target.closest('.pill');
   if (pill) setFilter(pill.dataset.filter);
 });
+filtersGov.addEventListener('click', e => {
+  const pill = e.target.closest('.pill');
+  if (pill) setFilter(pill.dataset.filter);
+});
+
+/* ── Switch top tab (Releases ↔ Governance) ──────────────────────── */
+function switchTopTab (tab) {
+  if (tab !== 'releases' && tab !== 'governance') return;
+  ACTIVE_TAB = tab;
+  
+  /* Update tab button states */
+  topTabs.querySelectorAll('.top-tab').forEach(t =>
+    t.setAttribute('aria-pressed', String(t.dataset.toptab === tab)));
+  
+  /* Swap filter bar visibility */
+  filters.hidden    = tab !== 'releases';
+  filtersGov.hidden = tab !== 'governance';
+  
+  renderFeed();
+}
+topTabs.addEventListener('click', e => {
+  const tab = e.target.closest('.top-tab');
+  if (tab) switchTopTab(tab.dataset.toptab);
+});
 
 /* ── Fetch from Supabase (with demo fallback) ────────────────────── */
 async function load () {
   renderLoading();
   try {
-    let data;
+    let releasesData, proposalsData;
+    
     if (SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'PASTE_HERE') {
-      const res = await fetch(SUPABASE_URL + QUERY, {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: 'Bearer ' + SUPABASE_ANON_KEY
-        }
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      data = await res.json();
+      /* Fetch releases + proposals in parallel for fastest first paint */
+      const headers = {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+      };
+      const [resR, resP] = await Promise.all([
+        fetch(SUPABASE_URL + QUERY, { headers }),
+        fetch(SUPABASE_URL + PROPOSALS_QUERY, { headers })
+      ]);
+      
+      if (!resR.ok) throw new Error('Releases HTTP ' + resR.status);
+      releasesData = await resR.json();
+      
+      /* Proposals endpoint may fail independently — don't kill the page */
+      if (resP.ok) {
+        proposalsData = await resP.json();
+      } else {
+        console.warn('[GGWALL/news] proposals fetch failed:', resP.status);
+        proposalsData = [];
+      }
     } else {
       /* Demo data so the page renders before the key is pasted. */
       await new Promise(r => setTimeout(r, 650));
-      data = DEMO;
+      releasesData = DEMO;
+      proposalsData = [];
     }
-    ALL = Array.isArray(data) ? data : [];
+    
+    ALL = Array.isArray(releasesData) ? releasesData : [];
     ALL.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+    
+    ALL_PROPOSALS = Array.isArray(proposalsData) ? proposalsData : [];
+    
     updateCounts();
     renderFeed();
-    // Mark all news as seen — clears the unread badge on other pages.
-    // We store the timestamp of the most recent published_at so future
-    // releases will trigger the badge on index/history pages.
+    
+    /* Mark all news as seen — clears the unread badge on other pages.
+       We store the timestamp of the most recent published_at so future
+       releases will trigger the badge on index/history pages. */
     if (ALL.length > 0) {
       try { localStorage.setItem('gg-news-last-seen', ALL[0].published_at); } catch(e){}
     } else {
