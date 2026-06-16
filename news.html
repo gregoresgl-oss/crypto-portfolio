@@ -1350,18 +1350,55 @@ topTabs.addEventListener('click', e => {
   if (tab) switchTopTab(tab.dataset.toptab);
 });
 
+/* ── Auth helpers ─────────────────────────────────────────────────
+   News page shows public-ish data (releases, governance) but we still
+   gate access behind login for parity with the rest of the site and 
+   to prevent anon traffic from hitting Supabase egress quotas. 
+   Pattern mirrors history.html: read JWT from Supabase Auth's storage,
+   fall back to anon key only for the redirect path. */
+function getCurrentUser () {
+  try {
+    const raw = sessionStorage.getItem('active_user') || localStorage.getItem('ggwall_active_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function getAuthHeaders () {
+  const headers = { apikey: SUPABASE_ANON_KEY };
+  try {
+    const sess = localStorage.getItem('sb-rzrxulubttnjtxziodib-auth-token');
+    if (sess) {
+      const parsed = JSON.parse(sess);
+      if (parsed && parsed.access_token) {
+        headers['Authorization'] = 'Bearer ' + parsed.access_token;
+        return headers;
+      }
+    }
+  } catch (e) {}
+  /* Fallback for unauthenticated state — load() should have redirected
+     before reaching this branch, but keep the fallback so demo mode still works. */
+  headers['Authorization'] = 'Bearer ' + SUPABASE_ANON_KEY;
+  return headers;
+}
+
 /* ── Fetch from Supabase (with demo fallback) ────────────────────── */
 async function load () {
+  /* Auth gate: redirect to login if no active session. Mirrors history.html. */
+  const _user = getCurrentUser();
+  if (!_user || !_user.id) {
+    window.location.href = 'login.html';
+    return;
+  }
+  
   renderLoading();
   try {
     let releasesData, proposalsData;
     
     if (SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'PASTE_HERE') {
-      /* Fetch releases + proposals in parallel for fastest first paint */
-      const headers = {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: 'Bearer ' + SUPABASE_ANON_KEY
-      };
+      /* Fetch releases + proposals in parallel for fastest first paint.
+         Use JWT-authenticated headers (not just anon) so RLS-protected
+         tables remain accessible if they get tightened later. */
+      const headers = getAuthHeaders();
       const [resR, resP] = await Promise.all([
         fetch(SUPABASE_URL + QUERY, { headers }),
         fetch(SUPABASE_URL + PROPOSALS_QUERY, { headers })
@@ -1394,13 +1431,35 @@ async function load () {
     updateCounts();
     renderFeed();
     
-    /* Mark all news as seen — clears the unread badge on other pages.
-       We store the timestamp of the most recent published_at so future
-       releases will trigger the badge on index/history pages. */
+    /* Mark news+governance as seen. We track two separate keys so the 
+       parent dashboard can show the gold dot when EITHER a new release 
+       OR a new analyzed proposal appears. Each key stores the timestamp 
+       of the latest item we just displayed; the dashboard polls both 
+       tables and lights the dot when MAX(...) > stored value. */
+    const nowIso = new Date().toISOString();
+    
     if (ALL.length > 0) {
-      try { localStorage.setItem('gg-news-last-seen', ALL[0].published_at); } catch(e){}
+      try { localStorage.setItem('gg-news-last-seen', ALL[0].published_at); } catch (e) {}
     } else {
-      try { localStorage.setItem('gg-news-last-seen', new Date().toISOString()); } catch(e){}
+      try { localStorage.setItem('gg-news-last-seen', nowIso); } catch (e) {}
+    }
+    
+    /* For proposals, use ai_processed_at (when AI analysis arrived) 
+       rather than voting_end_time. A proposal "becomes news" the moment 
+       its AI summary is ready, not when its voting window ends. */
+    if (ALL_PROPOSALS.length > 0) {
+      const latestProp = ALL_PROPOSALS
+        .map(p => p.ai_processed_at)
+        .filter(Boolean)
+        .sort()
+        .reverse()[0];
+      if (latestProp) {
+        try { localStorage.setItem('gg-gov-last-seen', latestProp); } catch (e) {}
+      } else {
+        try { localStorage.setItem('gg-gov-last-seen', nowIso); } catch (e) {}
+      }
+    } else {
+      try { localStorage.setItem('gg-gov-last-seen', nowIso); } catch (e) {}
     }
   } catch (err) {
     console.error('[GGWALL/news] fetch failed:', err);
