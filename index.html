@@ -2027,45 +2027,72 @@ async function _checkNewTransactions(){
 }
 
 // ─── News notification dot ────────────────────────────────────────
-// Δείχνει gold dot στα News buttons αν υπάρχουν νέα releases
-// μετά το τελευταίο visit της σελίδας news.html (localStorage).
+// Lights up the gold dot on News buttons when EITHER a new release OR
+// a newly-analyzed governance proposal appears since the user's last 
+// visit to news.html. Two separate localStorage timestamps are tracked
+// because the two data sources have independent freshness:
+//   gg-news-last-seen  ← latest chain_news_cache.published_at the user has seen
+//   gg-gov-last-seen   ← latest proposals_cache.ai_processed_at the user has seen
+// news.html updates both keys whenever it loads.
 async function _checkNewNews(){
   try{
-    // Default "last seen" = 30 days ago (avoids spammy badge on fresh install)
-    var lastSeen = localStorage.getItem('gg-news-last-seen');
-    if(!lastSeen){
-      lastSeen = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+    // Default "last seen" = 30 days ago (avoids spammy badge on fresh install
+    // OR on browsers where localStorage was cleared)
+    var defaultLastSeen = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+    var lastSeenNews = localStorage.getItem('gg-news-last-seen') || defaultLastSeen;
+    var lastSeenGov  = localStorage.getItem('gg-gov-last-seen')  || defaultLastSeen;
+    
+    // chain_news_cache uses Coingecko slugs (cosmoshub, juno, saga)
+    var newsUrl = _SB_URL + "/rest/v1/chain_news_cache"
+                + "?chain_id=in.(cosmoshub,osmosis,juno,cardano,saga,dymension)"
+                + "&ai_summary_el=not.is.null"
+                + "&published_at=gt." + encodeURIComponent(lastSeenNews)
+                + "&select=id&limit=1";
+    
+    // proposals_cache uses Cosmos SDK chain names (cosmos, juno-network, saga-2).
+    // Dashed values must be double-quoted so PostgREST parses them as identifiers.
+    var govUrl = _SB_URL + "/rest/v1/proposals_cache"
+               + '?chain_id=in.("cosmos","osmosis","juno-network","saga-2","dymension")'
+               + "&ai_summary_el=not.is.null"
+               + "&ai_processed_at=gt." + encodeURIComponent(lastSeenGov)
+               + "&select=id&limit=1";
+    
+    var headers = {
+      apikey: _SB_ANON,
+      Authorization: 'Bearer ' + _SB_ANON,
+      Prefer: "count=exact"
+    };
+    
+    // Parallel fetch so the slowest request gates the dot, not the sum
+    var results = await Promise.all([
+      fetch(newsUrl, {headers}).catch(function(){return null;}),
+      fetch(govUrl,  {headers}).catch(function(){return null;})
+    ]);
+    
+    function parseCount(resp){
+      if(!resp || !resp.ok) return 0;
+      var range = resp.headers.get('Content-Range') || '';
+      var m = range.match(/\/(\d+)$/);
+      return m ? parseInt(m[1]) : 0;
     }
     
-    // Query: count of news with published_at > lastSeen and AI summary present
-    var url = _SB_URL + "/rest/v1/chain_news_cache"
-            + "?chain_id=in.(cosmoshub,osmosis,juno,cardano,saga,dymension)"
-            + "&ai_summary_el=not.is.null"
-            + "&published_at=gt." + encodeURIComponent(lastSeen)
-            + "&select=id&limit=1";
-    var r = await fetch(url, {
-      headers: {
-        apikey: _SB_ANON,
-        Authorization: 'Bearer ' + _SB_ANON,
-        Prefer: "count=exact"
-      }
-    });
-    if(!r.ok) return;
-    
-    // PostgREST count via Content-Range header
-    var range = r.headers.get('Content-Range') || '';
-    var totalMatch = range.match(/\/(\d+)$/);
-    var total = totalMatch ? parseInt(totalMatch[1]) : 0;
+    var total = parseCount(results[0]) + parseCount(results[1]);
     
     var navDot = document.getElementById('nav-news-dot');
-    var bnDot = document.getElementById('bn-news-dot');
+    var bnDot  = document.getElementById('bn-news-dot');
     var show = total > 0 ? '' : 'none';
     if(navDot) navDot.style.display = show;
-    if(bnDot) bnDot.style.display = show;
+    if(bnDot)  bnDot.style.display  = show;
   }catch(e){
     console.warn('[news-dot]', e.message);
   }
 }
+
+// Real-time-ish polling: re-check every 3 minutes while the tab is visible.
+// (Skip while backgrounded — saves Supabase egress and battery on mobile.)
+setInterval(function(){
+  if(document.visibilityState === 'visible') _checkNewNews();
+}, 3 * 60 * 1000);
 
 function _populateOverlay(user){
   if(!user)return;
