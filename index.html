@@ -2594,11 +2594,135 @@ function _renderMarkets(main,right){
   if(!_cmpChart)loadHistoricalData(_cmpRange);
 }
 
+// ─── Hypothetical Returns (Hero Card) ──────────────────────────────────
+async function _getHypotheticalRewardsLive(){
+  try{
+    // Fetch 365 days of price history
+    var {data:prices}=await sb.from('price_history_hourly').select('coin_id,timestamp,price_eur').gte('timestamp',new Date(Date.now()-365*24*60*60*1000).toISOString());
+    if(!prices||!prices.length)return null;
+    
+    // Build daily close price map (last price each day)
+    var dailyClose={};
+    prices.forEach(function(p){
+      var date=p.timestamp.split('T')[0];
+      var key=p.coin_id+':'+date;
+      dailyClose[key]=p.price_eur;
+    });
+    
+    // Calculate daily hypothetical rewards using CURRENT stakes
+    var rewards=[];
+    for(var daysAgo=365;daysAgo>=0;daysAgo--){
+      var d=new Date();d.setDate(d.getDate()-daysAgo);
+      var dateStr=d.toISOString().split('T')[0];
+      var dayEur=0;
+      
+      for(var chainId in userdata){
+        var ud=userdata[chainId]||{};
+        var staked=ud.staked||0;
+        var apr=CHAIN_APR[chainId]||0;
+        if(staked<=0)continue;
+        
+        var dailyTokens=(staked*apr/100)/365;
+        var priceKey=chainId+':'+dateStr;
+        var price=dailyClose[priceKey];
+        if(price){dayEur+=dailyTokens*price;}
+      }
+      rewards.push({date:dateStr,eur:dayEur});
+    }
+    
+    // Aggregate by periods
+    var week=rewards.slice(-7).reduce(function(s,r){return s+r.eur;},0);
+    var month=rewards.slice(-30).reduce(function(s,r){return s+r.eur;},0);
+    var year=rewards.reduce(function(s,r){return s+r.eur;},0);
+    
+    // Compare with previous periods for delta
+    var weekPrev=rewards.slice(-14,-7).reduce(function(s,r){return s+r.eur;},0);
+    var monthPrev=rewards.slice(-60,-30).reduce(function(s,r){return s+r.eur;},0);
+    var yearPrev=rewards.slice(-730,-365).reduce(function(s,r){return s+r.eur;},0);
+    
+    var deltaWeek=weekPrev?((week-weekPrev)/weekPrev*100):0;
+    var deltaMonth=monthPrev?((month-monthPrev)/monthPrev*100):0;
+    var deltaYear=yearPrev?((year-yearPrev)/yearPrev*100):0;
+    
+    return {
+      week:{eur:week,delta:deltaWeek,isPositive:week>=0,series:rewards.slice(-7).map(function(r){return r.eur;})},
+      month:{eur:month,delta:deltaMonth,isPositive:month>=0,series:rewards.slice(-30).map(function(r){return r.eur;})},
+      year:{eur:year,delta:deltaYear,isPositive:year>=0,series:rewards.map(function(r){return r.eur;})}
+    };
+  }catch(e){console.error('[hypo]',e);return null;}
+}
+
+function _buildHeroCard(data){
+  if(!data)return'';
+  var y=data.year;
+  var isPos=y.isPositive;
+  var heroCol=isPos?'#74e0a4':'#f07a82';
+  var deltaCol=isPos?'#4f9e74':'#b85560';
+  var sparklineData=y.series||[];
+  
+  // Generate sparkline polyline
+  var n=sparklineData.length;
+  if(n<2)return'';
+  var minVal=Math.min.apply(null,sparklineData);
+  var maxVal=Math.max.apply(null,sparklineData);
+  var range=maxVal-minVal||1;
+  var h=56,w=420;
+  var pts=sparklineData.map(function(v,i){
+    var x=(i/(n-1))*w;
+    var y=h-(((v-minVal)/range)*h);
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  
+  var svg='<svg width="100%" height="56" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="margin-top:22px;display:block;"><defs><linearGradient id="gf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+heroCol+'" stop-opacity="0.2"/><stop offset="1" stop-color="'+heroCol+'" stop-opacity="0"/></linearGradient></defs><path d="M0,'+h+' L'+pts+' L'+w+','+h+' Z" fill="url(#gf)"/><polyline points="'+pts+'" fill="none" stroke="'+heroCol+'" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+  
+  return '<div style="background:#0f1115;border:1px solid #1c1f25;border-radius:14px;display:flex;align-items:stretch;overflow:hidden;">'
+    +'<div style="flex:1.35;padding:28px 32px;">'
+      +'<div style="display:flex;align-items:center;gap:10px;">'
+        +'<span style="font-size:11px;letter-spacing:2px;color:#5a6068;">ΧΡΟΝΟΣ</span>'
+        +'<span style="font-size:10px;letter-spacing:1px;color:#5a6068;border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:2px 7px;">12 ΜΗΝΕΣ</span>'
+      +'</div>'
+      +'<div style="display:flex;align-items:baseline;gap:14px;margin-top:10px;">'
+        +'<span style="font-size:56px;font-weight:600;color:'+heroCol+';letter-spacing:0.5px;line-height:1;">'+(isPos?'+':'')+_fmt(y.eur)+'</span>'
+        +'<span style="font-size:13px;color:'+deltaCol+';">'+(isPos?'▲':'▼')+' '+Math.abs(y.delta).toFixed(1)+'% συνολικά</span>'
+      +'</div>'
+      +svg
+    +'</div>'
+    +'<div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px 32px;border-left:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.012);">'
+      +'<div style="font-size:11px;letter-spacing:2px;color:#5a6068;margin-bottom:6px;">ΣΥΝΟΛΟ ΑΠΟΔΟΣΕΩΝ</div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'
+        +'<div style="display:flex;flex-direction:column;gap:3px;">'
+          +'<span style="font-size:13px;letter-spacing:1.5px;color:#9aa0a8;">ΕΒΔΟΜΑΔΑ</span>'
+          +'<span style="font-size:10px;color:#5a6068;">τελευταίες 7 ημέρες</span>'
+        +'</div>'
+        +'<span style="font-size:23px;font-weight:600;color:'+(data.week.isPositive?'#5ec98c':'#e0626c')+';">'+(data.week.isPositive?'+':'')+_fmt(data.week.eur)+'</span>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;">'
+        +'<div style="display:flex;flex-direction:column;gap:3px;">'
+          +'<span style="font-size:13px;letter-spacing:1.5px;color:#9aa0a8;">ΜΗΝΑΣ</span>'
+          +'<span style="font-size:10px;color:#5a6068;">τελευταίες 30 ημέρες</span>'
+        +'</div>'
+        +'<span style="font-size:23px;font-weight:600;color:'+(data.month.isPositive?'#5ec98c':'#e0626c')+';">'+(data.month.isPositive?'+':'')+_fmt(data.month.eur)+'</span>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+}
+
 function _renderStaking(main,right){
   if(!main)return;main.innerHTML="";
   var el=document.createElement("div");el.className="card";
   el.innerHTML='<div class="card-head"><span class="card-title">STAKING REWARDS</span></div><div id="staking-content">'+_buildStakingRows()+'</div>';
-  main.appendChild(el);if(right)right.innerHTML="";
+  main.appendChild(el);
+  
+  // Load hero card async (below the fold)
+  var heroEl=document.createElement("div");heroEl.id="hero-rewards";heroEl.style.marginTop="14px";heroEl.innerHTML='<div style="padding:28px;text-align:center;color:var(--muted);font-size:11px;">⏳ Φόρτωση αποδόσεων...</div>';
+  main.appendChild(heroEl);
+  
+  _getHypotheticalRewardsLive().then(function(data){
+    if(data){heroEl.innerHTML=_buildHeroCard(data);}
+    else{heroEl.innerHTML='';}
+  }).catch(function(e){console.error('[hero load]',e);heroEl.innerHTML='';});
+  
+  if(right)right.innerHTML="";
 }
 
 function _renderAllocations(main,right){
