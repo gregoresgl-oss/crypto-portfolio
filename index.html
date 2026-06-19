@@ -2478,7 +2478,14 @@ function _wgtFearGreed(){
 
 function _wgtStaking(){
   var el=document.createElement("div");el.className="card";
-  el.innerHTML='<div class="card-head"><span class="card-title">STAKING</span></div><div id="staking-content">'+_buildStakingRows()+'</div>';
+  el.innerHTML='<div class="card-head"><span class="card-title">STAKING</span></div><div id="staking-content">'+_buildStakingRows()+'</div><div id="hero-rewards-wgt" style="margin-top:14px;"></div>';
+  setTimeout(function(){
+    var heroEl=el.querySelector('#hero-rewards-wgt');
+    if(!heroEl)return;
+    _getHypotheticalRewardsLive().then(function(data){
+      if(data)heroEl.innerHTML=_buildHeroCard(data);
+    }).catch(function(e){console.error('[hero wgt load]',e);});
+  },0);
   return el;
 }
 
@@ -2590,13 +2597,18 @@ function _renderMarkets(main,right){
 async function _getHypotheticalRewardsLive(){
   try{
     // Fetch 365 days of price history
-    var {data:prices}=await sb.from('price_history_hourly').select('coin_id,timestamp,price_eur').gte('timestamp',new Date(Date.now()-365*24*60*60*1000).toISOString());
+    // Fetch 365 days of price history (use fetch+Range like rest of codebase to avoid 1000-row PostgREST default limit)
+    var hypoHeaders=Object.assign({},_SB_H,{"Range":"0-100000","Range-Unit":"items"});
+    var hypoCutoff=new Date(Date.now()-365*24*60*60*1000).toISOString();
+    var hr=await fetch(_SB_URL+"/rest/v1/price_history_hourly?select=coin_id,created_at,price_eur&created_at=gte."+hypoCutoff+"&order=created_at.asc&limit=100000",{headers:hypoHeaders,signal:AbortSignal.timeout(15000)});
+    if(!hr.ok)return null;
+    var prices=await hr.json();
     if(!prices||!prices.length)return null;
     
     // Build daily close price map (last price each day)
     var dailyClose={};
     prices.forEach(function(p){
-      var date=p.timestamp.split('T')[0];
+      var date=p.created_at.split('T')[0];
       var key=p.coin_id+':'+date;
       dailyClose[key]=p.price_eur;
     });
