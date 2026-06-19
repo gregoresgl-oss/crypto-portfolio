@@ -876,6 +876,13 @@ svg path,svg circle,svg line,svg text,svg rect{transition:fill .35s ease,stroke 
 .stake-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
 .stake-cell{font-size:10px;font-family:"JetBrains Mono",monospace;color:var(--text);}
 .stake-cell small{color:var(--muted);display:block;font-size:8px;text-transform:uppercase;letter-spacing:.05em;}
+/* Staking totals — aggregate weekly/monthly/yearly EUR across all chains */
+.stake-totals{margin-top:11px;padding:11px 12px;background:rgba(245,194,74,.05);border:1px solid rgba(245,194,74,.18);border-radius:8px;}
+.stake-totals-head{font-size:9px;font-weight:700;color:rgba(245,194,74,.85);letter-spacing:.08em;text-transform:uppercase;font-family:"JetBrains Mono",monospace;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.stake-totals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.stake-totals-cell{text-align:center;}
+.stake-totals-cell small{display:block;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;font-family:"JetBrains Mono",monospace;}
+.stake-totals-cell strong{font-size:14px;font-weight:700;color:var(--green);font-family:"JetBrains Mono",monospace;letter-spacing:-.3px;}
 
 /* Fear & Greed */
 .fg-bar{height:5px;border-radius:99px;margin:8px 0 2px;background:linear-gradient(90deg,#ff5f6d,#ff9f40,#ffd700,#a0d468,#7dd67d);position:relative;}
@@ -2478,10 +2485,12 @@ function _wgtStaking(){
 function _buildStakingRows(){
   var chains=activeCoinIds.filter(function(id){return CHAIN_APR[id]&&(userdata[id]&&userdata[id].staked||0)>0&&_shouldShow(id);});
   if(!chains.length)return '<div style="color:var(--muted);font-size:11px;text-align:center;padding:14px 0;">Δεν βρέθηκαν staked tokens</div>';
-  return chains.map(function(id){
+  var totalDailyEur=0;
+  var rowsHtml=chains.map(function(id){
     var ud=userdata[id]||{},p=prices[id]||0,apr=CHAIN_APR[id]||0;
     var sym=(coinReg[id]&&coinReg[id].sym)||id.toUpperCase();
     var dy=ud.staked*apr/100/365,wk=dy*7,mo=dy*30;
+    totalDailyEur+=dy*p;
     var logo=logoUrl(id);
     var logHtml=logo?('<img src="'+logo+'" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">'):('<span style="font-size:12px;">'+sym.slice(0,2)+'</span>');
     return '<div class="stake-row">'
@@ -2495,11 +2504,20 @@ function _buildStakingRows(){
       +'<div class="stake-grid">'
         +'<div class="stake-cell"><small>Ημέρα</small>+'+_fmtC(dy,sym)+'</div>'
         +'<div class="stake-cell"><small>Εβδομάδα</small>+'+_fmtC(wk,sym)+'</div>'
-        +'<div class="stake-cell"><small>Μήνας</small>+'+_fmtC(mo,sym)+'</div>'
+        +'<div class="stake-cell"><small>Μήνας</small>+'+_fmtC(mo,sym)+' <span class="text-muted" style="font-size:9px;">('+_fmt(mo*p)+')</span></div>'
         +'<div class="stake-cell"><small>Χρόνος</small>+'+_fmtC(dy*365,sym)+' <span class="text-muted" style="font-size:9px;">('+_fmt(dy*365*p)+')</span></div>'
       +'</div>'
       +'</div>';
   }).join("");
+  var totalsHtml='<div class="stake-totals">'
+    +'<div class="stake-totals-head"><span>📊</span><span>Σύνολο αποδόσεων</span></div>'
+    +'<div class="stake-totals-grid">'
+      +'<div class="stake-totals-cell"><small>Εβδομάδα</small><strong>+'+_fmt(totalDailyEur*7)+'</strong></div>'
+      +'<div class="stake-totals-cell"><small>Μήνας</small><strong>+'+_fmt(totalDailyEur*30)+'</strong></div>'
+      +'<div class="stake-totals-cell"><small>Χρόνος</small><strong>+'+_fmt(totalDailyEur*365)+'</strong></div>'
+    +'</div>'
+  +'</div>';
+  return rowsHtml+totalsHtml;
 }
 
 
