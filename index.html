@@ -2639,6 +2639,11 @@ async function _getHypotheticalRewardsLive(){
     var month=rewards.slice(-30).reduce(function(s,r){return s+r.eur;},0);
     var year=rewards.reduce(function(s,r){return s+r.eur;},0);
     
+    console.log('[hypo-debug] last 10 daily rewards:',rewards.slice(-10));
+    console.log('[hypo-debug] week='+week+' month='+month+' year='+year);
+    console.log('[hypo-debug] userdata staked snapshot:',Object.keys(userdata).map(function(k){return k+':'+((userdata[k]||{}).staked||0);}));
+    console.log('[hypo-debug] dailyClose sample keys:',Object.keys(dailyClose).filter(function(k){return k.indexOf('cosmos:')===0;}).slice(-10));
+    
     // Compare with previous periods for delta
     var weekPrev=rewards.slice(-14,-7).reduce(function(s,r){return s+r.eur;},0);
     var monthPrev=rewards.slice(-60,-30).reduce(function(s,r){return s+r.eur;},0);
