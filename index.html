@@ -2509,15 +2509,7 @@ function _buildStakingRows(){
       +'</div>'
       +'</div>';
   }).join("");
-  var totalsHtml='<div class="stake-totals">'
-    +'<div class="stake-totals-head"><span>📊</span><span>Σύνολο αποδόσεων</span></div>'
-    +'<div class="stake-totals-grid">'
-      +'<div class="stake-totals-cell"><small>Εβδομάδα</small><strong>+'+_fmt(totalDailyEur*7)+'</strong></div>'
-      +'<div class="stake-totals-cell"><small>Μήνας</small><strong>+'+_fmt(totalDailyEur*30)+'</strong></div>'
-      +'<div class="stake-totals-cell"><small>Χρόνος</small><strong>+'+_fmt(totalDailyEur*365)+'</strong></div>'
-    +'</div>'
-  +'</div>';
-  return rowsHtml+totalsHtml;
+  return rowsHtml;
 }
 
 
