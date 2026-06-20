@@ -2610,6 +2610,17 @@ function _getLiveRewardsTotals(){
   };
 }
 
+function _fmtExact(v){
+  if(isNaN(v)||v===null||v===undefined)return"—";
+  v=Number(v);
+  return v.toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:0})+"€";
+}
+function _fmtRound(v){
+  if(isNaN(v)||v===null||v===undefined)return"—";
+  v=Number(v);
+  if(Math.abs(v)>=1000)return Math.round(v/1000)+"k€";
+  return Math.round(v)+"€";
+}
 function _buildHeroCard(data){
   if(!data)return'';
   var y=data.year;
@@ -2627,18 +2638,18 @@ function _buildHeroCard(data){
         +'<span style="font-size:9px;letter-spacing:1px;color:var(--muted);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;">12 ΜΗΝΕΣ</span>'
       +'</div>'
       +'<div style="display:flex;align-items:baseline;gap:14px;margin-top:4px;position:relative;">'
-        +'<span style="font-size:30px;font-weight:600;color:var(--green);letter-spacing:0.5px;line-height:1;font-family:JetBrains Mono,monospace;">+'+_fmt(y.eur)+'</span>'
+        +'<span style="font-size:26px;font-weight:600;color:var(--green);letter-spacing:0.5px;line-height:1;font-family:JetBrains Mono,monospace;white-space:nowrap;">+'+_fmtExact(y.eur)+'</span>'
       +'</div>'
       +'<div style="font-size:9px;color:var(--muted);margin-top:3px;position:relative;">με βάση τις τρέχουσες τιμές</div>'
     +'</div>'
     +'<div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 0 8px 20px;border-left:1px solid var(--border2);">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2);">'
         +'<span style="font-size:12px;letter-spacing:1.5px;color:var(--muted2);">ΕΒΔΟΜΑΔΑ</span>'
-        +'<span style="font-size:16px;font-weight:600;font-family:JetBrains Mono,monospace;color:var(--green);">+'+_fmt(data.week.eur)+'</span>'
+        +'<span style="font-size:16px;font-weight:600;font-family:JetBrains Mono,monospace;color:var(--green);">+'+_fmtRound(data.week.eur)+'</span>'
       +'</div>'
       +'<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;">'
         +'<span style="font-size:12px;letter-spacing:1.5px;color:var(--muted2);">ΜΗΝΑΣ</span>'
-        +'<span style="font-size:16px;font-weight:600;font-family:JetBrains Mono,monospace;color:var(--green);">+'+_fmt(data.month.eur)+'</span>'
+        +'<span style="font-size:16px;font-weight:600;font-family:JetBrains Mono,monospace;color:var(--green);">+'+_fmtRound(data.month.eur)+'</span>'
       +'</div>'
     +'</div>'
   +'</div>';
