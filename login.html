@@ -1361,7 +1361,6 @@ html,body{height:100%;width:100%;background:#070609;color:#e7e4d8;font-family:'S
       </div>
       <div style="text-align:center;margin-top:18px;margin-bottom:8px;">
         <div style="font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:600;letter-spacing:10px;color:#e8a434;padding-left:10px;">GGWALL</div>
-        <div class="pin-hint" id="pinHint" aria-live="polite" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:5px;color:#6e6a72;text-transform:uppercase;margin-top:8px;">ΠΡΟΣΒΑΣΗ ΣΤΟ ΠΟΡΤΟΦΟΛΙ</div>
       </div>
     </div>
     <div class="card" id="pin-card" style="background:rgba(20,18,23,0.72);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:18px;backdrop-filter:blur(12px);box-shadow:0 30px 80px rgba(0,0,0,0.55);transition:border-color .3s;">
@@ -2074,7 +2073,6 @@ function _showScreen(id){
     _failCount=0;
     for(var _i=0;_i<3;_i++){var _a=document.getElementById('att'+_i);if(_a)_a.classList.remove('warn','used');}
     var _lbl=document.getElementById('att-label');if(_lbl)_lbl.textContent='3 προσπάθειες πριν το κλείδωμα';
-    var _hint=document.getElementById('pinHint');if(_hint){_hint.textContent='Πρόσβαση στο πορτοφόλι';_hint.style.color='';}
     var _logo=document.getElementById('topLogo');if(_logo){_logo.classList.remove('success','fail');_logo.classList.add('idle');}
   }
 }
@@ -3023,7 +3021,6 @@ function _playLogoState(state){
     if(card)card.style.borderColor='rgba(255,90,82,0.35)';
     setTimeout(function(){
       logo.classList.remove('fail'); logo.classList.add('idle');
-      if(hint){hint.textContent='ΠΡΟΣΒΑΣΗ ΣΤΟ ΠΟΡΤΟΦΟΛΙ';hint.style.color='';}
       if(card)card.style.borderColor='';
     }, 1300);
   }
