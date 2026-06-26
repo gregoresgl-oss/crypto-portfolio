@@ -1861,7 +1861,34 @@ async function fetchLogo(id){
   try{const r=await fetch("https://api.coingecko.com/api/v3/search?query="+encodeURIComponent(id),{signal:AbortSignal.timeout(5000)});if(r.ok){const d=await r.json();const c=(d.coins||[]).find(x=>x.id===id);if(c?.large){LOGO_CACHE[id]=c.large;return c.large;}}}catch(e){}
   return null;
 }
-const CHAIN_APR={"cosmos":14.5,"osmosis":12.0,"juno-network":35.0,"dymension":40.0,"saga-2":25.0,"celestia":12.0,"stargaze":30.0,"akash-network":20.0,"secret":22.0,"injective-protocol":8.0,"kava":18.0,"evmos":50.0,"cardano":3.0};
+// ✅ DYNAMIC APR: Loaded from apr_cache table (live from chain staking params)
+// Fallback hardcoded values in case db load fails
+var CHAIN_APR={"cosmos":14.5,"osmosis":12.0,"juno-network":35.0,"dymension":40.0,"saga-2":25.0,"celestia":12.0,"stargaze":30.0,"akash-network":20.0,"secret":22.0,"injective-protocol":8.0,"kava":18.0,"evmos":50.0,"cardano":3.0};
+
+// Load live APR from database
+async function _loadLiveAPR(){
+  try{
+    const {data}=await _sb.from("apr_cache").select("chain_id,apr");
+    if(data&&data.length){
+      const before=JSON.stringify(CHAIN_APR);
+      (data||[]).forEach(r=>{CHAIN_APR[r.chain_id]=r.apr;});
+      const after=JSON.stringify(CHAIN_APR);
+      if(before!==after){
+        console.log("[APR] ✅ Updated live APRs from database:",CHAIN_APR);
+        _rerenderStakingSection(); // Rerender if APR values changed
+      }
+    }
+  }catch(e){
+    console.warn("[APR] ⚠️ Failed to load live APRs (using fallback):",e.message);
+  }
+}
+
+// Rerender staking section when APR changes
+function _rerenderStakingSection(){
+  if(_nav==='staking'){
+    _renderSection('staking');
+  }
+}
 const COSMOS_CHAINS=[
   {id:"cosmos",name:"Cosmos",sym:"ATOM",prefix:"cosmos",denom:"uatom",dec:6,ep:["https://rest.cosmos.directory/cosmoshub","https://cosmos-rest.publicnode.com"]},
   {id:"osmosis",name:"Osmosis",sym:"OSMO",prefix:"osmo",denom:"uosmo",dec:6,ep:["https://rest.cosmos.directory/osmosis"]},
@@ -4484,8 +4511,8 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   decryptAndLoadAddrs(sessionStorage.getItem("login_pin"),au.id);
   // Render portfolio (addresses are parsed, prices loading async)
   navTo("portfolio");
-  // Periodic refresh
-  // Listen for iframe resize messages + external link opens
+  // Load live APR from database on startup
+  _loadLiveAPR();
   window.addEventListener('message',function(e){
     // Iframe-requested external link open (target=_blank fallback)
     if(e.data&&e.data.type==='openExternal'&&typeof e.data.url==='string'){
@@ -4528,7 +4555,8 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
     setTimeout(function(){if(!_balancesReady)_hideLoader();},8000);
     await _loadFromCache(_user.id);
     await loadPrices(false);
-
+    // Load live APR from database (updated every 12 hours by edge function)
+    await _loadLiveAPR();
   },5*60*1000);
   // Background tasks
   setTimeout(()=>{_syncUserToCloud(au);},2000);
