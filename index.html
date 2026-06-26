@@ -1868,15 +1868,25 @@ var CHAIN_APR={"cosmos":14.5,"osmosis":12.0,"juno-network":35.0,"dymension":40.0
 // Load live APR from database
 async function _loadLiveAPR(){
   try{
-    const {data}=await _sb.from("apr_cache").select("chain_id,apr");
+    console.log("[APR] Fetching from apr_cache table...");
+    const {data, error}=await _sb.from("apr_cache").select("chain_id,apr");
+    if(error){
+      console.warn("[APR] ❌ DB Error:", error.message);
+      return;
+    }
     if(data&&data.length){
+      console.log("[APR] Received", data.length, "entries from DB:", data);
       const before=JSON.stringify(CHAIN_APR);
       (data||[]).forEach(r=>{CHAIN_APR[r.chain_id]=r.apr;});
       const after=JSON.stringify(CHAIN_APR);
       if(before!==after){
         console.log("[APR] ✅ Updated live APRs from database:",CHAIN_APR);
         _rerenderStakingSection(); // Rerender if APR values changed
+      }else{
+        console.log("[APR] No changes detected");
       }
+    }else{
+      console.warn("[APR] ⚠️ No data returned from DB");
     }
   }catch(e){
     console.warn("[APR] ⚠️ Failed to load live APRs (using fallback):",e.message);
@@ -4511,8 +4521,9 @@ if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.se
   decryptAndLoadAddrs(sessionStorage.getItem("login_pin"),au.id);
   // Render portfolio (addresses are parsed, prices loading async)
   navTo("portfolio");
-  // Load live APR from database on startup
-  _loadLiveAPR();
+  // Load live APR from database on startup (async, no wait)
+  console.log("[APR] Loading live APRs at startup...");
+  _loadLiveAPR().catch(e => console.error("[APR] Startup load failed:", e));
   window.addEventListener('message',function(e){
     // Iframe-requested external link open (target=_blank fallback)
     if(e.data&&e.data.type==='openExternal'&&typeof e.data.url==='string'){
