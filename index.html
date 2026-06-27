@@ -2086,6 +2086,8 @@ async function _checkNewNews(){
     var lastSeenNews = localStorage.getItem('gg-news-last-seen') || defaultLastSeen;
     var lastSeenGov  = localStorage.getItem('gg-gov-last-seen')  || defaultLastSeen;
     
+    console.log('[news-dot] Checking news (lastSeen: news='+lastSeenNews.slice(0,10)+', gov='+lastSeenGov.slice(0,10)+')');
+    
     // chain_news_cache uses Coingecko slugs (cosmoshub, juno, saga)
     var newsUrl = _SB_URL + "/rest/v1/chain_news_cache"
                 + "?chain_id=in.(cosmoshub,osmosis,juno,cardano,saga,dymension)"
@@ -2109,8 +2111,8 @@ async function _checkNewNews(){
     
     // Parallel fetch so the slowest request gates the dot, not the sum
     var results = await Promise.all([
-      fetch(newsUrl, {headers}).catch(function(){return null;}),
-      fetch(govUrl,  {headers}).catch(function(){return null;})
+      fetch(newsUrl, {headers, signal: AbortSignal.timeout(5000)}).catch(function(e){console.warn('[news-dot] newsUrl fetch failed:',e.message);return null;}),
+      fetch(govUrl,  {headers, signal: AbortSignal.timeout(5000)}).catch(function(e){console.warn('[news-dot] govUrl fetch failed:',e.message);return null;})
     ]);
     
     function parseCount(resp){
@@ -2120,15 +2122,21 @@ async function _checkNewNews(){
       return m ? parseInt(m[1]) : 0;
     }
     
-    var total = parseCount(results[0]) + parseCount(results[1]);
+    var newsCount = parseCount(results[0]);
+    var govCount = parseCount(results[1]);
+    var total = newsCount + govCount;
+    
+    console.log('[news-dot] Found: '+newsCount+' news, '+govCount+' proposals → total='+total);
     
     var navDot = document.getElementById('nav-news-dot');
     var bnDot  = document.getElementById('bn-news-dot');
     var show = total > 0 ? '' : 'none';
     if(navDot) navDot.style.display = show;
     if(bnDot)  bnDot.style.display  = show;
+    
+    if(total > 0) console.log('[news-dot] ✅ Badge shown');
   }catch(e){
-    console.warn('[news-dot]', e.message);
+    console.warn('[news-dot] ERROR:', e.message);
   }
 }
 
@@ -2137,6 +2145,14 @@ async function _checkNewNews(){
 setInterval(function(){
   if(document.visibilityState === 'visible') _checkNewNews();
 }, 3 * 60 * 1000);
+
+// Also re-check when user returns to this tab from news.html
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible'){
+    console.log('[news-dot] Tab became visible, re-checking...');
+    _checkNewNews();
+  }
+});
 
 function _populateOverlay(user){
   if(!user)return;
