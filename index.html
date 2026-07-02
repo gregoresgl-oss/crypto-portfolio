@@ -1893,11 +1893,10 @@ async function _loadLiveAPR(){
   }
 }
 
-// Rerender staking section when APR changes
+// Rerender staking section when APR changes (always update, even if not viewing)
 function _rerenderStakingSection(){
-  if(_nav==='staking'){
-    _renderSection('staking');
-  }
+  console.log("[APR] Re-rendering staking section (current tab: "+_nav+")");
+  _renderSection('staking');
 }
 const COSMOS_CHAINS=[
   {id:"cosmos",name:"Cosmos",sym:"ATOM",prefix:"cosmos",denom:"uatom",dec:6,ep:["https://rest.cosmos.directory/cosmoshub","https://cosmos-rest.publicnode.com"]},
