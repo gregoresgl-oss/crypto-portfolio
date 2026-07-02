@@ -2154,6 +2154,14 @@ document.addEventListener('visibilitychange', function(){
   }
 });
 
+// Listen for APR updates from admin panel (via localStorage signal)
+window.addEventListener('storage', function(e){
+  if(e.key === 'ggwall-apr-updated'){
+    console.log('[APR] 🔔 Admin panel updated APRs, reloading...');
+    _loadLiveAPR();
+  }
+});
+
 function _populateOverlay(user){
   if(!user)return;
   var ph=user.photo||(user.avatar?.startsWith("img:")?user.avatar.slice(4):null);
