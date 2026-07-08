@@ -635,6 +635,18 @@ body::before{
         <div id="chains-container"></div>
       </div>
 
+      <!-- AVERAGE COST CARD -->
+      <div style="background:var(--card);border-radius:12px;border:1px solid var(--line);padding:18px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">💱 Μέσο Κόστος Αγορών</div>
+        <div id="avg-cost-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">
+          <!-- Populated by JS -->
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);">
+          <i style="display:inline-block;width:4px;height:4px;background:var(--green);border-radius:50%;margin-right:6px;vertical-align:middle;"></i>
+          Rewards κατεβάζουν τον M.O. (€0 κόστος)
+        </div>
+      </div>
+
       <!-- FILTER BAR -->
       <div class="filterbar">
         <div class="tabs" id="type-tabs">
@@ -2119,6 +2131,53 @@ setInterval(function(){
 // ──────────── Run ────────────
 init();
 _checkNewNews();
+renderAverageCost();
+
+// ════════════════════════════════════════════════════════════════════
+// Calculate & render Average Cost (M.O.) per chain
+// ════════════════════════════════════════════════════════════════════
+function renderAverageCost(){
+  if(!window._allTxs || !Array.isArray(window._allTxs)) return;
+  
+  var chainColors = {
+    cosmos: {color: '#7dd67d', bg: 'rgba(125,214,125,0.12)', border: 'rgba(125,214,125,0.3)'},
+    osmosis: {color: '#64c8ff', bg: 'rgba(100,200,255,0.12)', border: 'rgba(100,200,255,0.3)'},
+    'juno-network': {color: '#9f73ff', bg: 'rgba(159,115,255,0.12)', border: 'rgba(159,115,255,0.3)'},
+    'saga-2': {color: '#f5c24a', bg: 'rgba(245,194,74,0.12)', border: 'rgba(245,194,74,0.3)'},
+    dymension: {color: '#ff9564', bg: 'rgba(255,149,100,0.12)', border: 'rgba(255,149,100,0.3)'},
+    celestia: {color: '#64c8ff', bg: 'rgba(100,200,255,0.12)', border: 'rgba(100,200,255,0.3)'},
+    stargaze: {color: '#f5c24a', bg: 'rgba(245,194,74,0.12)', border: 'rgba(245,194,74,0.3)'},
+    'akash-network': {color: '#7dd67d', bg: 'rgba(125,214,125,0.12)', border: 'rgba(125,214,125,0.3)'},
+    secret: {color: '#9f73ff', bg: 'rgba(159,115,255,0.12)', border: 'rgba(159,115,255,0.3)'},
+    cardano: {color: '#64c8ff', bg: 'rgba(100,200,255,0.12)', border: 'rgba(100,200,255,0.3)'}
+  };
+  
+  var chainMap = {};
+  window._allTxs.forEach(function(tx){
+    if(!tx.chain_id || !tx.amount_raw || tx.amount_raw == 0) return;
+    if(!chainMap[tx.chain_id]) chainMap[tx.chain_id] = {totalValue: 0, totalAmount: 0};
+    chainMap[tx.chain_id].totalValue += parseFloat(tx.value_eur || 0);
+    chainMap[tx.chain_id].totalAmount += parseFloat(tx.amount_raw);
+  });
+  
+  var grid = document.getElementById('avg-cost-grid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  
+  Object.keys(chainMap).sort().forEach(function(chainId){
+    var data = chainMap[chainId];
+    var avgCost = data.totalAmount > 0 ? data.totalValue / data.totalAmount : 0;
+    var colors = chainColors[chainId] || {color: '#888888', bg: 'rgba(136,136,136,0.12)', border: 'rgba(136,136,136,0.3)'};
+    
+    var card = document.createElement('div');
+    card.style.cssText = 'background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:8px;padding:12px;text-align:center;';
+    card.innerHTML = 
+      '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">' + chainId.toUpperCase() + '</div>' +
+      '<div style="font-size:18px;font-weight:500;color:' + colors.color + ';margin-bottom:4px;">€' + avgCost.toFixed(2) + '</div>' +
+      '<div style="font-size:11px;color:var(--muted);">' + Math.round(data.totalAmount) + ' coins</div>';
+    grid.appendChild(card);
+  });
+}
 </script>
 
 </body>
