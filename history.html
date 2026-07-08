@@ -1049,6 +1049,7 @@ function render() {
   renderHero();
   renderWallets();
   renderStream();
+  renderAverageCost();
 }
 
 function renderHero() {
@@ -2131,13 +2132,12 @@ setInterval(function(){
 // ──────────── Run ────────────
 init();
 _checkNewNews();
-renderAverageCost();
 
 // ════════════════════════════════════════════════════════════════════
 // Calculate & render Average Cost (M.O.) per chain
 // ════════════════════════════════════════════════════════════════════
 function renderAverageCost(){
-  if(!window._allTxs || !Array.isArray(window._allTxs)) return;
+  if(!state || !state.transactions || !Array.isArray(state.transactions)) return;
   
   var chainColors = {
     cosmos: {color: '#7dd67d', bg: 'rgba(125,214,125,0.12)', border: 'rgba(125,214,125,0.3)'},
@@ -2153,7 +2153,7 @@ function renderAverageCost(){
   };
   
   var chainMap = {};
-  window._allTxs.forEach(function(tx){
+  state.transactions.forEach(function(tx){
     if(!tx.chain_id || !tx.amount_raw || tx.amount_raw == 0) return;
     if(!chainMap[tx.chain_id]) chainMap[tx.chain_id] = {totalValue: 0, totalAmount: 0};
     chainMap[tx.chain_id].totalValue += parseFloat(tx.value_eur || 0);
