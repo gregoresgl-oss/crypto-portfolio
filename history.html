@@ -638,7 +638,7 @@ body::before{
       <!-- AVERAGE COST CARD -->
       <div style="background:var(--card);border-radius:12px;border:1px solid var(--line);padding:18px;margin-bottom:20px;">
         <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">💱 Μέσο Κόστος Αγορών</div>
-        <div id="avg-cost-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">
+        <div id="avg-cost-grid" style="display:flex;flex-wrap:wrap;gap:8px;">
           <!-- Populated by JS -->
         </div>
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);">
@@ -2138,52 +2138,56 @@ _checkNewNews();
 // Μετράμε: receive, rewards, auto_restake
 // Αγνοούμε: send, delegate, undelegate, swap, spam
 // ════════════════════════════════════════════════════════════════════
+var MO_LOGOS = {
+  cosmos: 'https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png',
+  osmosis: 'https://assets.coingecko.com/coins/images/16724/small/osmo.png',
+  'juno-network': 'https://assets.coingecko.com/coins/images/19249/small/juno.png',
+  cardano: 'https://assets.coingecko.com/coins/images/975/small/cardano.png',
+  celestia: 'https://assets.coingecko.com/coins/images/31967/small/tia.jpg',
+  stargaze: 'https://assets.coingecko.com/coins/images/22363/small/stargaze.png',
+  'akash-network': 'https://assets.coingecko.com/coins/images/12785/small/akash-logo.png',
+  secret: 'https://assets.coingecko.com/coins/images/11871/small/Secret.png',
+  kava: 'https://assets.coingecko.com/coins/images/9761/small/kava.png',
+  'saga-2': 'https://raw.githubusercontent.com/cosmos/chain-registry/master/saga/images/saga.png',
+  dymension: 'https://s2.coinmarketcap.com/static/img/coins/64x64/28932.png'
+};
+
+var MO_COLORS = {
+  cosmos: {color:'#7dd67d', bg:'rgba(125,214,125,0.12)', border:'rgba(125,214,125,0.3)'},
+  osmosis: {color:'#64c8ff', bg:'rgba(100,200,255,0.12)', border:'rgba(100,200,255,0.3)'},
+  'juno-network': {color:'#9f73ff', bg:'rgba(159,115,255,0.12)', border:'rgba(159,115,255,0.3)'},
+  'saga-2': {color:'#f5c24a', bg:'rgba(245,194,74,0.12)', border:'rgba(245,194,74,0.3)'},
+  dymension: {color:'#ff9564', bg:'rgba(255,149,100,0.12)', border:'rgba(255,149,100,0.3)'},
+  celestia: {color:'#64c8ff', bg:'rgba(100,200,255,0.12)', border:'rgba(100,200,255,0.3)'},
+  stargaze: {color:'#f5c24a', bg:'rgba(245,194,74,0.12)', border:'rgba(245,194,74,0.3)'},
+  'akash-network': {color:'#7dd67d', bg:'rgba(125,214,125,0.12)', border:'rgba(125,214,125,0.3)'},
+  secret: {color:'#9f73ff', bg:'rgba(159,115,255,0.12)', border:'rgba(159,115,255,0.3)'},
+  cardano: {color:'#64c8ff', bg:'rgba(100,200,255,0.12)', border:'rgba(100,200,255,0.3)'},
+  kava: {color:'#ff9564', bg:'rgba(255,149,100,0.12)', border:'rgba(255,149,100,0.3)'}
+};
+
 function renderAverageCost(){
   if(!state || !state.transactions || !Array.isArray(state.transactions)) return;
-  
-  var chainColors = {
-    cosmos: {color: '#7dd67d', bg: 'rgba(125,214,125,0.12)', border: 'rgba(125,214,125,0.3)'},
-    osmosis: {color: '#64c8ff', bg: 'rgba(100,200,255,0.12)', border: 'rgba(100,200,255,0.3)'},
-    'juno-network': {color: '#9f73ff', bg: 'rgba(159,115,255,0.12)', border: 'rgba(159,115,255,0.3)'},
-    'saga-2': {color: '#f5c24a', bg: 'rgba(245,194,74,0.12)', border: 'rgba(245,194,74,0.3)'},
-    dymension: {color: '#ff9564', bg: 'rgba(255,149,100,0.12)', border: 'rgba(255,149,100,0.3)'},
-    celestia: {color: '#64c8ff', bg: 'rgba(100,200,255,0.12)', border: 'rgba(100,200,255,0.3)'},
-    stargaze: {color: '#f5c24a', bg: 'rgba(245,194,74,0.12)', border: 'rgba(245,194,74,0.3)'},
-    'akash-network': {color: '#7dd67d', bg: 'rgba(125,214,125,0.12)', border: 'rgba(125,214,125,0.3)'},
-    secret: {color: '#9f73ff', bg: 'rgba(159,115,255,0.12)', border: 'rgba(159,115,255,0.3)'},
-    cardano: {color: '#64c8ff', bg: 'rgba(100,200,255,0.12)', border: 'rgba(100,200,255,0.3)'}
-  };
 
-  // Τύποι που μετράμε
   var chainMap = {};
   state.transactions.forEach(function(tx){
     if(!tx.chain_id) return;
-    if(tx.spam_score && tx.spam_score > 0) return; // skip spam
-
+    if(tx.spam_score && tx.spam_score > 0) return;
     var nt = normalizeType(tx);
     var isReceive = (nt === 'receive');
     var isReward  = (nt === 'rewards');
-
-    if(!isReceive && !isReward) return; // skip send, delegate, swap κλπ
-
-    // Parse amount από string π.χ. "12.5 ATOM" → 12.5
+    if(!isReceive && !isReward) return;
     var amountNum = 0;
     if(tx.amount){
       var parsed = parseFloat(tx.amount.replace(/[^\d.]/g, ''));
       if(!isNaN(parsed) && parsed > 0) amountNum = parsed;
     }
     if(amountNum <= 0) return;
-
-    if(!chainMap[tx.chain_id]) chainMap[tx.chain_id] = {totalValue: 0, totalAmount: 0};
+    if(!chainMap[tx.chain_id]) chainMap[tx.chain_id] = {totalValue:0, totalAmount:0};
     chainMap[tx.chain_id].totalAmount += amountNum;
-
-    // Rewards = €0 κόστος, receive = value_eur
-    if(isReceive){
-      chainMap[tx.chain_id].totalValue += parseFloat(tx.value_eur || 0);
-    }
-    // isReward → +0 στο value (δωρεάν coins)
+    if(isReceive) chainMap[tx.chain_id].totalValue += parseFloat(tx.value_eur || 0);
   });
-  
+
   var grid = document.getElementById('avg-cost-grid');
   if(!grid) return;
   grid.innerHTML = '';
@@ -2193,23 +2197,19 @@ function renderAverageCost(){
     grid.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px;">Δεν βρέθηκαν δεδομένα</div>';
     return;
   }
-  
+
   chains.forEach(function(chainId){
     var data = chainMap[chainId];
     var avgCost = data.totalAmount > 0 ? data.totalValue / data.totalAmount : 0;
-    var colors = chainColors[chainId] || {color: '#888888', bg: 'rgba(136,136,136,0.12)', border: 'rgba(136,136,136,0.3)'};
-    var label = chainId === 'juno-network' ? 'JUNO'
-              : chainId === 'akash-network' ? 'AKASH'
-              : chainId === 'saga-2' ? 'SAGA'
-              : chainId.toUpperCase();
-    
-    var card = document.createElement('div');
-    card.style.cssText = 'background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:8px;padding:12px;text-align:center;';
-    card.innerHTML = 
-      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">' + label + '</div>' +
-      '<div style="font-size:18px;font-weight:500;color:' + colors.color + ';margin-bottom:4px;">€' + avgCost.toFixed(4) + '</div>' +
-      '<div style="font-size:11px;color:var(--dim);">' + data.totalAmount.toFixed(2) + ' coins</div>';
-    grid.appendChild(card);
+    var colors = MO_COLORS[chainId] || {color:'#888', bg:'rgba(136,136,136,0.12)', border:'rgba(136,136,136,0.3)'};
+    var logo = MO_LOGOS[chainId] || '';
+
+    var chip = document.createElement('div');
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:20px;padding:4px 10px;';
+    chip.innerHTML =
+      (logo ? '<img src="' + logo + '" style="width:16px;height:16px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">' : '') +
+      '<span style="font-size:13px;font-weight:500;color:' + colors.color + ';">€' + avgCost.toFixed(4) + '</span>';
+    grid.appendChild(chip);
   });
 }
 </script>
