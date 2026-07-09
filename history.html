@@ -2135,6 +2135,8 @@ _checkNewNews();
 
 // ════════════════════════════════════════════════════════════════════
 // Calculate & render Average Cost (M.O.) per chain
+// Μετράμε: receive, rewards, auto_restake
+// Αγνοούμε: send, delegate, undelegate, swap, spam
 // ════════════════════════════════════════════════════════════════════
 function renderAverageCost(){
   if(!state || !state.transactions || !Array.isArray(state.transactions)) return;
@@ -2152,26 +2154,34 @@ function renderAverageCost(){
     cardano: {color: '#64c8ff', bg: 'rgba(100,200,255,0.12)', border: 'rgba(100,200,255,0.3)'}
   };
 
+  // Τύποι που μετράμε
   var chainMap = {};
   state.transactions.forEach(function(tx){
     if(!tx.chain_id) return;
-    if(!tx.value_eur || tx.value_eur == 0) return; // skip txs χωρίς τιμή
-    if(tx.spam_score && tx.spam_score > 0) return;  // skip spam
+    if(tx.spam_score && tx.spam_score > 0) return; // skip spam
+
+    var nt = normalizeType(tx);
+    var isReceive = (nt === 'receive');
+    var isReward  = (nt === 'rewards');
+
+    if(!isReceive && !isReward) return; // skip send, delegate, swap κλπ
 
     // Parse amount από string π.χ. "12.5 ATOM" → 12.5
     var amountNum = 0;
     if(tx.amount){
       var parsed = parseFloat(tx.amount.replace(/[^\d.]/g, ''));
-      if(!isNaN(parsed)) amountNum = parsed;
+      if(!isNaN(parsed) && parsed > 0) amountNum = parsed;
     }
     if(amountNum <= 0) return;
 
-    var valueEur = parseFloat(tx.value_eur || 0);
-    if(valueEur <= 0) return;
-
     if(!chainMap[tx.chain_id]) chainMap[tx.chain_id] = {totalValue: 0, totalAmount: 0};
-    chainMap[tx.chain_id].totalValue += valueEur;
     chainMap[tx.chain_id].totalAmount += amountNum;
+
+    // Rewards = €0 κόστος, receive = value_eur
+    if(isReceive){
+      chainMap[tx.chain_id].totalValue += parseFloat(tx.value_eur || 0);
+    }
+    // isReward → +0 στο value (δωρεάν coins)
   });
   
   var grid = document.getElementById('avg-cost-grid');
@@ -2180,7 +2190,7 @@ function renderAverageCost(){
 
   var chains = Object.keys(chainMap).sort();
   if(!chains.length){
-    grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">Δεν βρέθηκαν δεδομένα</div>';
+    grid.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px;">Δεν βρέθηκαν δεδομένα</div>';
     return;
   }
   
@@ -2188,7 +2198,10 @@ function renderAverageCost(){
     var data = chainMap[chainId];
     var avgCost = data.totalAmount > 0 ? data.totalValue / data.totalAmount : 0;
     var colors = chainColors[chainId] || {color: '#888888', bg: 'rgba(136,136,136,0.12)', border: 'rgba(136,136,136,0.3)'};
-    var label = chainId === 'juno-network' ? 'JUNO' : chainId === 'akash-network' ? 'AKASH' : chainId === 'saga-2' ? 'SAGA' : chainId.toUpperCase();
+    var label = chainId === 'juno-network' ? 'JUNO'
+              : chainId === 'akash-network' ? 'AKASH'
+              : chainId === 'saga-2' ? 'SAGA'
+              : chainId.toUpperCase();
     
     var card = document.createElement('div');
     card.style.cssText = 'background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:8px;padding:12px;text-align:center;';
