@@ -2151,30 +2151,51 @@ function renderAverageCost(){
     secret: {color: '#9f73ff', bg: 'rgba(159,115,255,0.12)', border: 'rgba(159,115,255,0.3)'},
     cardano: {color: '#64c8ff', bg: 'rgba(100,200,255,0.12)', border: 'rgba(100,200,255,0.3)'}
   };
-  
+
   var chainMap = {};
   state.transactions.forEach(function(tx){
-    if(!tx.chain_id || !tx.amount_raw || tx.amount_raw == 0) return;
+    if(!tx.chain_id) return;
+    if(!tx.value_eur || tx.value_eur == 0) return; // skip txs χωρίς τιμή
+    if(tx.spam_score && tx.spam_score > 0) return;  // skip spam
+
+    // Parse amount από string π.χ. "12.5 ATOM" → 12.5
+    var amountNum = 0;
+    if(tx.amount){
+      var parsed = parseFloat(tx.amount.replace(/[^\d.]/g, ''));
+      if(!isNaN(parsed)) amountNum = parsed;
+    }
+    if(amountNum <= 0) return;
+
+    var valueEur = parseFloat(tx.value_eur || 0);
+    if(valueEur <= 0) return;
+
     if(!chainMap[tx.chain_id]) chainMap[tx.chain_id] = {totalValue: 0, totalAmount: 0};
-    chainMap[tx.chain_id].totalValue += parseFloat(tx.value_eur || 0);
-    chainMap[tx.chain_id].totalAmount += parseFloat(tx.amount_raw);
+    chainMap[tx.chain_id].totalValue += valueEur;
+    chainMap[tx.chain_id].totalAmount += amountNum;
   });
   
   var grid = document.getElementById('avg-cost-grid');
   if(!grid) return;
   grid.innerHTML = '';
+
+  var chains = Object.keys(chainMap).sort();
+  if(!chains.length){
+    grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">Δεν βρέθηκαν δεδομένα</div>';
+    return;
+  }
   
-  Object.keys(chainMap).sort().forEach(function(chainId){
+  chains.forEach(function(chainId){
     var data = chainMap[chainId];
     var avgCost = data.totalAmount > 0 ? data.totalValue / data.totalAmount : 0;
     var colors = chainColors[chainId] || {color: '#888888', bg: 'rgba(136,136,136,0.12)', border: 'rgba(136,136,136,0.3)'};
+    var label = chainId === 'juno-network' ? 'JUNO' : chainId === 'akash-network' ? 'AKASH' : chainId === 'saga-2' ? 'SAGA' : chainId.toUpperCase();
     
     var card = document.createElement('div');
     card.style.cssText = 'background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:8px;padding:12px;text-align:center;';
     card.innerHTML = 
-      '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">' + chainId.toUpperCase() + '</div>' +
-      '<div style="font-size:18px;font-weight:500;color:' + colors.color + ';margin-bottom:4px;">€' + avgCost.toFixed(2) + '</div>' +
-      '<div style="font-size:11px;color:var(--muted);">' + Math.round(data.totalAmount) + ' coins</div>';
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">' + label + '</div>' +
+      '<div style="font-size:18px;font-weight:500;color:' + colors.color + ';margin-bottom:4px;">€' + avgCost.toFixed(4) + '</div>' +
+      '<div style="font-size:11px;color:var(--dim);">' + data.totalAmount.toFixed(2) + ' coins</div>';
     grid.appendChild(card);
   });
 }
