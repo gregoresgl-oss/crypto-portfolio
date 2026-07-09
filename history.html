@@ -523,6 +523,8 @@ body::before{
               <div class="chip chip-legend"><span class="chip-dot out"></span>Out <b id="chip-out">€0</b></div>
               <div class="chip chip-legend"><span class="chip-dot rew"></span>Rewards <b id="chip-rew">€0</b></div>
               <div class="chip chip-legend" id="chip-value-wrap" style="display:none;"><span class="chip-dot val"></span>Αξία <b id="chip-value">€0</b></div>
+              <span style="display:inline-block;width:1px;height:14px;background:rgba(255,255,255,0.15);margin:0 6px;vertical-align:middle;"></span>
+              <div id="mo-chips-inline" style="display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
             </div>
           </div>
 
@@ -635,17 +637,7 @@ body::before{
         <div id="chains-container"></div>
       </div>
 
-      <!-- AVERAGE COST CARD -->
-      <div style="background:var(--card);border-radius:12px;border:1px solid var(--line);padding:18px;margin-bottom:20px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">💱 Μέσο Κόστος Αγορών</div>
-        <div id="avg-cost-grid" style="display:flex;flex-wrap:wrap;gap:8px;">
-          <!-- Populated by JS -->
-        </div>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);">
-          <i style="display:inline-block;width:4px;height:4px;background:var(--green);border-radius:50%;margin-right:6px;vertical-align:middle;"></i>
-          Rewards κατεβάζουν τον M.O. (€0 κόστος)
-        </div>
-      </div>
+      <div id="avg-cost-grid" style="display:none;"></div>
 
       <!-- FILTER BAR -->
       <div class="filterbar">
@@ -2189,12 +2181,13 @@ function renderAverageCost(){
   });
 
   var grid = document.getElementById('avg-cost-grid');
-  if(!grid) return;
-  grid.innerHTML = '';
+  var inline = document.getElementById('mo-chips-inline');
+  if(grid) grid.innerHTML = '';
+  if(inline) inline.innerHTML = '';
 
   var chains = Object.keys(chainMap).sort();
   if(!chains.length){
-    grid.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px;">Δεν βρέθηκαν δεδομένα</div>';
+    if(grid) grid.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px;">Δεν βρέθηκαν δεδομένα</div>';
     return;
   }
 
@@ -2203,13 +2196,24 @@ function renderAverageCost(){
     var avgCost = data.totalAmount > 0 ? data.totalValue / data.totalAmount : 0;
     var colors = MO_COLORS[chainId] || {color:'#888', bg:'rgba(136,136,136,0.12)', border:'rgba(136,136,136,0.3)'};
     var logo = MO_LOGOS[chainId] || '';
+    var imgHtml = logo ? '<img src="' + logo + '" style="width:14px;height:14px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">' : '';
+    var priceHtml = '<span style="font-size:12px;font-weight:500;color:' + colors.color + ';">€' + avgCost.toFixed(4) + '</span>';
+    var chipStyle = 'display:inline-flex;align-items:center;gap:5px;background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:20px;padding:3px 9px;';
 
-    var chip = document.createElement('div');
-    chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:20px;padding:4px 10px;';
-    chip.innerHTML =
-      (logo ? '<img src="' + logo + '" style="width:16px;height:16px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">' : '') +
-      '<span style="font-size:13px;font-weight:500;color:' + colors.color + ';">€' + avgCost.toFixed(4) + '</span>';
-    grid.appendChild(chip);
+    if(inline){
+      var c = document.createElement('div');
+      c.style.cssText = chipStyle;
+      c.innerHTML = imgHtml + priceHtml;
+      inline.appendChild(c);
+    }
+
+    if(grid){
+      var card = document.createElement('div');
+      card.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:20px;padding:4px 10px;';
+      card.innerHTML = (logo ? '<img src="' + logo + '" style="width:16px;height:16px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">' : '') +
+        '<span style="font-size:13px;font-weight:500;color:' + colors.color + ';">€' + avgCost.toFixed(4) + '</span>';
+      grid.appendChild(card);
+    }
   });
 }
 </script>
