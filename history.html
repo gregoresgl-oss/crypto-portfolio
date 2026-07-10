@@ -1781,20 +1781,72 @@ function renderStream() {
     return;
   }
 
-  // Group by day
-  var groups = groupByDay(filtered);
+  // Init expanded months if not set
+  if(!state.expandedMonths) state.expandedMonths = {};
+
+  // Group by month first, then by day
+  var monthMap = {};
+  var monthOrder = [];
+
+  filtered.forEach(function(tx){
+    var d = new Date(tx.timestamp);
+    var mk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    if(!monthMap[mk]){
+      monthMap[mk] = {txs:[], label:''};
+      monthOrder.push(mk);
+      var monthNames = ['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+      monthMap[mk].label = monthNames[d.getMonth()] + ' ' + d.getFullYear();
+    }
+    monthMap[mk].txs.push(tx);
+  });
+
+  // Sort months descending
+  monthOrder.sort().reverse();
+
+  // Auto-expand latest month if nothing expanded
+  if(Object.keys(state.expandedMonths).length === 0 && monthOrder.length > 0){
+    state.expandedMonths[monthOrder[0]] = true;
+  }
+
   var html = '';
 
-  groups.forEach(function(group, gi) {
-    html += '<div class="group">';
-    html += '<div class="day"><div class="day-dot ' + 'live' + '"></div><div class="day-lbl">' + group.label + '</div>';
-    html += '<div class="day-line"></div><div class="day-count">' + group.txs.length + ' TX</div></div>';
+  monthOrder.forEach(function(mk){
+    var m = monthMap[mk];
+    var isOpen = !!state.expandedMonths[mk];
+    var totalEur = m.txs.reduce(function(s,t){ return s + parseFloat(t.value_eur||0); }, 0);
+    var eurStr = (totalEur >= 0 ? '+' : '−') + '€' + Math.abs(totalEur).toFixed(2);
+    var eurColor = totalEur >= 0 ? 'var(--green)' : 'var(--red)';
 
-    html += '<div class="cards">';
-    group.txs.forEach(function(tx) {
-      html += renderTxCard(tx, group.live);
-    });
+    // Month header (always visible)
+    html += '<div class="month-group" data-mk="' + mk + '">';
+    html += '<div class="month-header" onclick="toggleMonth(\'' + mk + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:' + (isOpen ? '10px 10px 0 0' : '10px') + ';cursor:pointer;user-select:none;margin-bottom:' + (isOpen ? '0' : '8px') + ';">';
+    html += '<div style="display:flex;align-items:center;gap:10px;">';
+    html += '<span style="font-size:13px;font-weight:600;color:var(--text);">' + m.label + '</span>';
+    html += '<span style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:10px;">' + m.txs.length + ' txs</span>';
+    html += '</div>';
+    html += '<div style="display:flex;align-items:center;gap:10px;">';
+    html += '<span style="font-size:12px;font-weight:500;color:' + eurColor + ';">' + eurStr + '</span>';
+    html += '<span style="font-size:14px;color:var(--muted);transform:rotate(' + (isOpen?'180':'0') + 'deg);display:inline-block;transition:transform 0.2s;">▾</span>';
     html += '</div></div>';
+
+    // Month body (only if open)
+    if(isOpen){
+      var groups = groupByDay(m.txs);
+      html += '<div class="month-body" style="border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;margin-bottom:8px;overflow:hidden;">';
+      groups.forEach(function(group){
+        html += '<div class="group" style="padding:0 4px;">';
+        html += '<div class="day"><div class="day-dot live"></div><div class="day-lbl">' + group.label + '</div>';
+        html += '<div class="day-line"></div><div class="day-count">' + group.txs.length + ' TX</div></div>';
+        html += '<div class="cards">';
+        group.txs.forEach(function(tx){
+          html += renderTxCard(tx, group.live);
+        });
+        html += '</div></div>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
   });
 
   stream.innerHTML = html;
@@ -1821,6 +1873,16 @@ function renderStream() {
       });
     });
   });
+}
+
+function toggleMonth(mk){
+  if(!state.expandedMonths) state.expandedMonths = {};
+  if(state.expandedMonths[mk]){
+    delete state.expandedMonths[mk];
+  } else {
+    state.expandedMonths[mk] = true;
+  }
+  renderStream();
 }
 
 function renderTxCard(tx, isLive) {
