@@ -640,10 +640,10 @@ body::before{
       <!-- M.O. CARD -->
       <div style="background:var(--card);border-radius:12px;border:1px solid var(--line);padding:16px 18px;margin-bottom:20px;">
         <div style="font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.7;flex-shrink:0;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          Μ.Ο. Αγορών
+          <i class="ti ti-chart-bar" style="font-size:14px;" aria-hidden="true"></i>
+          Μ.Ο. Αγορών & P&L
         </div>
-        <div id="mo-chips-card" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+        <div id="mo-chips-card"></div>
       </div>
 
       <!-- FILTER BAR -->
@@ -826,8 +826,23 @@ async function init() {
   await loadWallets();
   await loadTransactions();
   await loadBalanceHistory();
+  await loadCurrentPrices();
   render();
   bindFilters();
+}
+
+// ──────────── Load Current Prices ────────────
+async function loadCurrentPrices() {
+  try {
+    var res = await fetch(SB_URL + '/rest/v1/prices_cache?select=coin_id,price_eur', { headers: SB_H });
+    var data = await res.json();
+    state.prices = {};
+    (data || []).forEach(function(p){ state.prices[p.coin_id] = parseFloat(p.price_eur); });
+    console.log('[history] loaded prices:', Object.keys(state.prices).length);
+  } catch(e) {
+    console.warn('[history] loadCurrentPrices:', e);
+    state.prices = {};
+  }
 }
 
 // ──────────── Load Balance History ────────────
@@ -2249,34 +2264,54 @@ function renderAverageCost(){
     if(isReceive) chainMap[tx.chain_id].totalValue += parseFloat(tx.value_eur || 0);
   });
 
-  var grid = document.getElementById('avg-cost-grid');
-  var inline = document.getElementById('mo-chips-inline');
   var card = document.getElementById('mo-chips-card');
-  if(grid) grid.innerHTML = '';
-  if(inline) inline.innerHTML = '';
-  if(card) card.innerHTML = '';
+  if(!card) return;
 
   var chains = Object.keys(chainMap).sort();
   if(!chains.length){
-    if(card) card.innerHTML = '<div style="color:var(--muted);font-size:13px;">Δεν βρέθηκαν δεδομένα</div>';
+    card.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Δεν βρέθηκαν δεδομένα</div>';
     return;
   }
 
-  chains.forEach(function(chainId){
+  var LABELS = {
+    cosmos:'ATOM', osmosis:'OSMO', 'juno-network':'JUNO', 'saga-2':'SAGA',
+    dymension:'DYM', cardano:'ADA', celestia:'TIA', stargaze:'STARS',
+    'akash-network':'AKT', secret:'SCRT', kava:'KAVA'
+  };
+
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+  html += '<thead><tr style="border-bottom:0.5px solid var(--border);">'
+    + '<th style="text-align:left;font-weight:500;color:var(--text-muted);padding:0 0 8px;font-size:11px;">Coin</th>'
+    + '<th style="text-align:right;font-weight:500;color:var(--text-muted);padding:0 0 8px;font-size:11px;">Μ.Ο.</th>'
+    + '<th style="text-align:right;font-weight:500;color:var(--text-muted);padding:0 0 8px;font-size:11px;">Τιμή τώρα</th>'
+    + '<th style="text-align:right;font-weight:500;color:var(--text-muted);padding:0 0 8px;font-size:11px;">P&L</th>'
+    + '</tr></thead><tbody>';
+
+  chains.forEach(function(chainId, i){
     var data = chainMap[chainId];
     var avgCost = data.totalAmount > 0 ? data.totalValue / data.totalAmount : 0;
-    var colors = MO_COLORS[chainId] || {color:'#888', bg:'rgba(136,136,136,0.12)', border:'rgba(136,136,136,0.3)'};
+    var currentPrice = (state.prices && state.prices[chainId]) || 0;
+    var pnl = avgCost > 0 && currentPrice > 0 ? ((currentPrice - avgCost) / avgCost * 100) : null;
+    var pnlStr = pnl !== null ? (pnl >= 0 ? '+' : '') + pnl.toFixed(1) + '%' : '—';
+    var pnlColor = pnl === null ? 'var(--text-muted)' : pnl >= 0 ? '#1baf7a' : '#e34948';
     var logo = MO_LOGOS[chainId] || '';
-    var imgHtml = logo ? '<img src="' + logo + '" style="width:16px;height:16px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">' : '';
-    var chipStyle = 'display:inline-flex;align-items:center;gap:6px;background:' + colors.bg + ';border:0.5px solid ' + colors.border + ';border-radius:20px;padding:5px 12px;';
+    var label = LABELS[chainId] || chainId.toUpperCase();
+    var border = i < chains.length - 1 ? 'border-bottom:0.5px solid var(--border);' : '';
 
-    if(card){
-      var c = document.createElement('div');
-      c.style.cssText = chipStyle;
-      c.innerHTML = imgHtml + '<span style="font-size:13px;font-weight:500;color:' + colors.color + ';">€' + avgCost.toFixed(4) + '</span>';
-      card.appendChild(c);
-    }
+    html += '<tr style="' + border + '">'
+      + '<td style="padding:10px 0;">'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      + (logo ? '<img src="' + logo + '" style="width:18px;height:18px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">' : '')
+      + '<span style="color:var(--text-primary);">' + label + '</span>'
+      + '</div></td>'
+      + '<td style="padding:10px 0;text-align:right;color:var(--text-secondary);">€' + avgCost.toFixed(4) + '</td>'
+      + '<td style="padding:10px 0;text-align:right;color:var(--text-secondary);">' + (currentPrice > 0 ? '€' + currentPrice.toFixed(4) : '—') + '</td>'
+      + '<td style="padding:10px 0;text-align:right;font-weight:500;color:' + pnlColor + ';">' + pnlStr + '</td>'
+      + '</tr>';
   });
+
+  html += '</tbody></table>';
+  card.innerHTML = html;
 }
 </script>
 
