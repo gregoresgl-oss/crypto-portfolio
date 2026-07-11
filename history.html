@@ -626,6 +626,17 @@ body::before{
         </div>
       </div>
 
+      <div id="avg-cost-grid" style="display:none;"></div>
+
+      <!-- M.O. CARD -->
+      <div style="background:var(--card);border-radius:12px;border:1px solid var(--line);padding:16px 18px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+          <i class="ti ti-layers-subtract" style="font-size:14px;" aria-hidden="true"></i>
+          Μ.Ο. Αγορών & P&L
+        </div>
+        <div id="mo-chips-card"></div>
+      </div>
+
       <!-- WALLETS -->
       <div class="wallets">
         <div class="wallets-lbl"><span>Πορτοφόλι</span></div>
@@ -633,17 +644,6 @@ body::before{
           <button class="wpill on" data-wallet="all"><span>Όλα</span><span class="wcount" id="wc-all">0</span></button>
         </div>
         <div id="chains-container"></div>
-      </div>
-
-      <div id="avg-cost-grid" style="display:none;"></div>
-
-      <!-- M.O. CARD -->
-      <div style="background:var(--card);border-radius:12px;border:1px solid var(--line);padding:16px 18px;margin-bottom:20px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-          <i class="ti ti-chart-bar" style="font-size:14px;" aria-hidden="true"></i>
-          Μ.Ο. Αγορών & P&L
-        </div>
-        <div id="mo-chips-card"></div>
       </div>
 
       <!-- FILTER BAR -->
@@ -2228,19 +2228,19 @@ var MO_LOGOS = {
   dymension: 'https://s2.coinmarketcap.com/static/img/coins/64x64/28932.png'
 };
 
-var MO_COLORS = {
-  cosmos: {color:'#7dd67d', bg:'rgba(125,214,125,0.12)', border:'rgba(125,214,125,0.3)'},
-  osmosis: {color:'#64c8ff', bg:'rgba(100,200,255,0.12)', border:'rgba(100,200,255,0.3)'},
-  'juno-network': {color:'#9f73ff', bg:'rgba(159,115,255,0.12)', border:'rgba(159,115,255,0.3)'},
-  'saga-2': {color:'#f5c24a', bg:'rgba(245,194,74,0.12)', border:'rgba(245,194,74,0.3)'},
-  dymension: {color:'#ff9564', bg:'rgba(255,149,100,0.12)', border:'rgba(255,149,100,0.3)'},
-  celestia: {color:'#64c8ff', bg:'rgba(100,200,255,0.12)', border:'rgba(100,200,255,0.3)'},
-  stargaze: {color:'#f5c24a', bg:'rgba(245,194,74,0.12)', border:'rgba(245,194,74,0.3)'},
-  'akash-network': {color:'#7dd67d', bg:'rgba(125,214,125,0.12)', border:'rgba(125,214,125,0.3)'},
-  secret: {color:'#9f73ff', bg:'rgba(159,115,255,0.12)', border:'rgba(159,115,255,0.3)'},
-  cardano: {color:'#64c8ff', bg:'rgba(100,200,255,0.12)', border:'rgba(100,200,255,0.3)'},
-  kava: {color:'#ff9564', bg:'rgba(255,149,100,0.12)', border:'rgba(255,149,100,0.3)'}
-};
+    var MO_COLORS = {
+      cosmos: {color:'#7dd67d', bg:'rgba(125,214,125,0.18)', border:'rgba(125,214,125,0.3)'},
+      osmosis: {color:'#64c8ff', bg:'rgba(100,200,255,0.18)', border:'rgba(100,200,255,0.3)'},
+      'juno-network': {color:'#9f73ff', bg:'rgba(159,115,255,0.18)', border:'rgba(159,115,255,0.3)'},
+      'saga-2': {color:'#f5c24a', bg:'rgba(245,194,74,0.18)', border:'rgba(245,194,74,0.3)'},
+      dymension: {color:'#ff9564', bg:'rgba(255,149,100,0.18)', border:'rgba(255,149,100,0.3)'},
+      celestia: {color:'#64c8ff', bg:'rgba(100,200,255,0.18)', border:'rgba(100,200,255,0.3)'},
+      stargaze: {color:'#f5c24a', bg:'rgba(245,194,74,0.18)', border:'rgba(245,194,74,0.3)'},
+      'akash-network': {color:'#7dd67d', bg:'rgba(125,214,125,0.18)', border:'rgba(125,214,125,0.3)'},
+      secret: {color:'#9f73ff', bg:'rgba(159,115,255,0.18)', border:'rgba(159,115,255,0.3)'},
+      cardano: {color:'#64c8ff', bg:'rgba(100,200,255,0.18)', border:'rgba(100,200,255,0.3)'},
+      kava: {color:'#ff9564', bg:'rgba(255,149,100,0.18)', border:'rgba(255,149,100,0.3)'}
+    };
 
 function renderAverageCost(){
   if(!state || !state.transactions || !Array.isArray(state.transactions)) return;
