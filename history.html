@@ -2279,15 +2279,12 @@ function renderAverageCost(){
     'akash-network':'AKT', secret:'SCRT', kava:'KAVA'
   };
 
-  var html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-  html += '<thead><tr style="border-bottom:0.5px solid var(--border);">'
-    + '<th style="text-align:left;font-weight:500;color:var(--text-muted);padding:0 0 8px;font-size:11px;">Coin</th>'
-    + '<th style="text-align:right;font-weight:500;color:var(--text-muted);padding:0 0 8px;font-size:11px;">Μ.Ο.</th>'
-    + '<th style="text-align:right;font-weight:500;color:var(--text-muted);padding:0 0 8px;font-size:11px;">Τιμή τώρα</th>'
-    + '<th style="text-align:right;font-weight:500;color:var(--text-muted);padding:0 0 8px;font-size:11px;">P&L</th>'
-    + '</tr></thead><tbody>';
+  var html = '<div style="font-size:11px;color:var(--text-muted);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;padding:0 12px 8px;border-bottom:0.5px solid var(--border);margin-bottom:4px;">'
+    + '<span>Coin</span><span style="text-align:right;">Μ.Ο.</span><span style="text-align:right;">Τιμή τώρα</span><span style="text-align:right;">P&L</span>'
+    + '</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:4px;">';
 
-  chains.forEach(function(chainId, i){
+  chains.forEach(function(chainId){
     var data = chainMap[chainId];
     var avgCost = data.totalAmount > 0 ? data.totalValue / data.totalAmount : 0;
     var currentPrice = (state.prices && state.prices[chainId]) || 0;
@@ -2296,21 +2293,22 @@ function renderAverageCost(){
     var pnlColor = pnl === null ? 'var(--text-muted)' : pnl >= 0 ? '#1baf7a' : '#e34948';
     var logo = MO_LOGOS[chainId] || '';
     var label = LABELS[chainId] || chainId.toUpperCase();
-    var border = i < chains.length - 1 ? 'border-bottom:0.5px solid var(--border);' : '';
+    var colors = MO_COLORS[chainId] || {color:'#888', bg:'rgba(136,136,136,0.08)', border:'rgba(136,136,136,0.3)'};
 
-    html += '<tr style="' + border + '">'
-      + '<td style="padding:10px 0;">'
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;align-items:center;'
+      + 'padding:8px 12px;border-left:3px solid ' + colors.color + ';border-radius:0 6px 6px 0;'
+      + 'background:' + colors.bg + ';">'
       + '<div style="display:flex;align-items:center;gap:8px;">'
       + (logo ? '<img src="' + logo + '" style="width:18px;height:18px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">' : '')
-      + '<span style="color:var(--text-primary);">' + label + '</span>'
-      + '</div></td>'
-      + '<td style="padding:10px 0;text-align:right;color:var(--text-secondary);">€' + avgCost.toFixed(4) + '</td>'
-      + '<td style="padding:10px 0;text-align:right;color:var(--text-secondary);">' + (currentPrice > 0 ? '€' + currentPrice.toFixed(4) : '—') + '</td>'
-      + '<td style="padding:10px 0;text-align:right;font-weight:500;color:' + pnlColor + ';">' + pnlStr + '</td>'
-      + '</tr>';
+      + '<span style="font-size:13px;color:var(--text-primary);">' + label + '</span>'
+      + '</div>'
+      + '<span style="text-align:right;font-size:13px;color:var(--text-secondary);">€' + avgCost.toFixed(4) + '</span>'
+      + '<span style="text-align:right;font-size:13px;color:var(--text-secondary);">' + (currentPrice > 0 ? '€' + currentPrice.toFixed(4) : '—') + '</span>'
+      + '<span style="text-align:right;font-size:13px;font-weight:500;color:' + pnlColor + ';">' + pnlStr + '</span>'
+      + '</div>';
   });
 
-  html += '</tbody></table>';
+  html += '</div>';
   card.innerHTML = html;
 }
 </script>
