@@ -944,21 +944,35 @@ async function loadCustomNames() {
 
 async function loadWallets() {
   try {
-    var res = await fetch(SB_URL + '/rest/v1/cloud_users?id=eq.' + encodeURIComponent(state.user.id) + '&select=cosmos_addrs', {headers: SB_H});
+    var res = await fetch(SB_URL + '/rest/v1/cloud_users?id=eq.' + encodeURIComponent(state.user.id) + '&select=cosmos_addrs,cardano_addrs', {headers: SB_H});
     var rows = await res.json();
-    if (!rows || !rows.length || !rows[0].cosmos_addrs) return;
+    if (!rows || !rows.length) return;
 
-    var addrs = rows[0].cosmos_addrs.split(/[\n,]+/).map(function(s){return s.trim();}).filter(Boolean);
+    var allAddrs = [];
 
-    // Group by base_id (the part after prefix1, which is identical across chains for same HD wallet)
+    // Cosmos addresses
+    if (rows[0].cosmos_addrs) {
+      var cosmosAddrs = rows[0].cosmos_addrs.split(/[\n,]+/).map(function(s){return s.trim();}).filter(Boolean);
+      allAddrs = allAddrs.concat(cosmosAddrs);
+    }
+
+    // Cardano addresses
+    if (rows[0].cardano_addrs) {
+      var cardanoAddrs = rows[0].cardano_addrs.split(/[\n,]+/).map(function(s){return s.trim();}).filter(Boolean);
+      allAddrs = allAddrs.concat(cardanoAddrs);
+    }
+
+    if (!allAddrs.length) return;
+
+    // Group by base_id
     var grouped = {};
-    addrs.forEach(function(addr) {
+    allAddrs.forEach(function(addr) {
+      // Cosmos: prefix1rest → base_id from rest
+      // Cardano: addr1rest → treat same way
       var match = addr.match(/^([a-z]+)1([a-z0-9]+)/);
       if (!match) return;
-      var prefix = match[1];
       var rest = match[2];
-      // Use a longer suffix (12 chars) to avoid collisions but stable across chains
-      var baseId = rest.slice(0, Math.min(20, rest.length - 6)); // first 20 chars (chain-independent part)
+      var baseId = rest.slice(0, Math.min(20, rest.length - 6));
 
       if (!grouped[baseId]) {
         grouped[baseId] = {
@@ -970,6 +984,7 @@ async function loadWallets() {
         };
       }
       grouped[baseId].addrs.push(addr);
+      var prefix = match[1];
       if (grouped[baseId].chains.indexOf(prefix) < 0) grouped[baseId].chains.push(prefix);
     });
 
