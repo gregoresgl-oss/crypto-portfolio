@@ -762,6 +762,7 @@ var TX_TYPES = {
   receive:    {label:'Λήψη',       color:'#7dd67d', icon:'↙', bg:'rgba(125,214,125,.12)'},
   delegate:   {label:'Delegate',   color:'#9f73ff', icon:'⌑', bg:'rgba(159,115,255,.12)'},
   undelegate: {label:'Undelegate', color:'#ff9564', icon:'⌐', bg:'rgba(255,149,100,.12)'},
+  redelegate: {label:'Redelegate', color:'#a78bfa', icon:'⇄', bg:'rgba(167,139,250,.12)'},
   rewards:    {label:'Rewards',    color:'#f5c24a', icon:'★', bg:'rgba(245,194,74,.12)'},
   swap:       {label:'Swap',       color:'#64c8ff', icon:'⇌', bg:'rgba(100,200,255,.12)'}
 };
@@ -1839,7 +1840,7 @@ function renderStream() {
   monthOrder.forEach(function(mk){
     var m = monthMap[mk];
     var isOpen = !!state.expandedMonths[mk];
-    var totalEur = m.txs.reduce(function(s,t){ return s + parseFloat(t.value_eur||0); }, 0);
+    var totalEur = m.txs.reduce(function(s,t){ var nt = normalizeType(t); if(nt === 'redelegate') return s; return s + parseFloat(t.value_eur||0); }, 0);
     var eurStr = (totalEur >= 0 ? '+' : '−') + '€' + Math.abs(totalEur).toFixed(2);
     var eurColor = totalEur >= 0 ? 'var(--green)' : 'var(--red)';
 
@@ -2085,6 +2086,7 @@ function getTitle(tx, t) {
   if (tx.type === 'receive') return 'Λήψη ' + chain.symbol;
   if (tx.type === 'delegate') return 'Delegate ' + chain.symbol;
   if (tx.type === 'undelegate') return 'Undelegate ' + chain.symbol;
+  if (tx.type === 'redelegate') return 'Redelegate ' + chain.symbol;
   if (tx.type === 'rewards') return 'Claim Rewards';
   if (tx.type === 'swap') return 'Swap';
   return t.label;
