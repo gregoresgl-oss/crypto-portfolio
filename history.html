@@ -1840,7 +1840,7 @@ function renderStream() {
   monthOrder.forEach(function(mk){
     var m = monthMap[mk];
     var isOpen = !!state.expandedMonths[mk];
-    var totalEur = m.txs.reduce(function(s,t){ var nt = normalizeType(t); if(nt === 'redelegate') return s; return s + parseFloat(t.value_eur||0); }, 0);
+    var totalEur = m.txs.reduce(function(s,t){ var nt = normalizeType(t); if(nt === 'redelegate' || nt === 'delegate' || nt === 'undelegate') return s; return s + parseFloat(t.value_eur||0); }, 0);
     var eurStr = (totalEur >= 0 ? '+' : '−') + '€' + Math.abs(totalEur).toFixed(2);
     var eurColor = totalEur >= 0 ? 'var(--green)' : 'var(--red)';
 
